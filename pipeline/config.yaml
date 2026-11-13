@@ -1,0 +1,65 @@
+# Configuración del pipeline SIG El Niño Argentina (piloto Chaco).
+# Lo único que hay que completar antes de la primera corrida es gee.proyecto.
+
+area:
+  nombre: Chaco
+  departamentos: docs/data/departamentos.geojson
+  # Recuadro para descargas (oeste, sur, este, norte), con margen.
+  bbox: [-63.5, -28.5, -58.0, -23.8]
+
+rutas:
+  intermedio: pipeline/datos    # archivos de trabajo (no se publican)
+  publicacion: docs/data         # lo que lee la web
+
+gee:
+  proyecto: TU-PROYECTO-GEE      # id del proyecto de Google Cloud registrado en Earth Engine
+  asset_caminos: null            # opcional: "projects/<proyecto>/assets/caminos_chaco"
+
+estacion:
+  nombre: DEF
+  texto: diciembre a febrero
+  meses: [12, 1, 2]              # el primer mes pertenece al año anterior
+
+clima:
+  referencia: [1991, 2020]       # período normal
+  historico_desde: 1982          # primer verano DEF completo de CHIRPS (dic 1981 - feb 1982)
+
+fuentes:
+  chirps: UCSB-CHG/CHIRPS/PENTAD
+  era5_land: ECMWF/ERA5_LAND/DAILY_AGGR
+  hand: MERIT/Hydro/v1_0_1
+  hansen: UMD/hansen/global_forest_change_2023_v1_11
+  worldpop: WorldPop/GP/100m/pop
+  sentinel1: COPERNICUS/S1_GRD
+  jrc_agua: JRC/GSW1_4/GlobalSurfaceWater
+  oni: https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt
+  overpass: https://overpass-api.de/api/interpreter
+
+umbrales:
+  zona_baja_hand_m: 5            # altura sobre el drenaje más cercano
+  bosque_cobertura_2000_pct: 30
+  bosque_perdida_desde: 2004     # años de pérdida contados (Hansen)
+  bosque_perdida_hasta: 2023
+  noche_tropical_c: 25           # temperatura mínima diaria
+  dengue_temp_min_c: 20          # rango de temperatura media diaria apto para Aedes aegypti
+  dengue_temp_max_c: 32
+  agua_permanente_ocurrencia: 50 # % de ocurrencia JRC a partir del cual el agua se considera habitual
+  oni_umbral: 0.5
+  oni_temporadas_minimas: 5
+
+c3s:
+  centro: ecmwf
+  sistema: "51"
+  hindcast: [1993, 2016]
+
+caminos:
+  # Tipos de OpenStreetMap considerados caminos rurales (mayormente de tierra en Chaco).
+  rurales: [track, unclassified, tertiary]
+  todos: [motorway, trunk, primary, secondary, tertiary, unclassified, track, residential]
+
+indice:
+  pesos: {w1: 0.4, w2: 0.2, w3: 0.4}   # decisión propia, a calibrar
+  piso_normalizacion: 0.01
+
+control_calidad:
+  saltos_maximos_categoria: 2    # aviso si un departamento cambia más de 2 clases en un mes

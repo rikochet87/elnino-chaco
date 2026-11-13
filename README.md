@@ -22,6 +22,8 @@ docs/                     sitio publicado (GitHub Pages sirve esta carpeta)
     localidades.json      nombres para la búsqueda
   js/  css/  vendor/  fonts/  icons/
   sw.js  manifest.webmanifest
+pipeline/                 procesamiento de datos reales (ver PIPELINE.md)
+tests/                    pruebas automáticas del pipeline
 scripts/
   preparar_geometrias.py  departamentos de Chaco desde el GeoJSON del IGN
   generar_demo.py         emisión de demostración (valores ilustrativos)
@@ -30,9 +32,16 @@ scripts/
 
 ## Publicar una emisión nueva
 
-1. El pipeline (pendiente) escribe `docs/data/emision-AAAA-MM.json` con el mismo esquema que `generar_demo.py`, y `"demo": false`.
-2. Actualizar `docs/data/emision-actual.json` para que apunte al archivo nuevo.
-3. Subir los cambios: GitHub Pages publica en uno o dos minutos. Los usuarios reciben la emisión nueva la próxima vez que abren la app con conexión.
+El pipeline (`pipeline/`) genera la emisión real con Earth Engine y Copernicus. La puesta en marcha y los comandos están en **[PIPELINE.md](PIPELINE.md)**. En resumen:
+
+```bash
+python -m pipeline historico     # una vez
+python -m pipeline caminos       # una vez
+python -m pipeline mensual --emision 2026-12 --prob-nino 0.62 --intensidad moderada
+git add docs/data && git commit -m "Emisión 2026-12" && git push
+```
+
+GitHub Pages publica en uno o dos minutos, y los usuarios reciben la emisión nueva la próxima vez que abren la app con conexión.
 
 Si cambian archivos de la aplicación (JS, CSS, HTML), subir el número `VERSION` en `docs/sw.js` para que los celulares descarguen la versión nueva.
 

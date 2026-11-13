@@ -1,0 +1,11 @@
+earthengine-api>=1.4
+cdsapi>=0.7.4
+xarray>=2024.1
+netCDF4>=1.6
+numpy>=1.26
+shapely>=2.0
+pyproj>=3.6
+requests>=2.31
+pyyaml>=6.0
+pillow>=10.0
+pytest>=8.0

@@ -77,6 +77,8 @@
     ]);
     const porId = {};
     deptos.features.forEach((f) => { porId[f.id] = f.properties; });
+    // Con datos reales se ocultan la franja y las etiquetas de demostración (ver app.css).
+    document.documentElement.classList.toggle("es-real", !emision.demo);
     return { emision, deptos, contexto, localidades, porId };
   }
 
@@ -190,7 +192,7 @@
   }
 
   const pct = (v) => Math.round(v * 100) + " %";
-  const num = (v, d = 1) => v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const num = (v, d = 1) => (v === null || v === undefined || Number.isNaN(v)) ? "—" : v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
   const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   const fechaLarga = (iso) => { const [a, m, d] = iso.split("-").map(Number); return `${d} de ${MESES[m - 1]} de ${a}`; };
   const mesLargo = (iso) => { const [a, m] = iso.split("-").map(Number); return `${MESES[m - 1]} de ${a}`; };

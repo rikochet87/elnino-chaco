@@ -41,6 +41,7 @@ button, input, select { font: inherit; color: inherit; }
 .aviso-demo { background: var(--demo); border-bottom: 1px solid var(--demo-borde); color: var(--demo-texto); font-size: 14px; }
 .aviso-demo .contenedor { padding-top: 10px; padding-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
 .aviso-demo strong { white-space: nowrap; }
+.es-real .aviso-demo, .es-real .etiqueta-demo, .es-real .solo-demo { display: none !important; }
 .etiqueta-demo { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--demo-texto); background: var(--demo); border: 1px solid var(--demo-borde); padding: 1px 6px; border-radius: 2px; vertical-align: middle; }
 
 /* Barras superiores */

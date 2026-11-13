@@ -98,12 +98,13 @@
       fila("Calor, índice", "ERA5, SMN", `${S.num(d.calor.indice, 2)}<br><small style="font-family:'IBM Plex Sans',sans-serif;color:var(--texto-3)">${chip("calor", d)}</small>`) +
       `</tbody></table>`;
 
-    const o = d.agua_obs, e = datos.emision.agua_obs, dif = o.km2 - o.km2_mes_anterior;
+    const o = d.agua_obs, e = datos.emision.agua_obs;
+    const dif = o.km2_mes_anterior === null || o.km2_mes_anterior === undefined ? null : o.km2 - o.km2_mes_anterior;
     $("agua-meta").textContent = `${e.sensor} · ${e.fecha_imagen} · umbral ${S.num(e.umbral_db, 1)} dB`;
     $("agua-metricas").innerHTML =
       `<div><small>Anegado fuera de lo habitual</small><strong>${S.num(o.km2)} km²</strong></div>` +
-      `<div><small>Variación vs. mes anterior</small><strong>${dif >= 0 ? "+" : "−"}${S.num(Math.abs(dif))} km²</strong></div>` +
-      `<div><small>Caminos en zona anegada</small><strong>${S.num(o.km_caminos)} km</strong></div>` +
+      `<div><small>Variación vs. mes anterior</small><strong>${dif === null ? "—" : (dif >= 0 ? "+" : "−") + S.num(Math.abs(dif)) + " km²"}</strong></div>` +
+      `<div><small>Caminos en zona anegada</small><strong>${o.km_caminos === null || o.km_caminos === undefined ? "Sin dato" : S.num(o.km_caminos) + " km"}</strong></div>` +
       `<div><small>Riesgo pronosticado</small><strong style="font-family:inherit;font-size:15px;font-weight:600">${chip("anegamiento", d)}</strong></div>`;
 
     $("sel-depto").value = depto;

@@ -50,12 +50,14 @@
 
     // Agua observada
     const a = d.agua_obs;
-    const dif = a.km2 - a.km2_mes_anterior;
-    const comp = Math.abs(dif) < 0.1 * a.km2_mes_anterior ? "parecido al" : dif > 0 ? "más que el" : "menos que el";
-    $("agua-texto").innerHTML = `Según la imagen satelital del <strong>${S.fechaLarga(e.agua_obs.fecha_imagen)}</strong>, en el departamento ${p.nombre} hay unos <strong>${S.num(a.km2)} km²</strong> de campos y caminos con agua fuera de lo habitual, ${comp} mes pasado.`;
+    const hayPrevio = a.km2_mes_anterior !== null && a.km2_mes_anterior !== undefined;
+    const dif = hayPrevio ? a.km2 - a.km2_mes_anterior : 0;
+    const parecido = hayPrevio && Math.abs(dif) < Math.max(0.5, 0.1 * a.km2_mes_anterior);
+    const comp = !hayPrevio ? "" : parecido ? ", parecido al mes pasado" : dif > 0 ? ", más que el mes pasado" : ", menos que el mes pasado";
+    $("agua-texto").innerHTML = `Según la imagen satelital del <strong>${S.fechaLarga(e.agua_obs.fecha_imagen)}</strong>, en el departamento ${p.nombre} hay unos <strong>${S.num(a.km2)} km²</strong> de campos y caminos con agua fuera de lo habitual${comp}.`;
     $("agua-km2").textContent = `${S.num(a.km2)} km²`;
-    $("agua-caminos").textContent = `${S.num(a.km_caminos)} km`;
-    $("agua-cambio").textContent = Math.abs(dif) < 0.1 * a.km2_mes_anterior ? "Parecido" : `${dif > 0 ? "Más" : "Menos"} agua (${dif > 0 ? "+" : "−"}${S.num(Math.abs(dif))} km²)`;
+    $("agua-caminos").textContent = a.km_caminos === null || a.km_caminos === undefined ? "Sin dato aún" : `${S.num(a.km_caminos)} km`;
+    $("agua-cambio").textContent = !hayPrevio ? "Sin dato del mes pasado" : parecido ? "Parecido" : `${dif > 0 ? "Más" : "Menos"} agua (${dif > 0 ? "+" : "−"}${S.num(Math.abs(dif))} km²)`;
 
     mapa.seleccionar(id);
     S.guardarPreferido(id);
@@ -145,7 +147,7 @@
       const texto = `El Niño en ${p.cabecera} (${p.nombre}, Chaco), ${datos.emision.trimestre_texto}: ` +
         `${S.MODULOS.lluvia.clases[S.MODULOS.lluvia.clase(d)].texto.toLowerCase()}; ` +
         `posibilidad de cortes de caminos ${S.MODULOS.anegamiento.clases[d.anegamiento.categoria - 1].texto.toLowerCase()}. ` +
-        `(Versión de demostración, datos de ejemplo)`;
+        (datos.emision.demo ? "(Versión de demostración, datos de ejemplo)" : "(Riesgo relativo, no es una alerta oficial)");
       if (navigator.share) {
         try { await navigator.share({ title: "SIG El Niño Argentina", text: texto, url }); } catch (e) { /* cancelado */ }
       } else {
