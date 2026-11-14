@@ -1,81 +1,242 @@
 # SIG El Niño Argentina
 
-**Web:** https://rikochet87.github.io/elnino-chaco/
+**Sitio web:** https://rikochet87.github.io/elnino-chaco/
 
-Aplicación web instalable (PWA) que traduce los pronósticos oficiales de El Niño en información territorial: qué puede pasar con la lluvia, los caminos rurales, el dengue y el calor en cada departamento, y cómo prepararse. Piloto: provincia de Chaco.
+Este sitio muestra qué puede pasar en cada zona de la provincia de Chaco este verano si se confirma El Niño. Muestra qué esperar de la lluvia, si hay riesgo de que se corten los caminos rurales, si el clima favorece al mosquito del dengue y cuánto calor húmedo puede hacer. También da consejos para prepararse.
 
-> **Estado: demostración.** La web funciona, pero los valores publicados son ilustrativos (`"demo": true` en la emisión). Todavía no provienen del pipeline de datos reales. El esquema de datos es el definitivo, así que la emisión real reemplazará a la demo sin cambiar la web.
+La información se actualiza una vez por mes y está escrita para que la entienda cualquier persona. Para quienes trabajan con datos, hay una vista técnica con los números completos y archivos para descargar.
 
-## Qué incluye
+> **Importante:** el sitio muestra **tendencias y probabilidades para toda la temporada** (diciembre a febrero). No es el pronóstico del tiempo de un día ni una alerta oficial. Ante una emergencia, seguí las indicaciones del [Servicio Meteorológico Nacional](https://www.smn.gob.ar/) y de Defensa Civil de tu provincia.
 
-- **Vista ciudadana** (`docs/index.html`): búsqueda por localidad o ubicación, tarjetas en lenguaje simple (lluvia, caminos, dengue, calor), agua observada por satélite, consejos de preparación y mapa por tema.
-- **Vista técnica** (`docs/tecnica.html`): capas continuas (R, H, E, V, pérdida de bosque, agua observada), desglose del índice por departamento, tabla ordenable, descargas en JSON, GeoJSON y CSV.
-- **Funciona sin conexión**: el service worker guarda la aplicación y la última emisión. No usa teselas externas ni tipografías de terceros.
+---
 
-## Estructura
+## Contenido
+
+1. [Qué es El Niño y por qué importa en Chaco](#qué-es-el-niño-y-por-qué-importa-en-chaco)
+2. [Cómo usar el sitio](#cómo-usar-el-sitio)
+3. [Qué significa cada parte de la ficha](#qué-significa-cada-parte-de-la-ficha)
+4. [De dónde salen los datos](#de-dónde-salen-los-datos)
+5. [Cómo se calcula cada resultado](#cómo-se-calcula-cada-resultado)
+6. [Qué no hace el sitio](#qué-no-hace-el-sitio)
+7. [Para quienes quieran ver o usar el código](#para-quienes-quieran-ver-o-usar-el-código)
+
+---
+
+## Qué es El Niño y por qué importa en Chaco
+
+El Niño es un calentamiento del agua del océano Pacífico, frente a las costas de Perú y Ecuador. Aunque pasa lejos, cambia el clima en buena parte del mundo. En el noreste argentino suele traer **veranos más lluviosos**, y eso se traduce en campos anegados, caminos de tierra intransitables, crecidas de ríos y más mosquitos.
+
+Los Niños de 1997-98 y 2015-16 fueron de los más fuertes registrados y dejaron grandes inundaciones en la región. En noviembre de 2026, el Pacífico ya estaba **+2,5 °C más caliente que lo normal**, más que a la misma altura de esos dos años. El gráfico de la página de inicio muestra esa comparación.
+
+---
+
+## Cómo usar el sitio
+
+### 1. Buscá tu zona
+
+En la parte de arriba hay un buscador. Podés:
+
+- **Escribir el nombre de tu localidad o departamento**, por ejemplo *Resistencia*, *Charata* o *Castelli*, y elegirlo de la lista.
+- **Tocar "Usar mi ubicación"**: el sitio detecta en qué departamento estás. Tu ubicación no se guarda ni se envía a ningún lado; se usa solo en tu teléfono o computadora.
+
+### 2. Leé la ficha de tu zona
+
+Aparecen cuatro tarjetas (lluvia, caminos rurales, dengue y calor) y un recuadro con el agua que se ve desde el satélite este mes. Cada una explica en una frase qué significa. El detalle está en [Qué significa cada parte de la ficha](#qué-significa-cada-parte-de-la-ficha).
+
+### 3. Mirá el mapa
+
+Más abajo hay un mapa de Chaco por departamento. Con las pestañas (**Lluvia, Caminos, Dengue, Calor, Agua observada**) cambiás qué se muestra. Tocando un departamento, se abre su ficha.
+
+### 4. Seguí los consejos
+
+La sección **"Qué podés hacer para prepararte"** tiene recomendaciones concretas para la casa, para quien vive o trabaja en el campo y para antes de viajar.
+
+### 5. Compartí la información
+
+El botón **"Compartir la ficha de mi zona"** genera un mensaje para WhatsApp u otras aplicaciones, con un enlace que abre directamente la ficha de tu departamento.
+
+### 6. Instalalo en el celular (opcional)
+
+El sitio se puede instalar como una aplicación:
+
+- **Android (Chrome):** menú ⋮ → *Instalar aplicación* o *Agregar a la pantalla principal*.
+- **iPhone (Safari):** botón Compartir → *Agregar a inicio*.
+
+Una vez abierto, **funciona sin conexión**: guarda la última información, algo útil en zonas rurales con poca señal.
+
+### 7. Vista técnica
+
+El botón **"Vista técnica"** abre una página para profesionales: los componentes del índice de riesgo, capas numéricas en el mapa, una tabla ordenable de los 25 departamentos y archivos para descargar (JSON, GeoJSON y CSV).
+
+---
+
+## Qué significa cada parte de la ficha
+
+### El Pacífico este año
+
+Es el gráfico de la franja azul. La línea roja muestra cuánto más caliente que lo normal está el océano este año, y las líneas grises, cómo evolucionaron los Niños de 1997-98 y 2015-16. Por encima de **+0,5 °C** sostenido se considera El Niño, y por encima de **+2 °C**, muy fuerte.
+
+### Lluvia
+
+Indica si el verano va a ser más o menos lluvioso que lo normal en tu zona.
+
+- **Los 51 puntos** son 51 simulaciones del modelo de pronóstico europeo (ECMWF). Cada punto azul es una simulación que da **más lluvia que lo normal**. Si casi todos son azules, hay mucha coincidencia entre las simulaciones y la señal es fuerte.
+- **"Lo normal"** son los milímetros que llueven en un verano típico en tu zona (promedio 1991–2020).
+- **"El pronóstico espera en promedio X % más"** es cuánto más llueve, en promedio, en las 51 simulaciones.
+- **"En los veranos con El Niño de años anteriores"** es cuánto más llovió en tu departamento, en promedio, durante los Niños desde 1982.
+
+### Caminos rurales
+
+Es la **posibilidad de que los caminos de tierra se corten por agua**, comparada con el resto de la provincia, en cinco niveles: muy baja, baja, media, alta y muy alta. Combina tres cosas: cuánta lluvia se espera, cuántos caminos rurales hay en la zona y qué tan baja y desmontada es la zona.
+
+### Dengue
+
+Indica si el **clima** (calor y lluvia) favorece que se reproduzca el mosquito *Aedes aegypti*. **No predice casos de dengue**: los brotes también dependen de otros factores, como el tipo de virus que circula o lo que pasa en las provincias y países vecinos. Para ver casos reales, consultá el [Boletín Epidemiológico Nacional](https://www.argentina.gob.ar/salud/boletin-epidemiologico-nacional).
+
+### Calor
+
+Indica el riesgo de **calor húmedo y noches que no refrescan**. Con El Niño, las temperaturas máximas no suelen subir en Chaco, pero la humedad puede hacer que la sensación térmica sea alta. Es especialmente importante para adultos mayores, bebés y quienes trabajan al aire libre.
+
+### Agua observada este mes
+
+Es la superficie de **campos y caminos con agua fuera de lo habitual** que se ve en las imágenes satelitales del último mes, en km² por departamento, y cuántos km de caminos rurales quedaron con agua. No cuenta ríos, lagunas ni esteros permanentes. A diferencia de las otras tarjetas, **no es un pronóstico: es lo que ya pasó.**
+
+---
+
+## De dónde salen los datos
+
+Todos los datos son **públicos y gratuitos**. El sitio no inventa números: los toma de estas fuentes y los combina.
+
+| Qué se usa | Fuente | Para qué |
+| --- | --- | --- |
+| Temperatura del océano Pacífico (índice ONI) | [NOAA, Centro de Predicción Climática de EE. UU.](https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php) | Saber qué veranos fueron de El Niño desde 1982 y dibujar el gráfico del océano |
+| Probabilidad de El Niño para el verano | [IRI, Universidad de Columbia](https://iri.columbia.edu/our-expertise/climate/forecasts/enso/current/) y NOAA | Pesar el riesgo según qué tan seguro es que haya El Niño |
+| Pronóstico de lluvia (51 simulaciones) | Modelo estacional europeo **ECMWF SEAS5**, a través de [Open-Meteo](https://open-meteo.com/) | Tarjeta de lluvia y amenaza del índice de caminos |
+| Lluvia de cada verano desde 1982 | **CHIRPS** (Universidad de California, Santa Bárbara), combina satélite y estaciones, unos 5 km de detalle | Lluvia normal y cuánto llovió en los Niños anteriores |
+| Temperatura diaria desde 1982 | **ERA5-Land** (Copernicus, Unión Europea) | Noches tropicales (calor) y días aptos para el mosquito (dengue) |
+| Imágenes de radar satelital | **Sentinel-1** (Agencia Espacial Europea) | Agua observada. El radar ve a través de las nubes, algo clave en temporadas lluviosas |
+| Ríos, lagunas y esteros permanentes | **JRC Global Surface Water** (Comisión Europea) | Descontarlos del agua observada, para mostrar solo el agua nueva |
+| Relieve: altura sobre el arroyo o río más cercano | **MERIT Hydro** (Universidad de Tokio) | Identificar zonas bajas, más propensas a anegarse |
+| Pérdida de bosque nativo 2004–2023 | **Global Forest Change** (Universidad de Maryland) | Vulnerabilidad: menos monte, menos absorción de agua |
+| Población | **WorldPop 2020** (Universidad de Southampton) | Cuántas personas están expuestas al dengue y al calor |
+| Caminos | **OpenStreetMap** | Kilómetros de caminos rurales por departamento y caminos con agua |
+| Límites de los departamentos | **Instituto Geográfico Nacional** | Mapa y cálculos por departamento |
+
+Las capas satelitales e históricas se procesan en **Google Earth Engine**, una plataforma gratuita para uso no comercial que permite calcular sobre imágenes de satélite sin descargarlas.
+
+---
+
+## Cómo se calcula cada resultado
+
+### En pocas palabras
+
+Cada mes, un programa (el *pipeline*, en la carpeta `pipeline/`) hace estos pasos:
+
+1. **Mira el pasado.** Calcula cuánto llovió y cuánto calor hizo en cada uno de los 45 veranos entre 1982 y 2026, y separa los que fueron de El Niño. Esto se hace una sola vez.
+2. **Mira el pronóstico.** Pide al modelo europeo las 51 simulaciones de lluvia para diciembre a febrero y cuenta cuántas dan más lluvia que lo normal.
+3. **Mira el satélite.** Busca en las imágenes de radar del último mes las zonas con agua fuera de lo habitual.
+4. **Combina todo** en índices de riesgo por departamento.
+5. **Controla la calidad.** Si falta un departamento o hay valores imposibles, no publica nada.
+6. **Publica** los resultados en la web.
+
+### Riesgo de cortes de caminos
+
+Sigue el esquema que usan Naciones Unidas y el IPCC para medir riesgo: **riesgo = amenaza × exposición × vulnerabilidad**.
+
+| Componente | Qué mide | Cómo |
+| --- | --- | --- |
+| **Amenaza (H)** | Cuánta lluvia extra se espera | Combina la probabilidad de El Niño, cuánto llovió en los Niños anteriores, qué tan seguido pasó y el pronóstico de las 51 simulaciones |
+| **Exposición (E)** | Cuántos caminos rurales hay | Kilómetros de caminos rurales por km² de departamento (OpenStreetMap) |
+| **Vulnerabilidad (V)** | Qué tan fácil se anega la zona | Promedio de dos cosas: zonas bajas (MERIT Hydro) y pérdida de bosque nativo (Global Forest Change) |
+
+Las tres se combinan con una **media geométrica**, como el índice internacional INFORM de la Comisión Europea. Así, si un componente es bajo, baja el riesgo total. Después se ordenan los 25 departamentos y se agrupan en cinco niveles de cinco departamentos cada uno, de "muy baja" a "muy alta". **El nivel es relativo**: compara cada departamento con el resto de Chaco.
+
+Detalle técnico:
 
 ```
-docs/                     sitio publicado (GitHub Pages sirve esta carpeta)
-  data/
-    emision-actual.json   puntero a la emisión vigente
-    emision-AAAA-MM.json  resultados por departamento y módulo
-    departamentos.geojson límites de Chaco (IGN SIG 250)
-    contexto.geojson      provincias vecinas, solo referencia visual
-    localidades.json      nombres para la búsqueda
-  js/  css/  vendor/  fonts/  icons/
-  sw.js  manifest.webmanifest
-pipeline/                 procesamiento de datos reales (ver PIPELINE.md)
-tests/                    pruebas automáticas del pipeline
-scripts/
-  preparar_geometrias.py  departamentos de Chaco desde el GeoJSON del IGN
-  generar_demo.py         emisión de demostración (valores ilustrativos)
-  generar_iconos.py       íconos de la PWA
+R = (H · E · V)^(1/3)
+H = P(Niño) · (0,4 · mín(A / 30 %, 1) + 0,2 · C) + 0,4 · F
 ```
 
-## Publicar una emisión nueva
+- **P(Niño):** probabilidad oficial de El Niño (IRI/NOAA).
+- **A:** cuánto más llovió en promedio en los Niños anteriores (en %).
+- **C:** proporción de esos Niños en que llovió más que lo normal.
+- **F:** proporción de las 51 simulaciones que dan más lluvia que lo normal.
+- E y V se reescalan entre 0,01 y 1 entre los 25 departamentos. H no se reescala: si el pronóstico es húmedo en toda la provincia, la amenaza es alta en toda la provincia.
+- Los pesos 0,4, 0,2 y 0,4 son una decisión propia del proyecto y se van a revisar comparando con las inundaciones de 1997-98 y 2015-16.
 
-El pipeline (`pipeline/`) genera la emisión real con Earth Engine y el pronóstico ECMWF SEAS5 vía Open-Meteo. La puesta en marcha y los comandos están en **[PIPELINE.md](PIPELINE.md)**. En resumen:
+### Lluvia
+
+Para cada departamento se toma el pronóstico en su punto central (el modelo tiene unos 36 km de detalle). "Más que lo normal" significa por encima del promedio que el mismo modelo da para esa época del año en sus pronósticos de años anteriores. Por eso la probabilidad tiene dos categorías (más o menos de lo normal) y no tres.
+
+### Dengue
+
+Combina tres cosas: cuántos días del verano tienen temperaturas aptas para el mosquito (entre 20 y 32 °C de promedio diario, según ERA5-Land), qué tan húmeda se espera la temporada (pronóstico y Niños anteriores) y cuánta población hay (WorldPop). El resultado se agrupa en cinco niveles, de "poco favorables" a "muy favorables".
+
+### Calor
+
+Cuenta las **noches tropicales**, las noches en que la temperatura no baja de 25 °C, en un verano normal y en los Niños anteriores (ERA5-Land), y las combina con la población. Se agrupa en cinco niveles.
+
+### Agua observada
+
+El radar del satélite Sentinel-1 ve el agua como zonas muy oscuras. Se consideran **agua nueva** los lugares que cumplen tres condiciones:
+
+1. Están más oscuros que −18 dB, un valor típico del agua en radar.
+2. Están al menos 3 dB más oscuros que lo habitual para ese mes, según la mediana de 2017 a 2025. Así se descartan suelos que siempre se ven oscuros.
+3. No son ríos, lagunas ni esteros permanentes.
+
+Después se suman los km² por departamento y se cruzan con los caminos rurales de OpenStreetMap.
+
+---
+
+## Qué no hace el sitio
+
+- **No es un pronóstico del tiempo diario** ni reemplaza las alertas oficiales del SMN o de Defensa Civil.
+- **No da certezas:** son probabilidades. Ningún Niño es igual a otro.
+- **No predice casos de dengue**, solo si el clima favorece al mosquito.
+- **Por ahora no incluye las crecidas de los grandes ríos** (Paraná, Paraguay, Bermejo), que dependen de lluvias en otras provincias y países. Está planificado para una etapa siguiente.
+- **Cubre solo la provincia de Chaco.** La idea es extenderlo al resto del noreste y después al país.
+
+---
+
+## Para quienes quieran ver o usar el código
+
+### Estructura
+
+```
+docs/        el sitio web (lo que publica GitHub Pages)
+  data/      resultados que lee la web: emisión del mes, límites, ONI
+pipeline/    programa que descarga, procesa y calcula los datos
+tests/       pruebas automáticas del pipeline
+scripts/     herramientas auxiliares (geometrías, íconos, datos de demostración)
+emision.ps1  publica la emisión del mes en un solo paso (Windows)
+```
+
+El sitio es una aplicación web instalable (PWA) hecha con HTML, CSS, JavaScript y [MapLibre GL JS](https://maplibre.org/). No usa servidores ni mapas de terceros, y por eso funciona sin conexión. El pipeline está en Python.
+
+### Actualizar los datos cada mes
+
+La guía completa, con la instalación, las cuentas necesarias (solo Google Earth Engine) y los comandos, está en **[PIPELINE.md](PIPELINE.md)**. En resumen, después de que IRI/NOAA publica su pronóstico mensual (alrededor del día 19):
+
+```powershell
+.\emision.ps1 -ProbNino 1.0 -Intensidad "muy fuerte"
+```
+
+### Ver el sitio en tu computadora
 
 ```bash
-python -m pipeline historico     # una vez
-python -m pipeline caminos       # una vez
-python -m pipeline mensual --emision 2026-12 --prob-nino 0.62 --intensidad moderada
-git add docs/data && git commit -m "Emisión 2026-12" && git push
-```
-
-GitHub Pages publica en uno o dos minutos, y los usuarios reciben la emisión nueva la próxima vez que abren la app con conexión.
-
-Si cambian archivos de la aplicación (JS, CSS, HTML), subir el número `VERSION` en `docs/sw.js` para que los celulares descarguen la versión nueva.
-
-## Desarrollo local
-
-```bash
-cd docs && python3 -m http.server 8000
+cd docs
+python -m http.server 8000
 # abrir http://localhost:8000
 ```
 
-Regenerar datos:
+### Licencias y créditos
 
-```bash
-pip install shapely pillow
-python scripts/preparar_geometrias.py ruta/departamentos-argentina.json
-python scripts/generar_demo.py
-python scripts/generar_iconos.py
-```
+- **Código:** licencia MIT (archivo `LICENSE`).
+- **Resultados publicados:** CC BY 4.0. Podés usarlos citando la fuente.
+- **Datos de terceros:** pertenecen a sus autores, listados en [De dónde salen los datos](#de-dónde-salen-los-datos). El pronóstico de lluvia se cita como *Open-Meteo.com (CC BY 4.0), basado en ECMWF SEAS5*.
+- **Componentes:** MapLibre GL JS (licencia BSD-3) y tipografía IBM Plex (SIL Open Font License).
 
-`departamentos-argentina.json` proviene de [mgaitan/departamentos_argentina](https://github.com/mgaitan/departamentos_argentina), conversión a GeoJSON del SIG 250 del IGN.
+---
 
-## Método (resumen)
-
-R = (H · E · V)^(1/3), con H = P(Niño) · (w₁·Â + w₂·C) + w₃·F̂ y pesos iniciales w₁ = 0,4, w₂ = 0,2, w₃ = 0,4 (decisión propia, a calibrar). Normalización min-max 0,01–1 y categorías por quintiles. Marco amenaza–exposición–vulnerabilidad (IPCC, UNDRR) y agregación del INFORM Risk Index. El documento de arquitectura completo detalla fuentes, módulos y referencias.
-
-Es una herramienta de **riesgo relativo**: no es un pronóstico ni una alerta oficial. Para alertas, consultar al Servicio Meteorológico Nacional y a Defensa Civil.
-
-## Licencias
-
-- Código: MIT (`LICENSE`).
-- Datos publicados: CC BY 4.0.
-- Límites departamentales: Instituto Geográfico Nacional.
-- MapLibre GL JS: licencia BSD-3 (`docs/vendor/LICENSE.txt`). IBM Plex: SIL Open Font License (`docs/fonts/OFL.txt`).
-
-Proyecto independiente de Matias Roselló.
+Proyecto independiente de **Matias Roselló**, especialista SIG en Chaco, Argentina. No está asociado a ningún organismo público.
