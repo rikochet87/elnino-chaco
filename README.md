@@ -1,5 +1,7 @@
 # SIG El Niño Argentina
 
+**Web:** https://rikochet87.github.io/elnino-chaco/
+
 Aplicación web instalable (PWA) que traduce los pronósticos oficiales de El Niño en información territorial: qué puede pasar con la lluvia, los caminos rurales, el dengue y el calor en cada departamento, y cómo prepararse. Piloto: provincia de Chaco.
 
 > **Estado: demostración.** La web funciona, pero los valores publicados son ilustrativos (`"demo": true` en la emisión). Todavía no provienen del pipeline de datos reales. El esquema de datos es el definitivo, así que la emisión real reemplazará a la demo sin cambiar la web.

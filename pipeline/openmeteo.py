@@ -27,7 +27,7 @@ MODELO = "ecmwf_seas5"
 
 
 def _pedir(params: dict) -> list:
-    r = requests.get(URL, params=params, timeout=120, headers={"User-Agent": "sig-el-nino-argentina"})
+    r = requests.get(URL, params=params, timeout=120, headers={"User-Agent": "elnino-chaco"})
     if r.status_code != 200:
         try:
             motivo = r.json().get("reason")

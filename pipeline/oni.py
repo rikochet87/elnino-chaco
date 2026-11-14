@@ -12,7 +12,7 @@ TEMPORADAS = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "ASO", "SO
 
 
 def descargar(url: str) -> str:
-    r = requests.get(url, timeout=60, headers={"User-Agent": "sig-el-nino-argentina"})
+    r = requests.get(url, timeout=60, headers={"User-Agent": "elnino-chaco"})
     r.raise_for_status()
     return r.text
 

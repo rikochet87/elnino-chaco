@@ -23,7 +23,7 @@ def consulta(cfg: dict) -> str:
 
 def descargar(cfg: dict) -> dict:
     r = requests.post(cfg["fuentes"]["overpass"], data={"data": consulta(cfg)}, timeout=900,
-                      headers={"User-Agent": "sig-el-nino-argentina"})
+                      headers={"User-Agent": "elnino-chaco"})
     r.raise_for_status()
     return r.json()
 
