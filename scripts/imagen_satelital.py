@@ -1,6 +1,7 @@
 """Imagen satelital del globo: NASA Blue Marble Next Generation (dominio público).
 
-Composición de diciembre de 2004 (verano austral), con relieve y batimetría, 5400 × 2700 px.
+Se pide primero al servicio de mapas GIBS de la NASA (Blue Marble con relieve y batimetría) y, si no responde,
+al archivo original del Earth Observatory (composición de diciembre de 2004, verano austral).
 Se guarda reducida para la web: 4096 × 2048 (compu) y 2048 × 1024 (celular).
 Uso: python scripts/imagen_satelital.py   (lo corre GitHub Actions; NASA no pide cuenta)
 """
@@ -9,10 +10,18 @@ import io
 from pathlib import Path
 
 import requests
+import urllib3.util.connection as conexion
 from PIL import Image
 
+conexion.HAS_IPV6 = False  # los servidores de GitHub no tienen salida IPv6
+Image.MAX_IMAGE_PIXELS = None
+
 RAIZ = Path(__file__).resolve().parent.parent
+GIBS = ("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0"
+        "&LAYERS={capa}&STYLES=&CRS=EPSG:4326&BBOX=-90,-180,90,180&WIDTH=4096&HEIGHT=2048&FORMAT=image/jpeg")
 FUENTES = [
+    GIBS.format(capa="BlueMarble_ShadedRelief_Bathymetry"),
+    GIBS.format(capa="BlueMarble_NextGeneration"),
     "https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73909/world.topo.bathy.200412.3x5400x2700.jpg",
     "https://eoimages.gsfc.nasa.gov/images/imagerecords/74000/74218/world.200412.3x5400x2700.jpg",
 ]
@@ -40,7 +49,7 @@ def main():
         chica.save(ruta, quality=calidad, optimize=True, progressive=True)
         print(f"{ruta}: {ruta.stat().st_size / 1024:.0f} KB")
     (destino / "FUENTE.txt").write_text(
-        "NASA Earth Observatory, Blue Marble Next Generation (Reto Stöckli, NASA GSFC), diciembre de 2004.\n"
+        "NASA Blue Marble Next Generation (Reto Stöckli, NASA Earth Observatory / NASA GIBS).\n"
         f"Original: {url}\nDominio público.\n", encoding="utf-8")
 
 
