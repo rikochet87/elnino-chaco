@@ -1,23 +1,43 @@
 {
- "demo": true,
- "aviso": "Datos de demostración: los valores son ilustrativos y no provienen de pronósticos ni observaciones reales.",
+ "demo": false,
  "emision": "2026-11",
- "publicada": "2026-11-13",
+ "publicada": "2026-11-14",
  "proxima_emision": "2026-12",
  "trimestre": "DEF 2026-27",
  "trimestre_texto": "diciembre a febrero",
- "prob_nino": 0.62,
- "intensidad": "moderada",
- "pronostico": {
-  "sistema": "ECMWF SEAS5 vía Open-Meteo (valores simulados)",
-  "categorias": 2
- },
+ "prob_nino": 1.0,
+ "intensidad": "muy fuerte",
  "agua_obs": {
-  "fecha_imagen": "2026-11-08",
+  "fecha_imagen": "2026-10-30",
   "sensor": "Sentinel-1 (radar)",
-  "umbral_db": -17.5
+  "umbral_db": -18,
+  "imagenes": 68
+ },
+ "pronostico": {
+  "sistema": "ECMWF SEAS5 (51 miembros) vía Open-Meteo",
+  "inicio": "2026-11-14",
+  "categorias": 2,
+  "atribucion": "Datos meteorológicos: Open-Meteo.com (CC BY 4.0), basados en ECMWF SEAS5"
+ },
+ "veranos_nino": {
+  "1983": "muy fuerte",
+  "1987": "moderado",
+  "1988": "moderado",
+  "1992": "fuerte",
+  "1995": "débil",
+  "1998": "muy fuerte",
+  "2003": "moderado",
+  "2005": "débil",
+  "2007": "débil",
+  "2010": "fuerte",
+  "2015": "muy fuerte",
+  "2016": "muy fuerte",
+  "2019": "moderado",
+  "2020": "débil",
+  "2024": "fuerte"
  },
  "metodo": {
+  "version": "0.1",
   "pesos": {
    "w1": 0.4,
    "w2": 0.2,
@@ -28,779 +48,1129 @@
   "categorias": "quintiles"
  },
  "departamentos": {
-  "12-de-octubre": {
-   "lluvia": {
-    "prob_superior": 0.46,
-    "prob_normal": null,
-    "prob_inferior": 0.54,
-    "anom_pronostico_pct": 2,
-    "normal_mm": 340,
-    "anom_nino_pct": 14
-   },
-   "anegamiento": {
-    "H": 0.048,
-    "E": 0.772,
-    "V": 0.198,
-    "R": 0.194,
-    "categoria": 1,
-    "perdida_bosque_pct": 21.7
-   },
-   "dengue": {
-    "indice": 0.01,
-    "categoria": 1
-   },
-   "calor": {
-    "indice": 0.776,
-    "categoria": 5
-   },
-   "agua_obs": {
-    "km2": 4.8,
-    "km2_mes_anterior": 3.5,
-    "km_caminos": 2.2
-   }
-  },
   "1-de-mayo": {
    "lluvia": {
-    "prob_superior": 0.86,
+    "prob_superior": 0.96,
     "prob_normal": null,
-    "prob_inferior": 0.14,
-    "anom_pronostico_pct": 54,
-    "normal_mm": 450,
-    "anom_nino_pct": 34
+    "prob_inferior": 0.04,
+    "anom_pronostico_pct": 85,
+    "normal_mm": 480,
+    "anom_nino_pct": 9
    },
    "anegamiento": {
-    "H": 0.955,
-    "E": 0.01,
-    "V": 0.856,
-    "R": 0.201,
+    "H": 0.634,
+    "E": 0.279,
+    "V": 0.261,
+    "R": 0.359,
     "categoria": 2,
-    "perdida_bosque_pct": 3.0
+    "perdida_bosque_pct": 1.4
    },
    "dengue": {
-    "indice": 0.873,
-    "categoria": 5
+    "indice": 0.126,
+    "categoria": 2
    },
    "calor": {
-    "indice": 0.031,
-    "categoria": 1
+    "indice": 0.167,
+    "categoria": 2
    },
    "agua_obs": {
-    "km2": 21.7,
-    "km2_mes_anterior": 19.4,
-    "km_caminos": 9.8
+    "km2": 0.45,
+    "km2_mes_anterior": 0.78,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.67,
+    "frac_zona_baja": 0.726,
+    "hand_medio_m": 0.76,
+    "km_caminos_rurales": 479.3,
+    "km_rurales_por_km2": 0.374,
+    "area_km2": 1283,
+    "prop_caminos_rurales": 0.698,
+    "poblacion": 10237,
+    "noches_tropicales_normal": 14.7,
+    "noches_tropicales_anom_nino": 1.3,
+    "dias_aptos_dengue_normal": 87.9,
+    "dias_aptos_dengue_anom_nino": 0.4
+   }
+  },
+  "12-de-octubre": {
+   "lluvia": {
+    "prob_superior": 0.92,
+    "prob_normal": null,
+    "prob_inferior": 0.08,
+    "anom_pronostico_pct": 46,
+    "normal_mm": 390,
+    "anom_nino_pct": 12
+   },
+   "anegamiento": {
+    "H": 0.686,
+    "E": 0.691,
+    "V": 0.635,
+    "R": 0.67,
+    "categoria": 4,
+    "perdida_bosque_pct": 46.2
+   },
+   "dengue": {
+    "indice": 0.168,
+    "categoria": 3
+   },
+   "calor": {
+    "indice": 0.305,
+    "categoria": 3
+   },
+   "agua_obs": {
+    "km2": 130.6,
+    "km2_mes_anterior": 151.58,
+    "km_caminos": 22.1
+   },
+   "componentes": {
+    "consistencia": 0.8,
+    "frac_zona_baja": 0.619,
+    "hand_medio_m": 1.13,
+    "km_caminos_rurales": 1746.7,
+    "km_rurales_por_km2": 0.635,
+    "area_km2": 2752,
+    "prop_caminos_rurales": 0.847,
+    "poblacion": 21575,
+    "noches_tropicales_normal": 16.0,
+    "noches_tropicales_anom_nino": 0.9,
+    "dias_aptos_dengue_normal": 84.8,
+    "dias_aptos_dengue_anom_nino": -0.4
    }
   },
   "2-de-abril": {
    "lluvia": {
-    "prob_superior": 0.49,
+    "prob_superior": 0.96,
     "prob_normal": null,
-    "prob_inferior": 0.51,
-    "anom_pronostico_pct": 3,
-    "normal_mm": 330,
+    "prob_inferior": 0.04,
+    "anom_pronostico_pct": 53,
+    "normal_mm": 410,
     "anom_nino_pct": 14
    },
    "anegamiento": {
-    "H": 0.086,
-    "E": 0.21,
-    "V": 0.417,
-    "R": 0.196,
-    "categoria": 1,
-    "perdida_bosque_pct": 16.4
+    "H": 0.723,
+    "E": 0.53,
+    "V": 0.605,
+    "R": 0.614,
+    "categoria": 4,
+    "perdida_bosque_pct": 22.8
    },
    "dengue": {
-    "indice": 0.05,
+    "indice": 0.089,
     "categoria": 1
    },
    "calor": {
-    "indice": 0.749,
-    "categoria": 5
+    "indice": 0.165,
+    "categoria": 2
    },
    "agua_obs": {
-    "km2": 2.2,
-    "km2_mes_anterior": 2.0,
-    "km_caminos": 1.0
+    "km2": 22.21,
+    "km2_mes_anterior": 42.82,
+    "km_caminos": 0.7
+   },
+   "componentes": {
+    "consistencia": 0.73,
+    "frac_zona_baja": 0.811,
+    "hand_medio_m": 0.75,
+    "km_caminos_rurales": 848.7,
+    "km_rurales_por_km2": 0.533,
+    "area_km2": 1592,
+    "prop_caminos_rurales": 0.894,
+    "poblacion": 6346,
+    "noches_tropicales_normal": 16.2,
+    "noches_tropicales_anom_nino": 0.9,
+    "dias_aptos_dengue_normal": 85.4,
+    "dias_aptos_dengue_anom_nino": -0.1
    }
   },
   "25-de-mayo": {
    "lluvia": {
-    "prob_superior": 0.69,
+    "prob_superior": 0.94,
     "prob_normal": null,
-    "prob_inferior": 0.31,
-    "anom_pronostico_pct": 42,
-    "normal_mm": 400,
-    "anom_nino_pct": 20
+    "prob_inferior": 0.06,
+    "anom_pronostico_pct": 70,
+    "normal_mm": 420,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.488,
-    "E": 0.787,
-    "V": 0.423,
-    "R": 0.546,
-    "categoria": 4,
-    "perdida_bosque_pct": 14.4
+    "H": 0.607,
+    "E": 0.428,
+    "V": 0.347,
+    "R": 0.448,
+    "categoria": 3,
+    "perdida_bosque_pct": 8.0
    },
    "dengue": {
-    "indice": 0.563,
-    "categoria": 3
+    "indice": 0.209,
+    "categoria": 4
    },
    "calor": {
-    "indice": 0.368,
-    "categoria": 2
+    "indice": 0.301,
+    "categoria": 3
    },
    "agua_obs": {
-    "km2": 23.2,
-    "km2_mes_anterior": 20.5,
-    "km_caminos": 10.4
+    "km2": 2.04,
+    "km2_mes_anterior": 2.6,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.703,
+    "hand_medio_m": 0.78,
+    "km_caminos_rurales": 1112.0,
+    "km_rurales_por_km2": 0.468,
+    "area_km2": 2376,
+    "prop_caminos_rurales": 0.826,
+    "poblacion": 26736,
+    "noches_tropicales_normal": 15.0,
+    "noches_tropicales_anom_nino": 1.3,
+    "dias_aptos_dengue_normal": 86.7,
+    "dias_aptos_dengue_anom_nino": 0.4
    }
   },
   "9-de-julio": {
    "lluvia": {
-    "prob_superior": 0.51,
+    "prob_superior": 0.94,
     "prob_normal": null,
-    "prob_inferior": 0.49,
-    "anom_pronostico_pct": 13,
-    "normal_mm": 340,
-    "anom_nino_pct": 16
+    "prob_inferior": 0.06,
+    "anom_pronostico_pct": 61,
+    "normal_mm": 390,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.141,
-    "E": 0.291,
-    "V": 0.205,
-    "R": 0.203,
-    "categoria": 2,
-    "perdida_bosque_pct": 22.1
+    "H": 0.604,
+    "E": 0.905,
+    "V": 0.88,
+    "R": 0.784,
+    "categoria": 5,
+    "perdida_bosque_pct": 42.1
    },
    "dengue": {
-    "indice": 0.31,
-    "categoria": 1
+    "indice": 0.171,
+    "categoria": 4
    },
    "calor": {
-    "indice": 0.668,
+    "indice": 0.37,
     "categoria": 4
    },
    "agua_obs": {
-    "km2": 3.4,
-    "km2_mes_anterior": 2.9,
-    "km_caminos": 1.5
+    "km2": 38.37,
+    "km2_mes_anterior": 42.33,
+    "km_caminos": 3.8
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.733,
+    "hand_medio_m": 0.78,
+    "km_caminos_rurales": 1670.4,
+    "km_rurales_por_km2": 0.771,
+    "area_km2": 2166,
+    "prop_caminos_rurales": 0.85,
+    "poblacion": 26113,
+    "noches_tropicales_normal": 16.5,
+    "noches_tropicales_anom_nino": 1.1,
+    "dias_aptos_dengue_normal": 84.5,
+    "dias_aptos_dengue_anom_nino": -0.4
    }
   },
   "almirante-brown": {
    "lluvia": {
-    "prob_superior": 0.51,
+    "prob_superior": 0.82,
     "prob_normal": null,
-    "prob_inferior": 0.49,
-    "anom_pronostico_pct": 3,
-    "normal_mm": 330,
-    "anom_nino_pct": 9
+    "prob_inferior": 0.18,
+    "anom_pronostico_pct": 38,
+    "normal_mm": 350,
+    "anom_nino_pct": 6
    },
    "anegamiento": {
-    "H": 0.038,
-    "E": 1.0,
-    "V": 0.325,
-    "R": 0.231,
-    "categoria": 2,
-    "perdida_bosque_pct": 28.7
+    "H": 0.501,
+    "E": 0.01,
+    "V": 0.729,
+    "R": 0.154,
+    "categoria": 1,
+    "perdida_bosque_pct": 28.2
    },
    "dengue": {
-    "indice": 0.506,
-    "categoria": 3
+    "indice": 0.085,
+    "categoria": 1
    },
    "calor": {
-    "indice": 0.845,
+    "indice": 0.62,
     "categoria": 5
    },
    "agua_obs": {
-    "km2": 4.9,
-    "km2_mes_anterior": 3.2,
-    "km_caminos": 2.2
+    "km2": 408.34,
+    "km2_mes_anterior": 323.05,
+    "km_caminos": 2.8
+   },
+   "componentes": {
+    "consistencia": 0.47,
+    "frac_zona_baja": 0.736,
+    "hand_medio_m": 0.7,
+    "km_caminos_rurales": 3571.1,
+    "km_rurales_por_km2": 0.203,
+    "area_km2": 17612,
+    "prop_caminos_rurales": 0.892,
+    "poblacion": 34868,
+    "noches_tropicales_normal": 19.6,
+    "noches_tropicales_anom_nino": 1.6,
+    "dias_aptos_dengue_normal": 81.6,
+    "dias_aptos_dengue_anom_nino": -0.6
    }
   },
   "bermejo": {
    "lluvia": {
-    "prob_superior": 0.91,
+    "prob_superior": 0.96,
     "prob_normal": null,
-    "prob_inferior": 0.09,
-    "anom_pronostico_pct": 63,
-    "normal_mm": 490,
-    "anom_nino_pct": 32
+    "prob_inferior": 0.04,
+    "anom_pronostico_pct": 85,
+    "normal_mm": 470,
+    "anom_nino_pct": 9
    },
    "anegamiento": {
-    "H": 1.0,
-    "E": 0.9,
-    "V": 1.0,
-    "R": 0.965,
-    "categoria": 5,
-    "perdida_bosque_pct": 1.1
+    "H": 0.645,
+    "E": 0.195,
+    "V": 0.214,
+    "R": 0.3,
+    "categoria": 2,
+    "perdida_bosque_pct": 1.7
    },
    "dengue": {
-    "indice": 0.965,
-    "categoria": 5
+    "indice": 0.201,
+    "categoria": 4
    },
    "calor": {
-    "indice": 0.101,
-    "categoria": 1
+    "indice": 0.307,
+    "categoria": 3
    },
    "agua_obs": {
-    "km2": 112.1,
-    "km2_mes_anterior": 78.0,
-    "km_caminos": 50.4
+    "km2": 5.42,
+    "km2_mes_anterior": 8.49,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.73,
+    "frac_zona_baja": 0.711,
+    "hand_medio_m": 0.82,
+    "km_caminos_rurales": 819.5,
+    "km_rurales_por_km2": 0.32,
+    "area_km2": 2559,
+    "prop_caminos_rurales": 0.699,
+    "poblacion": 22080,
+    "noches_tropicales_normal": 15.7,
+    "noches_tropicales_anom_nino": 1.2,
+    "dias_aptos_dengue_normal": 88.0,
+    "dias_aptos_dengue_anom_nino": 0.3
    }
   },
   "chacabuco": {
    "lluvia": {
-    "prob_superior": 0.6,
+    "prob_superior": 0.94,
     "prob_normal": null,
-    "prob_inferior": 0.4,
-    "anom_pronostico_pct": 12,
-    "normal_mm": 360,
-    "anom_nino_pct": 16
+    "prob_inferior": 0.06,
+    "anom_pronostico_pct": 61,
+    "normal_mm": 400,
+    "anom_nino_pct": 10
    },
    "anegamiento": {
-    "H": 0.275,
-    "E": 0.682,
-    "V": 0.44,
-    "R": 0.435,
-    "categoria": 3,
-    "perdida_bosque_pct": 20.4
+    "H": 0.638,
+    "E": 1.0,
+    "V": 0.935,
+    "R": 0.842,
+    "categoria": 5,
+    "perdida_bosque_pct": 44.0
    },
    "dengue": {
-    "indice": 0.326,
-    "categoria": 2
+    "indice": 0.193,
+    "categoria": 4
    },
    "calor": {
-    "indice": 0.667,
+    "indice": 0.381,
     "categoria": 4
    },
    "agua_obs": {
-    "km2": 2.5,
-    "km2_mes_anterior": 1.8,
-    "km_caminos": 1.1
+    "km2": 45.74,
+    "km2_mes_anterior": 49.48,
+    "km_caminos": 1.7
+   },
+   "componentes": {
+    "consistencia": 0.67,
+    "frac_zona_baja": 0.759,
+    "hand_medio_m": 0.75,
+    "km_caminos_rurales": 1261.3,
+    "km_rurales_por_km2": 0.831,
+    "area_km2": 1518,
+    "prop_caminos_rurales": 0.838,
+    "poblacion": 29400,
+    "noches_tropicales_normal": 16.3,
+    "noches_tropicales_anom_nino": 1.0,
+    "dias_aptos_dengue_normal": 84.6,
+    "dias_aptos_dengue_anom_nino": -0.4
    }
   },
   "comandante-fernandez": {
    "lluvia": {
-    "prob_superior": 0.62,
+    "prob_superior": 0.94,
     "prob_normal": null,
-    "prob_inferior": 0.38,
-    "anom_pronostico_pct": 29,
-    "normal_mm": 400,
-    "anom_nino_pct": 16
+    "prob_inferior": 0.06,
+    "anom_pronostico_pct": 51,
+    "normal_mm": 410,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.311,
-    "E": 0.06,
-    "V": 0.516,
-    "R": 0.213,
-    "categoria": 2,
-    "perdida_bosque_pct": 16.6
+    "H": 0.606,
+    "E": 0.868,
+    "V": 0.663,
+    "R": 0.704,
+    "categoria": 5,
+    "perdida_bosque_pct": 21.4
    },
    "dengue": {
-    "indice": 0.649,
-    "categoria": 4
+    "indice": 0.395,
+    "categoria": 5
    },
    "calor": {
-    "indice": 0.631,
-    "categoria": 4
+    "indice": 0.606,
+    "categoria": 5
    },
    "agua_obs": {
-    "km2": 7.2,
-    "km2_mes_anterior": 5.1,
-    "km_caminos": 3.2
+    "km2": 2.01,
+    "km2_mes_anterior": 1.92,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.755,
+    "hand_medio_m": 0.66,
+    "km_caminos_rurales": 1125.9,
+    "km_rurales_por_km2": 0.748,
+    "area_km2": 1506,
+    "prop_caminos_rurales": 0.635,
+    "poblacion": 92771,
+    "noches_tropicales_normal": 15.1,
+    "noches_tropicales_anom_nino": 1.5,
+    "dias_aptos_dengue_normal": 85.9,
+    "dias_aptos_dengue_anom_nino": -0.0
    }
   },
   "fray-justo-santa-maria-de-oro": {
    "lluvia": {
-    "prob_superior": 0.49,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.51,
-    "anom_pronostico_pct": 12,
-    "normal_mm": 330,
-    "anom_nino_pct": 12
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 51,
+    "normal_mm": 410,
+    "anom_nino_pct": 15
    },
    "anegamiento": {
-    "H": 0.056,
-    "E": 0.25,
-    "V": 0.33,
-    "R": 0.167,
-    "categoria": 1,
-    "perdida_bosque_pct": 11.4
+    "H": 0.758,
+    "E": 0.583,
+    "V": 0.493,
+    "R": 0.602,
+    "categoria": 4,
+    "perdida_bosque_pct": 15.4
    },
    "dengue": {
-    "indice": 0.134,
-    "categoria": 1
+    "indice": 0.141,
+    "categoria": 2
    },
    "calor": {
-    "indice": 0.71,
-    "categoria": 5
+    "indice": 0.188,
+    "categoria": 2
    },
    "agua_obs": {
-    "km2": 6.2,
-    "km2_mes_anterior": 5.7,
-    "km_caminos": 2.8
+    "km2": 20.48,
+    "km2_mes_anterior": 24.49,
+    "km_caminos": 1.1
+   },
+   "componentes": {
+    "consistencia": 0.8,
+    "frac_zona_baja": 0.874,
+    "hand_medio_m": 0.74,
+    "km_caminos_rurales": 1254.0,
+    "km_rurales_por_km2": 0.567,
+    "area_km2": 2213,
+    "prop_caminos_rurales": 0.894,
+    "poblacion": 11728,
+    "noches_tropicales_normal": 15.2,
+    "noches_tropicales_anom_nino": 1.0,
+    "dias_aptos_dengue_normal": 85.6,
+    "dias_aptos_dengue_anom_nino": 0.0
    }
   },
   "general-belgrano": {
    "lluvia": {
-    "prob_superior": 0.58,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.42,
-    "anom_pronostico_pct": 10,
-    "normal_mm": 360,
-    "anom_nino_pct": 11
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 60,
+    "normal_mm": 390,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.191,
-    "E": 0.687,
-    "V": 0.437,
-    "R": 0.386,
-    "categoria": 3,
-    "perdida_bosque_pct": 17.5
+    "H": 0.616,
+    "E": 0.454,
+    "V": 1.0,
+    "R": 0.654,
+    "categoria": 4,
+    "perdida_bosque_pct": 41.7
    },
    "dengue": {
-    "indice": 0.328,
-    "categoria": 2
+    "indice": 0.111,
+    "categoria": 1
    },
    "calor": {
-    "indice": 0.695,
-    "categoria": 4
+    "indice": 0.264,
+    "categoria": 3
    },
    "agua_obs": {
-    "km2": 4.4,
-    "km2_mes_anterior": 3.5,
-    "km_caminos": 2.0
+    "km2": 9.43,
+    "km2_mes_anterior": 17.13,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.783,
+    "hand_medio_m": 0.63,
+    "km_caminos_rurales": 630.8,
+    "km_rurales_por_km2": 0.485,
+    "area_km2": 1302,
+    "prop_caminos_rurales": 0.824,
+    "poblacion": 11906,
+    "noches_tropicales_normal": 16.7,
+    "noches_tropicales_anom_nino": 1.3,
+    "dias_aptos_dengue_normal": 84.6,
+    "dias_aptos_dengue_anom_nino": -0.3
    }
   },
   "general-donovan": {
    "lluvia": {
-    "prob_superior": 0.77,
+    "prob_superior": 0.96,
     "prob_normal": null,
-    "prob_inferior": 0.23,
-    "anom_pronostico_pct": 55,
-    "normal_mm": 450,
-    "anom_nino_pct": 31
+    "prob_inferior": 0.04,
+    "anom_pronostico_pct": 74,
+    "normal_mm": 460,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.761,
-    "E": 0.194,
-    "V": 0.562,
-    "R": 0.436,
-    "categoria": 3,
-    "perdida_bosque_pct": 6.2
+    "H": 0.641,
+    "E": 0.323,
+    "V": 0.236,
+    "R": 0.365,
+    "categoria": 2,
+    "perdida_bosque_pct": 5.3
    },
    "dengue": {
-    "indice": 0.855,
-    "categoria": 5
-   },
-   "calor": {
-    "indice": 0.298,
+    "indice": 0.135,
     "categoria": 2
    },
+   "calor": {
+    "indice": 0.107,
+    "categoria": 1
+   },
    "agua_obs": {
-    "km2": 35.7,
-    "km2_mes_anterior": 23.8,
-    "km_caminos": 16.1
+    "km2": 1.34,
+    "km2_mes_anterior": 1.75,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.73,
+    "frac_zona_baja": 0.686,
+    "hand_medio_m": 0.86,
+    "km_caminos_rurales": 608.7,
+    "km_rurales_por_km2": 0.401,
+    "area_km2": 1517,
+    "prop_caminos_rurales": 0.779,
+    "poblacion": 11792,
+    "noches_tropicales_normal": 13.6,
+    "noches_tropicales_anom_nino": 1.2,
+    "dias_aptos_dengue_normal": 87.5,
+    "dias_aptos_dengue_anom_nino": 0.5
    }
   },
   "general-guemes": {
    "lluvia": {
-    "prob_superior": 0.48,
+    "prob_superior": 0.73,
     "prob_normal": null,
-    "prob_inferior": 0.52,
-    "anom_pronostico_pct": 1,
-    "normal_mm": 320,
-    "anom_nino_pct": 10
+    "prob_inferior": 0.27,
+    "anom_pronostico_pct": 27,
+    "normal_mm": 350,
+    "anom_nino_pct": 5
    },
    "anegamiento": {
-    "H": 0.01,
-    "E": 0.731,
-    "V": 0.01,
-    "R": 0.042,
-    "categoria": 1,
-    "perdida_bosque_pct": 36.6
+    "H": 0.442,
+    "E": 0.162,
+    "V": 0.407,
+    "R": 0.308,
+    "categoria": 2,
+    "perdida_bosque_pct": 8.4
    },
    "dengue": {
-    "indice": 0.39,
-    "categoria": 2
+    "indice": 0.01,
+    "categoria": 1
    },
    "calor": {
     "indice": 1.0,
     "categoria": 5
    },
    "agua_obs": {
-    "km2": 1.1,
-    "km2_mes_anterior": 0.8,
-    "km_caminos": 0.5
+    "km2": 75.57,
+    "km2_mes_anterior": 57.16,
+    "km_caminos": 1.1
+   },
+   "componentes": {
+    "consistencia": 0.4,
+    "frac_zona_baja": 0.736,
+    "hand_medio_m": 0.72,
+    "km_caminos_rurales": 7762.2,
+    "km_rurales_por_km2": 0.299,
+    "area_km2": 25921,
+    "prop_caminos_rurales": 0.906,
+    "poblacion": 63157,
+    "noches_tropicales_normal": 22.2,
+    "noches_tropicales_anom_nino": 1.9,
+    "dias_aptos_dengue_normal": 81.4,
+    "dias_aptos_dengue_anom_nino": -0.9
    }
   },
   "independencia": {
    "lluvia": {
-    "prob_superior": 0.65,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.35,
-    "anom_pronostico_pct": 22,
-    "normal_mm": 370,
-    "anom_nino_pct": 15
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 60,
+    "normal_mm": 400,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.32,
-    "E": 0.983,
-    "V": 0.558,
-    "R": 0.56,
-    "categoria": 4,
-    "perdida_bosque_pct": 16.7
+    "H": 0.618,
+    "E": 0.594,
+    "V": 0.951,
+    "R": 0.704,
+    "categoria": 5,
+    "perdida_bosque_pct": 40.1
    },
    "dengue": {
-    "indice": 0.562,
+    "indice": 0.17,
     "categoria": 3
    },
    "calor": {
-    "indice": 0.641,
+    "indice": 0.326,
     "categoria": 4
    },
    "agua_obs": {
-    "km2": 7.9,
-    "km2_mes_anterior": 5.5,
-    "km_caminos": 3.6
+    "km2": 29.44,
+    "km2_mes_anterior": 19.01,
+    "km_caminos": 1.3
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.759,
+    "hand_medio_m": 0.66,
+    "km_caminos_rurales": 1103.3,
+    "km_rurales_por_km2": 0.573,
+    "area_km2": 1924,
+    "prop_caminos_rurales": 0.825,
+    "poblacion": 21142,
+    "noches_tropicales_normal": 16.0,
+    "noches_tropicales_anom_nino": 1.4,
+    "dias_aptos_dengue_normal": 85.3,
+    "dias_aptos_dengue_anom_nino": -0.1
    }
   },
   "libertad": {
    "lluvia": {
-    "prob_superior": 0.84,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.16,
-    "anom_pronostico_pct": 50,
-    "normal_mm": 450,
-    "anom_nino_pct": 28
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 80,
+    "normal_mm": 480,
+    "anom_nino_pct": 9
    },
    "anegamiento": {
-    "H": 0.845,
-    "E": 0.399,
-    "V": 0.7,
-    "R": 0.618,
-    "categoria": 5,
-    "perdida_bosque_pct": 3.8
+    "H": 0.635,
+    "E": 0.568,
+    "V": 0.225,
+    "R": 0.433,
+    "categoria": 3,
+    "perdida_bosque_pct": 2.6
    },
    "dengue": {
-    "indice": 0.768,
-    "categoria": 5
+    "indice": 0.153,
+    "categoria": 3
    },
    "calor": {
-    "indice": 0.082,
+    "indice": 0.087,
     "categoria": 1
    },
    "agua_obs": {
-    "km2": 50.2,
-    "km2_mes_anterior": 45.6,
-    "km_caminos": 22.6
+    "km2": 0.11,
+    "km2_mes_anterior": 0.16,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.686,
+    "hand_medio_m": 0.82,
+    "km_caminos_rurales": 580.5,
+    "km_rurales_por_km2": 0.557,
+    "area_km2": 1042,
+    "prop_caminos_rurales": 0.727,
+    "poblacion": 13330,
+    "noches_tropicales_normal": 13.2,
+    "noches_tropicales_anom_nino": 1.2,
+    "dias_aptos_dengue_normal": 87.7,
+    "dias_aptos_dengue_anom_nino": 0.5
    }
   },
   "libertador-general-san-martin": {
    "lluvia": {
-    "prob_superior": 0.76,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.24,
-    "anom_pronostico_pct": 44,
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 76,
     "normal_mm": 420,
-    "anom_nino_pct": 25
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.655,
-    "E": 0.992,
-    "V": 0.472,
-    "R": 0.674,
-    "categoria": 5,
-    "perdida_bosque_pct": 11.6
+    "H": 0.623,
+    "E": 0.225,
+    "V": 0.01,
+    "R": 0.112,
+    "categoria": 1,
+    "perdida_bosque_pct": 6.5
    },
    "dengue": {
-    "indice": 0.642,
-    "categoria": 4
+    "indice": 0.328,
+    "categoria": 5
    },
    "calor": {
-    "indice": 0.391,
-    "categoria": 2
+    "indice": 0.542,
+    "categoria": 5
    },
    "agua_obs": {
-    "km2": 32.0,
-    "km2_mes_anterior": 29.7,
-    "km_caminos": 14.4
+    "km2": 8.98,
+    "km2_mes_anterior": 7.86,
+    "km_caminos": 0.2
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.551,
+    "hand_medio_m": 1.14,
+    "km_caminos_rurales": 2454.6,
+    "km_rurales_por_km2": 0.339,
+    "area_km2": 7234,
+    "prop_caminos_rurales": 0.804,
+    "poblacion": 55010,
+    "noches_tropicales_normal": 16.6,
+    "noches_tropicales_anom_nino": 0.9,
+    "dias_aptos_dengue_normal": 86.7,
+    "dias_aptos_dengue_anom_nino": 0.6
    }
   },
   "maipu": {
    "lluvia": {
-    "prob_superior": 0.67,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.33,
-    "anom_pronostico_pct": 23,
-    "normal_mm": 400,
-    "anom_nino_pct": 18
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 48,
+    "normal_mm": 410,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.412,
-    "E": 0.782,
-    "V": 0.348,
-    "R": 0.482,
-    "categoria": 4,
-    "perdida_bosque_pct": 20.7
+    "H": 0.62,
+    "E": 0.506,
+    "V": 0.661,
+    "R": 0.592,
+    "categoria": 3,
+    "perdida_bosque_pct": 29.5
    },
    "dengue": {
-    "indice": 0.632,
+    "indice": 0.179,
     "categoria": 4
    },
    "calor": {
-    "indice": 0.599,
-    "categoria": 3
+    "indice": 0.362,
+    "categoria": 4
    },
    "agua_obs": {
-    "km2": 10.7,
-    "km2_mes_anterior": 8.5,
-    "km_caminos": 4.8
+    "km2": 17.58,
+    "km2_mes_anterior": 9.4,
+    "km_caminos": 0.9
+   },
+   "componentes": {
+    "consistencia": 0.6,
+    "frac_zona_baja": 0.657,
+    "hand_medio_m": 0.8,
+    "km_caminos_rurales": 1507.9,
+    "km_rurales_por_km2": 0.517,
+    "area_km2": 2915,
+    "prop_caminos_rurales": 0.852,
+    "poblacion": 22278,
+    "noches_tropicales_normal": 16.6,
+    "noches_tropicales_anom_nino": 1.3,
+    "dias_aptos_dengue_normal": 85.6,
+    "dias_aptos_dengue_anom_nino": -0.0
    }
   },
   "mayor-luis-j-fontana": {
    "lluvia": {
-    "prob_superior": 0.66,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.34,
-    "anom_pronostico_pct": 25,
-    "normal_mm": 360,
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 57,
+    "normal_mm": 460,
     "anom_nino_pct": 14
    },
    "anegamiento": {
-    "H": 0.332,
-    "E": 0.385,
-    "V": 0.21,
-    "R": 0.299,
-    "categoria": 2,
-    "perdida_bosque_pct": 13.5
+    "H": 0.745,
+    "E": 0.398,
+    "V": 0.727,
+    "R": 0.6,
+    "categoria": 4,
+    "perdida_bosque_pct": 7.7
    },
    "dengue": {
-    "indice": 0.312,
-    "categoria": 2
+    "indice": 0.332,
+    "categoria": 5
    },
    "calor": {
-    "indice": 0.484,
+    "indice": 0.263,
     "categoria": 3
    },
    "agua_obs": {
-    "km2": 5.0,
-    "km2_mes_anterior": 4.3,
-    "km_caminos": 2.2
+    "km2": 7.29,
+    "km2_mes_anterior": 15.03,
+    "km_caminos": 1.0
+   },
+   "componentes": {
+    "consistencia": 0.8,
+    "frac_zona_baja": 0.968,
+    "hand_medio_m": 0.33,
+    "km_caminos_rurales": 1655.2,
+    "km_rurales_por_km2": 0.449,
+    "area_km2": 3687,
+    "prop_caminos_rurales": 0.759,
+    "poblacion": 48974,
+    "noches_tropicales_normal": 14.1,
+    "noches_tropicales_anom_nino": 0.9,
+    "dias_aptos_dengue_normal": 86.2,
+    "dias_aptos_dengue_anom_nino": 0.4
    }
   },
   "o-higgins": {
    "lluvia": {
-    "prob_superior": 0.59,
+    "prob_superior": 0.96,
     "prob_normal": null,
-    "prob_inferior": 0.41,
-    "anom_pronostico_pct": 19,
-    "normal_mm": 380,
-    "anom_nino_pct": 18
+    "prob_inferior": 0.04,
+    "anom_pronostico_pct": 54,
+    "normal_mm": 430,
+    "anom_nino_pct": 10
    },
    "anegamiento": {
-    "H": 0.302,
-    "E": 0.058,
-    "V": 0.397,
-    "R": 0.191,
-    "categoria": 1,
-    "perdida_bosque_pct": 17.7
+    "H": 0.664,
+    "E": 0.806,
+    "V": 0.779,
+    "R": 0.747,
+    "categoria": 5,
+    "perdida_bosque_pct": 19.8
    },
    "dengue": {
-    "indice": 0.298,
-    "categoria": 1
-   },
-   "calor": {
-    "indice": 0.596,
+    "indice": 0.165,
     "categoria": 3
    },
+   "calor": {
+    "indice": 0.25,
+    "categoria": 2
+   },
    "agua_obs": {
-    "km2": 7.5,
-    "km2_mes_anterior": 7.1,
-    "km_caminos": 3.4
+    "km2": 5.43,
+    "km2_mes_anterior": 11.5,
+    "km_caminos": 0.8
+   },
+   "componentes": {
+    "consistencia": 0.73,
+    "frac_zona_baja": 0.876,
+    "hand_medio_m": 0.49,
+    "km_caminos_rurales": 1111.3,
+    "km_rurales_por_km2": 0.708,
+    "area_km2": 1570,
+    "prop_caminos_rurales": 0.832,
+    "poblacion": 18233,
+    "noches_tropicales_normal": 15.5,
+    "noches_tropicales_anom_nino": 0.9,
+    "dias_aptos_dengue_normal": 85.6,
+    "dias_aptos_dengue_anom_nino": 0.2
    }
   },
   "presidencia-de-la-plaza": {
    "lluvia": {
-    "prob_superior": 0.78,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.22,
-    "anom_pronostico_pct": 48,
-    "normal_mm": 430,
-    "anom_nino_pct": 29
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 76,
+    "normal_mm": 440,
+    "anom_nino_pct": 8
    },
    "anegamiento": {
-    "H": 0.755,
-    "E": 0.954,
-    "V": 0.466,
-    "R": 0.695,
-    "categoria": 5,
-    "perdida_bosque_pct": 10.9
+    "H": 0.63,
+    "E": 0.224,
+    "V": 0.401,
+    "R": 0.384,
+    "categoria": 2,
+    "perdida_bosque_pct": 5.7
    },
    "dengue": {
-    "indice": 0.616,
-    "categoria": 4
-   },
-   "calor": {
-    "indice": 0.36,
+    "indice": 0.127,
     "categoria": 2
    },
+   "calor": {
+    "indice": 0.139,
+    "categoria": 1
+   },
    "agua_obs": {
-    "km2": 33.7,
-    "km2_mes_anterior": 29.8,
-    "km_caminos": 15.2
+    "km2": 0.8,
+    "km2_mes_anterior": 0.76,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.67,
+    "frac_zona_baja": 0.752,
+    "hand_medio_m": 0.68,
+    "km_caminos_rurales": 760.0,
+    "km_rurales_por_km2": 0.339,
+    "area_km2": 2244,
+    "prop_caminos_rurales": 0.832,
+    "poblacion": 10989,
+    "noches_tropicales_normal": 14.0,
+    "noches_tropicales_anom_nino": 1.3,
+    "dias_aptos_dengue_normal": 87.0,
+    "dias_aptos_dengue_anom_nino": 0.4
    }
   },
   "quitilipi": {
    "lluvia": {
-    "prob_superior": 0.7,
+    "prob_superior": 0.94,
     "prob_normal": null,
-    "prob_inferior": 0.3,
-    "anom_pronostico_pct": 32,
-    "normal_mm": 420,
-    "anom_nino_pct": 21
+    "prob_inferior": 0.06,
+    "anom_pronostico_pct": 70,
+    "normal_mm": 410,
+    "anom_nino_pct": 9
    },
    "anegamiento": {
-    "H": 0.516,
-    "E": 0.338,
-    "V": 0.396,
-    "R": 0.41,
+    "H": 0.584,
+    "E": 0.683,
+    "V": 0.263,
+    "R": 0.471,
     "categoria": 3,
-    "perdida_bosque_pct": 12.7
+    "perdida_bosque_pct": 8.1
    },
    "dengue": {
-    "indice": 0.485,
-    "categoria": 3
+    "indice": 0.222,
+    "categoria": 5
    },
    "calor": {
-    "indice": 0.531,
-    "categoria": 3
+    "indice": 0.342,
+    "categoria": 4
    },
    "agua_obs": {
-    "km2": 16.0,
-    "km2_mes_anterior": 14.9,
-    "km_caminos": 7.2
+    "km2": 2.18,
+    "km2_mes_anterior": 1.94,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.47,
+    "frac_zona_baja": 0.652,
+    "hand_medio_m": 0.88,
+    "km_caminos_rurales": 981.0,
+    "km_rurales_por_km2": 0.63,
+    "area_km2": 1557,
+    "prop_caminos_rurales": 0.769,
+    "poblacion": 30742,
+    "noches_tropicales_normal": 15.3,
+    "noches_tropicales_anom_nino": 1.3,
+    "dias_aptos_dengue_normal": 86.3,
+    "dias_aptos_dengue_anom_nino": 0.3
    }
   },
   "san-fernando": {
    "lluvia": {
-    "prob_superior": 0.84,
+    "prob_superior": 0.98,
     "prob_normal": null,
-    "prob_inferior": 0.16,
-    "anom_pronostico_pct": 56,
-    "normal_mm": 450,
-    "anom_nino_pct": 34
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 83,
+    "normal_mm": 470,
+    "anom_nino_pct": 13
    },
    "anegamiento": {
-    "H": 0.922,
-    "E": 0.139,
-    "V": 0.808,
-    "R": 0.47,
-    "categoria": 4,
-    "perdida_bosque_pct": 3.0
+    "H": 0.698,
+    "E": 0.184,
+    "V": 0.104,
+    "R": 0.238,
+    "categoria": 1,
+    "perdida_bosque_pct": 1.6
    },
    "dengue": {
     "indice": 1.0,
     "categoria": 5
+   },
+   "calor": {
+    "indice": 0.615,
+    "categoria": 5
+   },
+   "agua_obs": {
+    "km2": 6.15,
+    "km2_mes_anterior": 8.48,
+    "km_caminos": 0.1
+   },
+   "componentes": {
+    "consistencia": 0.67,
+    "frac_zona_baja": 0.652,
+    "hand_medio_m": 0.95,
+    "km_caminos_rurales": 1109.8,
+    "km_rurales_por_km2": 0.313,
+    "area_km2": 3542,
+    "prop_caminos_rurales": 0.383,
+    "poblacion": 360794,
+    "noches_tropicales_normal": 13.3,
+    "noches_tropicales_anom_nino": 1.4,
+    "dias_aptos_dengue_normal": 87.8,
+    "dias_aptos_dengue_anom_nino": 0.4
+   }
+  },
+  "san-lorenzo": {
+   "lluvia": {
+    "prob_superior": 0.94,
+    "prob_normal": null,
+    "prob_inferior": 0.06,
+    "anom_pronostico_pct": 64,
+    "normal_mm": 430,
+    "anom_nino_pct": 11
+   },
+   "anegamiento": {
+    "H": 0.67,
+    "E": 0.215,
+    "V": 0.602,
+    "R": 0.442,
+    "categoria": 3,
+    "perdida_bosque_pct": 6.1
+   },
+   "dengue": {
+    "indice": 0.142,
+    "categoria": 2
+   },
+   "calor": {
+    "indice": 0.159,
+    "categoria": 1
+   },
+   "agua_obs": {
+    "km2": 0.33,
+    "km2_mes_anterior": 0.43,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.73,
+    "frac_zona_baja": 0.907,
+    "hand_medio_m": 0.45,
+    "km_caminos_rurales": 714.6,
+    "km_rurales_por_km2": 0.333,
+    "area_km2": 2148,
+    "prop_caminos_rurales": 0.827,
+    "poblacion": 13073,
+    "noches_tropicales_normal": 14.4,
+    "noches_tropicales_anom_nino": 1.0,
+    "dias_aptos_dengue_normal": 86.4,
+    "dias_aptos_dengue_anom_nino": 0.3
+   }
+  },
+  "sargento-cabral": {
+   "lluvia": {
+    "prob_superior": 1.0,
+    "prob_normal": null,
+    "prob_inferior": 0.0,
+    "anom_pronostico_pct": 79,
+    "normal_mm": 440,
+    "anom_nino_pct": 7
+   },
+   "anegamiento": {
+    "H": 0.629,
+    "E": 0.353,
+    "V": 0.029,
+    "R": 0.186,
+    "categoria": 1,
+    "perdida_bosque_pct": 6.2
+   },
+   "dengue": {
+    "indice": 0.154,
+    "categoria": 3
+   },
+   "calor": {
+    "indice": 0.186,
+    "categoria": 2
+   },
+   "agua_obs": {
+    "km2": 3.59,
+    "km2_mes_anterior": 3.38,
+    "km_caminos": 0.0
+   },
+   "componentes": {
+    "consistencia": 0.67,
+    "frac_zona_baja": 0.567,
+    "hand_medio_m": 1.11,
+    "km_caminos_rurales": 695.8,
+    "km_rurales_por_km2": 0.421,
+    "area_km2": 1654,
+    "prop_caminos_rurales": 0.76,
+    "poblacion": 14626,
+    "noches_tropicales_normal": 14.7,
+    "noches_tropicales_anom_nino": 1.0,
+    "dias_aptos_dengue_normal": 87.3,
+    "dias_aptos_dengue_anom_nino": 0.5
+   }
+  },
+  "tapenaga": {
+   "lluvia": {
+    "prob_superior": 0.98,
+    "prob_normal": null,
+    "prob_inferior": 0.02,
+    "anom_pronostico_pct": 68,
+    "normal_mm": 440,
+    "anom_nino_pct": 13
+   },
+   "anegamiento": {
+    "H": 0.697,
+    "E": 0.039,
+    "V": 0.492,
+    "R": 0.237,
+    "categoria": 1,
+    "perdida_bosque_pct": 1.2
+   },
+   "dengue": {
+    "indice": 0.066,
+    "categoria": 1
    },
    "calor": {
     "indice": 0.01,
     "categoria": 1
    },
    "agua_obs": {
-    "km2": 39.7,
-    "km2_mes_anterior": 28.6,
-    "km_caminos": 17.9
-   }
-  },
-  "san-lorenzo": {
-   "lluvia": {
-    "prob_superior": 0.65,
-    "prob_normal": null,
-    "prob_inferior": 0.35,
-    "anom_pronostico_pct": 24,
-    "normal_mm": 390,
-    "anom_nino_pct": 18
+    "km2": 2.04,
+    "km2_mes_anterior": 3.25,
+    "km_caminos": 0.0
    },
-   "anegamiento": {
-    "H": 0.381,
-    "E": 0.352,
-    "V": 0.506,
-    "R": 0.408,
-    "categoria": 3,
-    "perdida_bosque_pct": 10.7
-   },
-   "dengue": {
-    "indice": 0.347,
-    "categoria": 2
-   },
-   "calor": {
-    "indice": 0.397,
-    "categoria": 3
-   },
-   "agua_obs": {
-    "km2": 10.2,
-    "km2_mes_anterior": 9.6,
-    "km_caminos": 4.6
-   }
-  },
-  "sargento-cabral": {
-   "lluvia": {
-    "prob_superior": 0.73,
-    "prob_normal": null,
-    "prob_inferior": 0.27,
-    "anom_pronostico_pct": 41,
-    "normal_mm": 430,
-    "anom_nino_pct": 27
-   },
-   "anegamiento": {
-    "H": 0.65,
-    "E": 0.869,
-    "V": 0.729,
-    "R": 0.744,
-    "categoria": 5,
-    "perdida_bosque_pct": 10.7
-   },
-   "dengue": {
-    "indice": 0.691,
-    "categoria": 4
-   },
-   "calor": {
-    "indice": 0.318,
-    "categoria": 2
-   },
-   "agua_obs": {
-    "km2": 44.8,
-    "km2_mes_anterior": 37.8,
-    "km_caminos": 20.2
-   }
-  },
-  "tapenaga": {
-   "lluvia": {
-    "prob_superior": 0.74,
-    "prob_normal": null,
-    "prob_inferior": 0.26,
-    "anom_pronostico_pct": 42,
-    "normal_mm": 430,
-    "anom_nino_pct": 25
-   },
-   "anegamiento": {
-    "H": 0.624,
-    "E": 0.362,
-    "V": 0.771,
-    "R": 0.558,
-    "categoria": 4,
-    "perdida_bosque_pct": 6.3
-   },
-   "dengue": {
-    "indice": 0.535,
-    "categoria": 3
-   },
-   "calor": {
-    "indice": 0.247,
-    "categoria": 1
-   },
-   "agua_obs": {
-    "km2": 25.6,
-    "km2_mes_anterior": 19.4,
-    "km_caminos": 11.5
+   "componentes": {
+    "consistencia": 0.67,
+    "frac_zona_baja": 0.881,
+    "hand_medio_m": 0.49,
+    "km_caminos_rurales": 1319.9,
+    "km_rurales_por_km2": 0.221,
+    "area_km2": 5968,
+    "prop_caminos_rurales": 0.934,
+    "poblacion": 3485,
+    "noches_tropicales_normal": 12.7,
+    "noches_tropicales_anom_nino": 1.4,
+    "dias_aptos_dengue_normal": 87.0,
+    "dias_aptos_dengue_anom_nino": 0.5
    }
   }
  }
