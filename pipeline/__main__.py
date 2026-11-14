@@ -160,7 +160,7 @@ def cmd_pacifico(cfg, args):
 
     publicacion = ruta(cfg, "publicacion")
     print("Temperatura del mar (NOAA OISST)…")
-    indice_web = pacifico.actualizar(cfg, publicacion / "pacifico", cfg["fuentes"]["oisst_erddap"])
+    indice_web = pacifico.actualizar(cfg, publicacion / "pacifico", cfg["fuentes"])
     escribir_json(publicacion / "pacifico.json", indice_web)
     print(f"Último dato: {indice_web['ultimo']} · Niño 3.4: {indice_web['nino34']:+.2f} °C · {len(indice_web['cuadros'])} cuadros")
 

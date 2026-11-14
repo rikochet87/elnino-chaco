@@ -12,6 +12,7 @@ Los cuadros semanales caen siempre en lunes, así que cada día solo se descarga
 """
 
 from datetime import date, timedelta
+import time
 from io import StringIO
 
 import numpy as np
@@ -68,23 +69,60 @@ def fechas_semanales(ultima: date, semanas: int = SEMANAS) -> list[str]:
     return [(lunes - timedelta(weeks=k)).isoformat() for k in range(semanas - 1, -1, -1)]
 
 
-def descargar(base: str, fecha: str | None = None) -> tuple[str, np.ndarray]:
-    r = requests.get(url(base, fecha), timeout=180, headers={"User-Agent": "elnino-chaco"})
-    r.raise_for_status()
-    return parsear_csv(r.text)
+def descargar_erddap(base: str, fecha: str | None = None) -> tuple[str, np.ndarray]:
+    ultimo_error = None
+    for intento in range(3):
+        try:
+            r = requests.get(url(base, fecha), timeout=180, headers={"User-Agent": "elnino-chaco"})
+            r.raise_for_status()
+            return parsear_csv(r.text)
+        except requests.RequestException as e:
+            ultimo_error = e
+            time.sleep(10 * (intento + 1))
+    raise ultimo_error
 
 
-def actualizar(cfg: dict, carpeta, base: str) -> dict:
+def descargar_psl(plantilla: str, fecha: str | None = None) -> tuple[str, np.ndarray]:
+    """Respaldo: archivos anuales de anomalía diaria de NOAA PSL por OPeNDAP (misma fuente, OISST v2.1)."""
+    from .atmosfera import abrir_opendap
+
+    anio = date.today().year if fecha is None else int(fecha[:4])
+    try:
+        ds = abrir_opendap(plantilla.format(anio=anio))
+    except OSError:
+        if fecha is not None:
+            raise
+        ds = abrir_opendap(plantilla.format(anio=anio - 1))  # primeros días de enero
+    da = ds["anom"]
+    if fecha is None:
+        da = da.isel(time=-1)
+    else:
+        da = da.sel(time=np.datetime64(fecha), method="nearest")
+    da = da.isel(lat=slice(0, None, PASO), lon=slice(0, None, PASO)).load()
+    if float(da["lat"][0]) > float(da["lat"][-1]):
+        da = da.sortby("lat")
+    return str(da["time"].values)[:10], np.asarray(da.values, dtype=float)
+
+
+def descargar(fuentes: dict, fecha: str | None = None) -> tuple[str, np.ndarray]:
+    try:
+        return descargar_erddap(fuentes["oisst_erddap"], fecha)
+    except requests.RequestException as e:
+        print(f"  ERDDAP no respondió ({e.__class__.__name__}); uso NOAA PSL")
+        return descargar_psl(fuentes["oisst_psl"], fecha)
+
+
+def actualizar(cfg: dict, carpeta, fuentes: dict) -> dict:
     """Descarga lo que falta, borra cuadros viejos y devuelve el índice para la web."""
     from PIL import Image
 
     carpeta.mkdir(parents=True, exist_ok=True)
-    ultima, grilla = descargar(base)
+    ultima, grilla = descargar(fuentes)
     Image.fromarray(a_gris(grilla)).save(carpeta / f"{ultima}.png", optimize=True)
     semanales = fechas_semanales(date.fromisoformat(ultima))
     for f in semanales:
         if not (carpeta / f"{f}.png").exists():
-            fecha_real, g = descargar(base, f)
+            fecha_real, g = descargar(fuentes, f)
             Image.fromarray(a_gris(g)).save(carpeta / f"{f}.png", optimize=True)
             print(f"  cuadro {f} (dato del {fecha_real})")
     vigentes = set(semanales) | {ultima}
@@ -92,7 +130,7 @@ def actualizar(cfg: dict, carpeta, base: str) -> dict:
         if png.stem not in vigentes:
             png.unlink()
     return {
-        "fuente": "NOAA OISST v2.1 (preliminar), anomalía diaria respecto de 1991–2020, vía NOAA CoastWatch ERDDAP",
+        "fuente": "NOAA OISST v2.1 (preliminar), anomalía diaria respecto de 1991–2020",
         "ultimo": ultima,
         "nino34": nino34(grilla),
         "escala": {"min": -RANGO, "max": RANGO, "sin_dato": SIN_DATO, "resolucion_grados": 1},

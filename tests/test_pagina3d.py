@@ -64,3 +64,9 @@ def test_recortar_y_grilla():
     r = atmosfera.recortar(da)
     assert r["lat"].values.tolist() == [0.0, -40.0] and r["lon"].values.tolist() == [0.0, 5.0, 10.0]
     assert atmosfera.grilla(r) == {"lat0": 0.0, "dlat": -40.0, "nlat": 2, "lon0": 0.0, "dlon": 5.0, "nlon": 3}
+
+
+def test_decodificar_tiempo_con_sufijo():
+    ds = xr.Dataset(coords={"time": ("time", [0.0, 31.0], {"units": "days since 1800-01-01 00:00:00 0:00"})})
+    t = atmosfera.decodificar_tiempo(ds)["time"].values
+    assert str(t[0])[:10] == "1800-01-01" and str(t[1])[:10] == "1800-02-01"

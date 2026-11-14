@@ -61,10 +61,26 @@ def grilla(da) -> dict:
             "lon0": float(lon[0]), "dlon": float(lon[1] - lon[0]), "nlon": int(lon.size)}
 
 
-def _abrir(url: str, var: str, nivel: float | None):
+def decodificar_tiempo(ds):
+    """Fechas 'days/hours since AAAA-MM-DD ...' sin depender de cftime (algunos archivos de PSL traen
+    un sufijo de zona horaria, como '0:00', que xarray no entiende)."""
+    import pandas as pd
+
+    t = ds["time"]
+    unidad, _, origen = t.attrs["units"].partition(" since ")
+    base = pd.Timestamp(origen.strip().split(" ")[0])
+    paso = {"days": "D", "hours": "h"}[unidad.strip()]
+    return ds.assign_coords(time=base + pd.to_timedelta(t.values, unit=paso))
+
+
+def abrir_opendap(url: str):
     import xarray as xr
 
-    ds = xr.open_dataset(url, decode_times=True)
+    return decodificar_tiempo(xr.open_dataset(url, decode_times=False))
+
+
+def _abrir(url: str, var: str, nivel: float | None):
+    ds = abrir_opendap(url)
     da = ds[var]
     if nivel is not None:
         da = da.sel(level=nivel)
