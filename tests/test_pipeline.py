@@ -153,6 +153,16 @@ def test_openmeteo_proporcion_de_miembros():
     assert r["prob_superior"] == pytest.approx(round(17 / 51, 2))
 
 
+def test_openmeteo_fechas_mensuales_corridas_por_zona_horaria():
+    # Tal como respondió la API con timezone=America/Argentina/Buenos_Aires
+    d, m = _respuestas_openmeteo()
+    m["monthly"]["time"] = ["2026-10-31", "2026-11-30", "2026-12-31", "2027-01-31", "2027-02-28", "2027-03-31"]
+    r = openmeteo.resumir_punto(d, m, [(2026, 12), (2027, 1), (2027, 2)])
+    assert r["clima_modelo_mm"] == pytest.approx(480)
+    assert openmeteo._mes_de("2026-11-30") == (2026, 12)
+    assert openmeteo._mes_de("2026-12-01") == (2026, 12)
+
+
 def test_openmeteo_mes_parcial_se_prorratea():
     d, m = _respuestas_openmeteo(inicio="2026-12-15")  # diciembre cubierto 17 de 31 días
     r = openmeteo.resumir_punto(d, m, [(2026, 12), (2027, 1), (2027, 2)])

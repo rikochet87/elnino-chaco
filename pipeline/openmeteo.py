@@ -16,6 +16,7 @@ Datos: Open-Meteo.com (CC BY 4.0), basados en ECMWF SEAS5.
 
 import calendar
 from collections import defaultdict
+from datetime import date, timedelta
 
 import requests
 
@@ -43,13 +44,28 @@ def descargar(puntos: list[tuple[float, float]], dias: int = 215) -> tuple[list,
         "latitude": ",".join(f"{lat:.4f}" for lon, lat in puntos),
         "longitude": ",".join(f"{lon:.4f}" for lon, lat in puntos),
         "models": MODELO,
-        "timezone": "America/Argentina/Buenos_Aires",
+        # Sin zona horaria (UTC): con la de Argentina los meses aparecen corridos un día
+        # ("2026-11-30" en lugar de "2026-12-01").
     }
     diaria = _pedir({**base, "daily": "precipitation_sum", "forecast_days": dias})
     mensual = _pedir({**base, "monthly": "precipitation_mean,precipitation_anomaly"})
     if len(diaria) != len(puntos) or len(mensual) != len(puntos):
         raise RuntimeError("Open-Meteo devolvió una cantidad de puntos distinta de la pedida")
     return diaria, mensual
+
+
+def _mes_de(fecha: str) -> tuple[int, int]:
+    """Mes al que pertenece un valor mensual de Open-Meteo.
+
+    En UTC llega como el primer día del mes ("2026-12-01"); con una zona horaria al
+    oeste de Greenwich llega como el último día del mes anterior ("2026-11-30").
+    """
+    d = date.fromisoformat(fecha[:10])
+    if d.day != 1:
+        d = d + timedelta(days=1)
+        if d.day != 1:
+            raise RuntimeError(f"Fecha mensual inesperada en Open-Meteo: {fecha}")
+    return d.year, d.month
 
 
 def resumir_punto(diaria: dict, mensual: dict, meses_obj: list[tuple[int, int]], cobertura_minima: float = 0.6) -> dict:
@@ -83,10 +99,10 @@ def resumir_punto(diaria: dict, mensual: dict, meses_obj: list[tuple[int, int]],
         n = dias_mes.get((a, m), 0)
         if n == 0:
             continue
-        clave = f"{a}-{m:02d}-01"
-        if clave not in mm["time"]:
-            raise RuntimeError(f"Falta la media mensual de {clave} en Open-Meteo")
-        j = mm["time"].index(clave)
+        meses_api = [_mes_de(x) for x in mm["time"]]
+        if (a, m) not in meses_api:
+            raise RuntimeError(f"Falta la media mensual de {a}-{m:02d} en Open-Meteo (llegaron: {', '.join(mm['time'])})")
+        j = meses_api.index((a, m))
         clima += (mm["precipitation_mean"][j] - mm["precipitation_anomaly"][j]) * n / largo
         dias_cubiertos += n
     if dias_totales == 0 or dias_cubiertos / dias_totales < cobertura_minima:
