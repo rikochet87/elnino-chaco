@@ -13,7 +13,7 @@ rutas:
 
 gee:
   proyecto: chaco-2727           # proyecto de Google Cloud registrado en Earth Engine (uso no comercial)
-  asset_caminos: null            # opcional: "projects/<proyecto>/assets/caminos_chaco"
+  asset_caminos: projects/chaco-2727/assets/caminos_chaco   # caminos rurales de OSM (subidos desde caminos_rurales_ee.csv)
 
 estacion:
   nombre: DEF
