@@ -17,21 +17,33 @@ import numpy as np
 LAT_N, LAT_S = 30.0, -70.0  # dominio: trópico norte a la Antártida (el Pacífico Sur y Sudamérica)
 
 
-def medias_djf(da, anios: list[int]):
-    """Media diciembre (año anterior)–enero–febrero de cada año pedido. Devuelve un DataArray con dim 'anio'."""
+DJF = [(-1, 12), (0, 1), (0, 2)]
+SEP_FEB = [(-1, 9), (-1, 10), (-1, 11), (-1, 12), (0, 1), (0, 2)]  # primavera y verano: lo que carga la cuenca
+
+
+def medias_meses(da, anios: list[int], meses=DJF):
+    """Media de los meses pedidos para cada año, con meses dados como (desfase de año, mes):
+    (-1, 12) es diciembre del año anterior. Devuelve un DataArray con dim 'anio' (el año del enero)."""
     import xarray as xr
 
     t = da["time"].dt
     salidas = []
     for a in anios:
-        sel = ((t.year == a - 1) & (t.month == 12)) | ((t.year == a) & (t.month <= 2))
-        trozo = da.isel(time=np.flatnonzero(sel.values))
-        if trozo.sizes["time"] != 3:
+        sel = np.zeros(t.year.size, dtype=bool)
+        for desfase, mes in meses:
+            sel |= ((t.year == a + desfase) & (t.month == mes)).values
+        trozo = da.isel(time=np.flatnonzero(sel))
+        if trozo.sizes["time"] != len(meses):
             continue
         salidas.append(trozo.mean("time").expand_dims(anio=[a]))
     if not salidas:
-        raise ValueError("No hay veranos completos en los datos pedidos")
+        raise ValueError("No hay temporadas completas en los datos pedidos")
     return xr.concat(salidas, dim="anio")
+
+
+def medias_djf(da, anios: list[int]):
+    """Media diciembre (año anterior)–enero–febrero de cada año pedido."""
+    return medias_meses(da, anios, DJF)
 
 
 def compuesto(da, anios_nino: list[int], clima: tuple[int, int]):
@@ -107,7 +119,10 @@ def calcular(cfg: dict, anios_nino: list[int]) -> dict:
     q850 = djf(ncep.format(var="shum"), "shum", 850)
     if float(q850.max()) < 0.5:  # kg/kg → g/kg
         q850 = q850 * 1000
-    lluvia = djf(fu["gpcp_mensual"], "precip")  # mm/día
+    print("  precip (GPCP)…")
+    precip = _abrir(fu["gpcp_mensual"], "precip", None)  # mm/día
+    lluvia = medias_djf(precip, anios)
+    lluvia_sf = medias_meses(precip, anios, SEP_FEB)
 
     u200n, _, nino = compuesto(u200, anios_nino, clima)
     v200n, _, _ = compuesto(v200, anios_nino, clima)
@@ -120,6 +135,9 @@ def calcular(cfg: dict, anios_nino: list[int]) -> dict:
     _, ll_anom, _ = compuesto(lluvia, anios_nino, clima)
     ll_clima = lluvia.sel(anio=[a for a in lluvia["anio"].values if clima[0] <= a <= clima[1]]).mean("anio")
     ll_pct = (ll_anom / ll_clima.where(ll_clima > 0.3)) * 100
+    _, sf_anom, _ = compuesto(lluvia_sf, anios_nino, clima)
+    sf_clima = lluvia_sf.sel(anio=[a for a in lluvia_sf["anio"].values if clima[0] <= a <= clima[1]]).mean("anio")
+    sf_pct = (sf_anom / sf_clima.where(sf_clima > 0.3)) * 100
 
     return {
         "fuente": "NOAA PSL: reanálisis NCEP/NCAR R1 (medias mensuales) y GPCP v2.3",
@@ -132,4 +150,5 @@ def calcular(cfg: dict, anios_nino: list[int]) -> dict:
         "qu850": plano(qun), "qv850": plano(qvn),
         "qu850_anom": plano(qu_anom), "qv850_anom": plano(qv_anom),
         "lluvia": {"grilla": grilla(ll_anom), "anom_mm_dia": plano(ll_anom, 2), "anom_pct": plano(ll_pct, 0)},
+        "lluvia_sep_feb": {"grilla": grilla(sf_anom), "anom_mm_dia": plano(sf_anom, 2), "anom_pct": plano(sf_pct, 0)},
     }

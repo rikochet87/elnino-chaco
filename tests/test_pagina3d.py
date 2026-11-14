@@ -70,3 +70,11 @@ def test_decodificar_tiempo_con_sufijo():
     ds = xr.Dataset(coords={"time": ("time", [0.0, 31.0], {"units": "days since 1800-01-01 00:00:00 0:00"})})
     t = atmosfera.decodificar_tiempo(ds)["time"].values
     assert str(t[0])[:10] == "1800-01-01" and str(t[1])[:10] == "1800-02-01"
+
+
+def test_medias_meses_sep_feb():
+    t = pd.date_range("1990-01-01", "1999-12-01", freq="MS")
+    da = xr.DataArray(np.array([float(d.month) for d in t]), dims=("time",), coords={"time": t})
+    sf = atmosfera.medias_meses(da, [1995, 2000], atmosfera.SEP_FEB)
+    assert sf["anio"].values.tolist() == [1995]  # 2000 no tiene enero y febrero
+    assert float(sf.sel(anio=1995)) == (9 + 10 + 11 + 12 + 1 + 2) / 6
