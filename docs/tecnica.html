@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SIG El Niño Argentina · Vista técnica</title>
-<meta name="description" content="Índices, componentes, agua observada y descargas del SIG El Niño Argentina, piloto Chaco.">
+<title data-i18n="t.titulo">SIG El Niño Argentina · Vista técnica</title>
+<meta name="description" data-i18n-attr="content:t.descripcion" content="Índices, componentes, agua observada y descargas del SIG El Niño Argentina, piloto Chaco.">
 <meta name="theme-color" content="#13293F">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icono-192.png" type="image/png">
@@ -13,12 +13,12 @@
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<a class="sr-only" href="#contenido">Saltar al contenido</a>
+<a class="sr-only" href="#contenido" data-i18n="saltar">Saltar al contenido</a>
 
 <div class="aviso-demo" role="note">
   <div class="contenedor ancho">
     <span class="etiqueta-demo">Demo</span>
-    <span><strong>Emisión de demostración.</strong> Los valores siguen un gradiente geográfico simple para probar el sistema; no provienen de ERA5, CHIRPS, ECMWF SEAS5 ni Sentinel-1. El esquema de datos es el definitivo.</span>
+    <span data-i18n-html="t.demo"><strong>Emisión de demostración.</strong> Los valores siguen un gradiente geográfico simple para probar el sistema; no provienen de ERA5, CHIRPS, ECMWF SEAS5 ni Sentinel-1. El esquema de datos es el definitivo.</span>
   </div>
 </div>
 
@@ -26,45 +26,51 @@
   <div class="contenedor ancho">
     <a class="marca" href="./">
       <img src="icons/icono-192.png" alt="" width="36" height="36">
-      <span class="marca-texto"><span class="marca-titulo">SIG El Niño Argentina</span><span class="marca-sub">Vista técnica · piloto Chaco</span></span>
+      <span class="marca-texto"><span class="marca-titulo">SIG El Niño Argentina</span><span class="marca-sub" data-i18n="t.marca-sub">Vista técnica · piloto Chaco</span></span>
     </a>
     <span class="mono" style="font-size:12px;color:#C9D3DD" id="meta"></span>
-    <a class="boton-claro" href="./">Vista ciudadana</a>
+    <div class="cabecera-acciones">
+      <a class="boton-claro" href="./" data-i18n="t.vista-ciudadana">Vista ciudadana</a>
+      <div class="idioma" role="group" aria-label="Idioma" data-i18n-attr="aria-label:idioma.grupo">
+        <button type="button" data-idioma="es" lang="es" aria-label="Español" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
+      </div>
+    </div>
   </div>
 </header>
 
 <main id="contenido" class="contenedor ancho tec-layout">
-  <aside class="tec-aside panel" aria-label="Parámetros">
+  <aside class="tec-aside panel" aria-label="Parámetros" data-i18n-attr="aria-label:t.parametros">
     <div class="bloque-cuerpo">
-      <p class="rotulo">Parámetros</p>
-      <label class="param">Módulo
+      <p class="rotulo" data-i18n="t.parametros">Parámetros</p>
+      <label class="param"><span data-i18n="t.modulo">Módulo</span>
         <select class="campo-chico" id="sel-modulo">
-          <option value="anegamiento">Anegamiento y caminos</option>
-          <option value="lluvia">Lluvia</option>
-          <option value="dengue">Dengue</option>
-          <option value="calor">Calor</option>
+          <option value="anegamiento" data-i18n="t.op-anegamiento">Anegamiento y caminos</option>
+          <option value="lluvia" data-i18n="t.op-lluvia">Lluvia</option>
+          <option value="dengue" data-i18n="t.op-dengue">Dengue</option>
+          <option value="calor" data-i18n="t.op-calor">Calor</option>
         </select>
       </label>
-      <label class="param">Departamento
+      <label class="param"><span data-i18n="t.departamento">Departamento</span>
         <select class="campo-chico" id="sel-depto"></select>
       </label>
-      <label class="param">Trimestre objetivo
+      <label class="param"><span data-i18n="t.trimestre">Trimestre objetivo</span>
         <select class="campo-chico" disabled><option id="opt-trimestre"></option></select>
       </label>
     </div>
     <div class="bloque-cuerpo" style="border-top:1px solid var(--borde-suave)">
-      <p class="rotulo">Capa</p>
-      <div id="capas" role="radiogroup" aria-label="Capa del mapa"></div>
+      <p class="rotulo" data-i18n="t.capa">Capa</p>
+      <div id="capas" role="radiogroup" aria-label="Capa del mapa" data-i18n-attr="aria-label:t.capa-grupo"></div>
     </div>
   </aside>
 
   <div class="tec-main">
-    <section aria-label="Módulos de amenaza" class="modulos" id="modulos"></section>
+    <section aria-label="Módulos de amenaza" data-i18n-attr="aria-label:t.modulos" class="modulos" id="modulos"></section>
 
     <section class="panel" aria-labelledby="titulo-mapa">
-      <div class="bloque-cab"><h2 id="titulo-mapa"></h2><span>EPSG:4326 · límites IGN SIG 250</span></div>
+      <div class="bloque-cab"><h2 id="titulo-mapa"></h2><span data-i18n="t.mapa-meta">EPSG:4326 · límites IGN SIG 250</span></div>
       <div class="mapa-cuerpo">
-        <div class="mapa" id="mapa-contenedor" style="height:480px" role="region" aria-label="Mapa técnico de departamentos de Chaco"></div>
+        <div class="mapa" id="mapa-contenedor" style="height:480px" role="region" aria-label="Mapa técnico de departamentos de Chaco" data-i18n-attr="aria-label:t.mapa-region"></div>
         <div class="leyenda" id="leyenda"></div>
       </div>
     </section>
@@ -78,27 +84,27 @@
     </section>
 
     <section class="panel" aria-labelledby="titulo-agua">
-      <div class="bloque-cab"><h2 id="titulo-agua">Agua observada</h2><span id="agua-meta"></span></div>
+      <div class="bloque-cab"><h2 id="titulo-agua" data-i18n="t.agua">Agua observada</h2><span id="agua-meta"></span></div>
       <div class="metricas" id="agua-metricas"></div>
       <div class="bloque-cuerpo" style="border-top:1px solid var(--borde-suave)">
-        <p style="margin:0;font-size:13px;color:var(--texto-4)">Anegamiento fuera de lo habitual: se descuentan ríos, lagunas y esteros permanentes (JRC Global Surface Water). Umbral adaptativo de Otsu sobre retrodispersión VV.</p>
+        <p style="margin:0;font-size:13px;color:var(--texto-4)" data-i18n="t.agua-nota">Anegamiento fuera de lo habitual: se descuentan ríos, lagunas y esteros permanentes (JRC Global Surface Water). El agua se detecta en la retrodispersión VV de Sentinel-1 con un umbral adaptativo de Otsu y una prueba de cambio respecto del mismo mes en 2017–2025.</p>
       </div>
     </section>
 
     <section class="panel" aria-labelledby="titulo-ranking">
-      <div class="bloque-cab"><h2 id="titulo-ranking">Todos los departamentos</h2><button class="boton boton-sec" style="min-height:36px;padding:0 12px;font-size:13px" id="bajar-csv" type="button">Descargar CSV</button></div>
+      <div class="bloque-cab"><h2 id="titulo-ranking" data-i18n="t.ranking">Todos los departamentos</h2><button class="boton boton-sec" style="min-height:36px;padding:0 12px;font-size:13px" id="bajar-csv" type="button" data-i18n="t.bajar-csv">Descargar CSV</button></div>
       <div class="desplazable">
         <table class="tabla" id="ranking">
-          <caption class="sr-only">Indicadores por departamento. Las columnas se pueden ordenar.</caption>
+          <caption class="sr-only" data-i18n="t.caption">Indicadores por departamento. Las columnas se pueden ordenar.</caption>
           <thead><tr>
-            <th scope="col"><button data-orden="nombre">Departamento</button></th>
-            <th scope="col" class="num"><button data-orden="R">Índice R</button></th>
-            <th scope="col"><button data-orden="cat">Caminos</button></th>
-            <th scope="col" class="num"><button data-orden="sup">P(lluvia sup.)</button></th>
-            <th scope="col"><button data-orden="dengue">Dengue</button></th>
-            <th scope="col"><button data-orden="calor">Calor</button></th>
-            <th scope="col" class="num"><button data-orden="agua">Agua obs. (km²)</button></th>
-            <th scope="col" class="num"><button data-orden="bosque">Pérdida bosque</button></th>
+            <th scope="col"><button data-orden="nombre" data-i18n="t.th-depto">Departamento</button></th>
+            <th scope="col" class="num"><button data-orden="R" data-i18n="t.th-R">Índice R</button></th>
+            <th scope="col"><button data-orden="cat" data-i18n="t.th-caminos">Caminos</button></th>
+            <th scope="col" class="num"><button data-orden="sup" data-i18n="t.th-sup">P(lluvia sup.)</button></th>
+            <th scope="col"><button data-orden="dengue" data-i18n="t.th-dengue">Dengue</button></th>
+            <th scope="col"><button data-orden="calor" data-i18n="t.th-calor">Calor</button></th>
+            <th scope="col" class="num"><button data-orden="agua" data-i18n="t.th-agua">Agua obs. (km²)</button></th>
+            <th scope="col" class="num"><button data-orden="bosque" data-i18n="t.th-bosque">Pérdida bosque</button></th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -106,25 +112,25 @@
     </section>
 
     <section class="panel" aria-labelledby="titulo-datos">
-      <div class="bloque-cab"><h2 id="titulo-datos">Datos de la emisión</h2><span>Licencia CC BY 4.0</span></div>
+      <div class="bloque-cab"><h2 id="titulo-datos" data-i18n="t.datos">Datos de la emisión</h2><span data-i18n="t.licencia">Licencia CC BY 4.0</span></div>
       <div class="desplazable">
         <table class="tabla">
-          <thead><tr><th scope="col">Producto</th><th scope="col">Formato</th><th scope="col">Descarga</th></tr></thead>
+          <thead><tr><th scope="col" data-i18n="t.th-producto">Producto</th><th scope="col" data-i18n="t.th-formato">Formato</th><th scope="col" data-i18n="t.th-descarga">Descarga</th></tr></thead>
           <tbody id="descargas"></tbody>
         </table>
       </div>
     </section>
 
     <section class="panel" aria-labelledby="titulo-metodo">
-      <div class="bloque-cab"><h2 id="titulo-metodo">Método</h2><span>v0.1 · piloto</span></div>
+      <div class="bloque-cab"><h2 id="titulo-metodo" data-i18n="t.metodo">Método</h2><span data-i18n="t.metodo-version">v0.1 · piloto</span></div>
       <div class="dos-col">
         <div>
           <p class="formula">R = (H · E · V)<sup>1/3</sup><br>H = P(Niño) · (w₁·Â + w₂·C) + w₃·F̂</p>
           <p style="margin:10px 0 0;font-size:13px;color:var(--texto-3)" id="metodo-texto"></p>
         </div>
         <div style="font-size:13px;color:var(--texto-3)">
-          <p style="margin:0">Marco amenaza–exposición–vulnerabilidad (IPCC, UNDRR) y agregación geométrica del INFORM Risk Index. Los pesos w₁, w₂, w₃ son una decisión propia, a calibrar contra las inundaciones de 1997-98 y 2015-16.</p>
-          <p style="margin:8px 0 0">Riesgo relativo entre departamentos: no es un pronóstico ni una alerta oficial.</p>
+          <p style="margin:0" data-i18n="t.metodo-1">Marco amenaza–exposición–vulnerabilidad (IPCC, UNDRR) y agregación geométrica del INFORM Risk Index. Los pesos w₁, w₂, w₃ son una decisión propia, a calibrar contra las inundaciones de 1997-98 y 2015-16.</p>
+          <p style="margin:8px 0 0" data-i18n="t.metodo-2">Riesgo relativo entre departamentos: no es un pronóstico ni una alerta oficial.</p>
         </div>
       </div>
     </section>
@@ -133,12 +139,13 @@
 
 <footer class="pie">
   <div class="contenedor ancho">
-    <div class="col-ancha"><p>Riesgo relativo, no pronóstico oficial · Datos bajo licencia CC BY 4.0 · Pronóstico: <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), ECMWF SEAS5 · Límites departamentales: IGN</p></div>
-    <div class="col"><p><a href="./">Vista ciudadana</a> · <a href="https://github.com/rikochet87/elnino-chaco" rel="noopener">Código y metodología</a></p></div>
+    <div class="col-ancha"><p data-i18n-html="t.pie">Riesgo relativo, no pronóstico oficial · Datos bajo licencia CC BY 4.0 · Pronóstico: <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), ECMWF SEAS5 · Límites departamentales: IGN</p></div>
+    <div class="col"><p data-i18n-html="t.pie-links"><a href="./">Vista ciudadana</a> · <a href="https://github.com/rikochet87/elnino-chaco" rel="noopener">Código y metodología</a></p></div>
   </div>
 </footer>
 
 <script src="vendor/maplibre-gl.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/comun.js"></script>
 <script src="js/tecnica.js"></script>
 </body>

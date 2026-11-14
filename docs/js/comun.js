@@ -5,18 +5,16 @@
   const RIESGO = ["#E3EAF0", "#B3C7D8", "#E9C48A", "#D4793A", "#9E3A1A"];
   const AZULES = ["#EEF2F6", "#C7D7E6", "#8FB0CF", "#4F7FAD", "#1F4E79"];
 
+  const I = window.I18N;
+  // Clases con texto según el idioma activo.
+  const clases = (clave, colores) => colores.map((color, i) => ({ color, get texto() { return I.T(clave)[i]; } }));
+
   // Cada módulo define cómo se clasifica un departamento para la vista ciudadana.
   const MODULOS = {
     lluvia: {
-      nombre: "Lluvia",
-      leyendaTitulo: "Lluvia esperada respecto de lo normal",
-      clases: [
-        { color: "#C9A15E", texto: "Más probable menos lluvia" },
-        { color: "#EDEAE3", texto: "Sin tendencia clara" },
-        { color: "#A9C3DA", texto: "Algo más probable más lluvia" },
-        { color: "#5C8AB5", texto: "Probablemente más lluvia" },
-        { color: "#1F4E79", texto: "Muy probablemente más lluvia" },
-      ],
+      get nombre() { return I.T("mod.lluvia"); },
+      get leyendaTitulo() { return I.T("ley.lluvia"); },
+      clases: clases("cl.lluvia", ["#C9A15E", "#EDEAE3", "#A9C3DA", "#5C8AB5", "#1F4E79"]),
       clase(d) {
         const l = d.lluvia;
         if (l.prob_normal === null || l.prob_normal === undefined) {
@@ -36,33 +34,27 @@
       },
     },
     anegamiento: {
-      nombre: "Caminos",
-      leyendaTitulo: "Posibilidad de cortes de caminos por agua",
-      clases: ["Muy baja", "Baja", "Media", "Alta", "Muy alta"].map((t, i) => ({ color: RIESGO[i], texto: t })),
+      get nombre() { return I.T("mod.anegamiento"); },
+      get leyendaTitulo() { return I.T("ley.anegamiento"); },
+      clases: clases("cl.anegamiento", RIESGO),
       clase: (d) => d.anegamiento.categoria - 1,
     },
     dengue: {
-      nombre: "Dengue",
-      leyendaTitulo: "Condiciones climáticas para el mosquito del dengue",
-      clases: ["Poco favorables", "Algo favorables", "Favorables", "Bastante favorables", "Muy favorables"].map((t, i) => ({ color: RIESGO[i], texto: t })),
+      get nombre() { return I.T("mod.dengue"); },
+      get leyendaTitulo() { return I.T("ley.dengue"); },
+      clases: clases("cl.dengue", RIESGO),
       clase: (d) => d.dengue.categoria - 1,
     },
     calor: {
-      nombre: "Calor",
-      leyendaTitulo: "Calor húmedo y noches que no refrescan",
-      clases: ["Bajo", "Moderado bajo", "Moderado", "Alto", "Muy alto"].map((t, i) => ({ color: RIESGO[i], texto: t })),
+      get nombre() { return I.T("mod.calor"); },
+      get leyendaTitulo() { return I.T("ley.calor"); },
+      clases: clases("cl.calor", RIESGO),
       clase: (d) => d.calor.categoria - 1,
     },
     agua: {
-      nombre: "Agua observada",
-      leyendaTitulo: "Superficie con agua fuera de lo habitual",
-      clases: [
-        { color: AZULES[0], texto: "Menos de 2 km²" },
-        { color: AZULES[1], texto: "2 a 10 km²" },
-        { color: AZULES[2], texto: "10 a 30 km²" },
-        { color: AZULES[3], texto: "30 a 60 km²" },
-        { color: AZULES[4], texto: "Más de 60 km²" },
-      ],
+      get nombre() { return I.T("mod.agua"); },
+      get leyendaTitulo() { return I.T("ley.agua"); },
+      clases: clases("cl.agua", AZULES),
       clase(d) {
         const k = d.agua_obs.km2;
         return k < 2 ? 0 : k < 10 ? 1 : k < 30 ? 2 : k < 60 ? 3 : 4;
@@ -133,7 +125,13 @@
     });
     mapa.touchZoomRotate.disableRotation();
     mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    mapa.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: "Límites: IGN (SIG 250)" }));
+    let atribucion = new maplibregl.AttributionControl({ compact: true, customAttribution: I.T("mapa.limites") });
+    mapa.addControl(atribucion);
+    document.addEventListener("idioma", () => {
+      mapa.removeControl(atribucion);
+      atribucion = new maplibregl.AttributionControl({ compact: true, customAttribution: I.T("mapa.limites") });
+      mapa.addControl(atribucion);
+    });
 
     const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
     mapa.on("mousemove", "deptos-relleno", (e) => {
@@ -166,16 +164,16 @@
 
   // Lista de búsqueda: localidades y departamentos.
   function indiceBusqueda(datos) {
-    const items = datos.localidades.map((l) => ({ texto: l.nombre, sub: datos.porId[l.depto].nombre, depto: l.depto }));
-    datos.deptos.features.forEach((f) => items.push({ texto: "Departamento " + f.properties.nombre, sub: "Chaco", depto: f.id }));
-    items.forEach((i) => { i.clave = normalizar(i.texto); });
+    const items = datos.localidades.map((l) => ({ texto: l.nombre, valor: l.nombre, sub: datos.porId[l.depto].nombre, depto: l.depto }));
+    datos.deptos.features.forEach((f) => items.push({ texto: I.T("depto", f.properties.nombre), valor: f.properties.nombre, sub: "Chaco", depto: f.id }));
+    items.forEach((i) => { i.clave = normalizar(i.texto); i.base = normalizar(i.valor); });
     return items;
   }
 
   function buscar(indice, consulta, max = 8) {
     const q = normalizar(consulta);
     if (!q) return [];
-    const empiezan = indice.filter((i) => i.clave.startsWith(q) || i.clave.replace("departamento ", "").startsWith(q));
+    const empiezan = indice.filter((i) => i.clave.startsWith(q) || i.base.startsWith(q));
     const contienen = indice.filter((i) => !empiezan.includes(i) && i.clave.includes(q));
     return empiezan.concat(contienen).slice(0, max);
   }
@@ -200,11 +198,9 @@
     return null;
   }
 
-  const pct = (v) => Math.round(v * 100) + " %";
-  const num = (v, d = 1) => (v === null || v === undefined || Number.isNaN(v)) ? "—" : v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
-  const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-  const fechaLarga = (iso) => { const [a, m, d] = iso.split("-").map(Number); return `${d} de ${MESES[m - 1]} de ${a}`; };
-  const mesLargo = (iso) => { const [a, m] = iso.split("-").map(Number); return `${MESES[m - 1]} de ${a}`; };
+  const pct = (v) => I.pct(v);
+  const num = (v, d = 1) => (v === null || v === undefined || Number.isNaN(v)) ? "—" : v.toLocaleString(I.locale(), { minimumFractionDigits: d, maximumFractionDigits: d });
+  const { fechaLarga, mesLargo } = I;
 
   function leerPreferido() {
     try { return localStorage.getItem("depto"); } catch (e) { return null; }
@@ -222,7 +218,7 @@
   function mostrarError(err) {
     const div = document.createElement("div");
     div.className = "contenedor";
-    div.innerHTML = '<div class="panel" style="margin-top:24px;padding:20px"><strong>No se pudieron cargar los datos.</strong><p style="margin:6px 0 0">Revisá tu conexión y volvé a intentar.</p></div>';
+    div.innerHTML = `<div class="panel" style="margin-top:24px;padding:20px"><strong>${I.T("error.titulo")}</strong><p style="margin:6px 0 0">${I.T("error.texto")}</p></div>`;
     document.querySelector("main").prepend(div);
     console.error(err);
   }

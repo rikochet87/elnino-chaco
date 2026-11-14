@@ -2,9 +2,10 @@
 (function () {
   "use strict";
   const NS = "http://www.w3.org/2000/svg";
+  const I = window.I18N, T = I.T;
   const W = 640, H = 320, M = { izq: 44, der: 86, arr: 16, aba: 34 };
   const Y0 = -0.5, Y1 = 3.0;
-  const fmt = (v) => (v >= 0 ? "+" : "−") + Math.abs(v).toLocaleString("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " °C";
+  const fmt = (v) => (v >= 0 ? "+" : "−") + Math.abs(v).toLocaleString(I.locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " °C";
 
   function el(tag, attrs, padre, texto) {
     const n = document.createElementNS(NS, tag);
@@ -26,10 +27,10 @@
       el("line", { x1: M.izq, x2: W - M.der, y1: y(v), y2: y(v) }, eje);
       el("text", { x: M.izq - 8, y: y(v) + 4, "text-anchor": "end" }, eje, v === 0 ? "0 °C" : "+" + v);
     });
-    [0, 3, 6, 9, 12].forEach((i) => el("text", { x: x(i), y: H - 8, "text-anchor": "middle" }, eje, datos.ventana[i]));
+    [0, 3, 6, 9, 12].forEach((i) => el("text", { x: x(i), y: H - 8, "text-anchor": "middle" }, eje, I.abrev(datos.ventana[i])));
 
     el("line", { class: "oni-umbral", x1: M.izq, x2: W - M.der, y1: y(0.5), y2: y(0.5) }, svg);
-    el("text", { x: W - M.der + 6, y: y(0.5) + 4, fill: "#A9B8C7", "font-size": 12 }, svg, "umbral El Niño");
+    el("text", { x: W - M.der + 6, y: y(0.5) + 4, fill: "#A9B8C7", "font-size": 12 }, svg, T("oni.umbral"));
 
     const refs = datos.episodios.filter((e) => !e.actual);
     // Etiquetas al final de cada curva, separadas si quedan muy cerca
@@ -55,7 +56,7 @@
     el("circle", { class: "oni-pulso", cx: px, cy: py, r: 6 }, svg);
     el("circle", { class: "oni-punto", cx: px, cy: py, r: 6 }, svg);
     const hoy = el("g", { class: "oni-hoy" }, svg);
-    el("text", { x: px, y: py - 18, "text-anchor": "middle", fill: "#fff", "font-size": 15, "font-weight": 600 }, hoy, "Hoy " + fmt(act.valores[i]));
+    el("text", { x: px, y: py - 18, "text-anchor": "middle", fill: "#fff", "font-size": 15, "font-weight": 600 }, hoy, T("oni.hoy") + " " + fmt(act.valores[i]));
     el("text", { x: px, y: py + 28, "text-anchor": "middle", fill: "#F3B3A3", "font-size": 12 }, hoy, act.nombre);
   }
 
@@ -69,12 +70,11 @@
       return { nombre: e.nombre, r, pico };
     });
     const supera = comp.filter((c) => v > c.r).map((c) => c.nombre);
-    const LARGO = { ene: "enero", feb: "febrero", mar: "marzo", abr: "abril", may: "mayo", jun: "junio", jul: "julio", ago: "agosto", sep: "septiembre", oct: "octubre", nov: "noviembre", dic: "diciembre" };
-    const [m1, m2] = datos.ultimo.meses.split("–").map((m) => LARGO[m] || m);
-    const partes = [`Es el promedio de ${m1} a ${m2} de ${datos.ultimo.anio}.`];
-    if (supera.length === comp.length) partes.push(`A esta altura del año, el calentamiento ya supera al de ${supera.join(" y al de ")}, los dos Niños más fuertes de las últimas décadas.`);
-    else if (supera.length) partes.push(`A esta altura del año, ya supera al de ${supera.join(" y ")} y se acerca a los Niños más fuertes de las últimas décadas.`);
-    else partes.push("Es un calentamiento comparable al de los Niños más fuertes de las últimas décadas.");
+    const [m1, m2] = datos.ultimo.meses.split("–").map(I.mesDeAbrev);
+    const partes = [T("oni.promedio", m1, m2, datos.ultimo.anio)];
+    if (supera.length === comp.length) partes.push(T("oni.supera-todos", supera));
+    else if (supera.length) partes.push(T("oni.supera-algunos", supera));
+    else partes.push(T("oni.comparable"));
     return { valor: fmt(v), parrafo: partes.join(" ") };
   }
 
@@ -87,12 +87,18 @@
       if (!r.ok) return;
       datos = await r.json();
     } catch (e) { return; } // sin datos del océano, la sección queda oculta
-    const t = texto(datos);
-    document.getElementById("oni-valor").textContent = t.valor;
-    document.getElementById("oni-texto").textContent = t.parrafo;
-    document.getElementById("oni-desc").textContent = `Gráfico de la temperatura del Pacífico ecuatorial: El Niño ${datos.episodios[0].nombre} llega a ${t.valor}, comparado con los Niños de ${datos.episodios.slice(1).map((e) => e.nombre).join(" y ")}.`;
+    const mostrar = () => {
+      const t = texto(datos);
+      document.getElementById("oni-valor").textContent = t.valor;
+      document.getElementById("oni-texto").textContent = t.parrafo;
+      document.getElementById("oni-desc").textContent = T("oni.desc", datos.episodios[0].nombre, t.valor, datos.episodios.slice(1).map((e) => e.nombre));
+      const svg = document.getElementById("grafico-oni");
+      [...svg.children].forEach((n) => { if (n.id !== "oni-desc") n.remove(); });
+      dibujar(svg, datos);
+    };
     caja.hidden = false;
-    dibujar(document.getElementById("grafico-oni"), datos);
+    mostrar();
+    document.addEventListener("idioma", mostrar);
   }
 
   iniciar();

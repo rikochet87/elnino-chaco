@@ -4,40 +4,43 @@
   const S = window.SIG;
   const $ = (id) => document.getElementById(id);
 
+  const I = window.I18N, T = I.T;
+  // Capa con nombre según el idioma activo
+  const c = (id, clave, extra = {}) => Object.assign({ id, get nombre() { return T(clave); } }, extra);
+
   // Capas disponibles por módulo. "valor" devuelve el número a mapear.
   const CAPAS = {
     anegamiento: [
-      { id: "cat", nombre: "Categoría (quintiles de R)", categorica: true },
-      { id: "R", nombre: "Índice R", valor: (d) => d.anegamiento.R, rampa: "riesgo", dec: 2 },
-      { id: "H", nombre: "Amenaza H", valor: (d) => d.anegamiento.H, rampa: "riesgo", dec: 2 },
-      { id: "E", nombre: "Exposición E", valor: (d) => d.anegamiento.E, rampa: "riesgo", dec: 2 },
-      { id: "V", nombre: "Vulnerabilidad V", valor: (d) => d.anegamiento.V, rampa: "riesgo", dec: 2 },
-      { id: "bosque", nombre: "Pérdida de bosque nativo (%)", valor: (d) => d.anegamiento.perdida_bosque_pct, rampa: "riesgo", dec: 1 },
-      { id: "agua", nombre: "Agua observada (km²)", valor: (d) => d.agua_obs.km2, rampa: "azul", dec: 1 },
+      c("cat", "capa.cat-R", { categorica: true }),
+      c("R", "capa.R", { valor: (d) => d.anegamiento.R, rampa: "riesgo", dec: 2 }),
+      c("H", "capa.H", { valor: (d) => d.anegamiento.H, rampa: "riesgo", dec: 2 }),
+      c("E", "capa.E", { valor: (d) => d.anegamiento.E, rampa: "riesgo", dec: 2 }),
+      c("V", "capa.V", { valor: (d) => d.anegamiento.V, rampa: "riesgo", dec: 2 }),
+      c("bosque", "capa.bosque", { valor: (d) => d.anegamiento.perdida_bosque_pct, rampa: "riesgo", dec: 1 }),
+      c("agua", "capa.agua", { valor: (d) => d.agua_obs.km2, rampa: "azul", dec: 1 }),
     ],
     lluvia: [
-      { id: "sup", nombre: "P(lluvia superior a lo normal)", valor: (d) => d.lluvia.prob_superior, rampa: "azul", dec: 2 },
-      { id: "anompron", nombre: "Anomalía pronosticada (%)", valor: (d) => d.lluvia.anom_pronostico_pct ?? 0, rampa: "azul", dec: 0 },
-      { id: "anom", nombre: "Anomalía histórica en años Niño (%)", valor: (d) => d.lluvia.anom_nino_pct, rampa: "azul", dec: 0 },
-      { id: "mm", nombre: "Lluvia normal del trimestre (mm)", valor: (d) => d.lluvia.normal_mm, rampa: "azul", dec: 0 },
+      c("sup", "capa.sup", { valor: (d) => d.lluvia.prob_superior, rampa: "azul", dec: 2 }),
+      c("anompron", "capa.anompron", { valor: (d) => d.lluvia.anom_pronostico_pct ?? 0, rampa: "azul", dec: 0 }),
+      c("anom", "capa.anom", { valor: (d) => d.lluvia.anom_nino_pct, rampa: "azul", dec: 0 }),
+      c("mm", "capa.mm", { valor: (d) => d.lluvia.normal_mm, rampa: "azul", dec: 0 }),
     ],
     dengue: [
-      { id: "cat", nombre: "Categoría (quintiles)", categorica: true },
-      { id: "ind", nombre: "Índice de condiciones", valor: (d) => d.dengue.indice, rampa: "riesgo", dec: 2 },
+      c("cat", "capa.cat", { categorica: true }),
+      c("ind", "capa.ind-dengue", { valor: (d) => d.dengue.indice, rampa: "riesgo", dec: 2 }),
     ],
     calor: [
-      { id: "cat", nombre: "Categoría (quintiles)", categorica: true },
-      { id: "ind", nombre: "Índice de estrés térmico", valor: (d) => d.calor.indice, rampa: "riesgo", dec: 2 },
+      c("cat", "capa.cat", { categorica: true }),
+      c("ind", "capa.ind-calor", { valor: (d) => d.calor.indice, rampa: "riesgo", dec: 2 }),
     ],
   };
-  const NOMBRES_MOD = { anegamiento: "Anegamiento y caminos", lluvia: "Lluvia", dengue: "Dengue", calor: "Calor" };
   const MODULOS_TARJETA = [
-    { id: "anegamiento", nombre: "Anegamiento y caminos", nota: "Confianza alta · Piloto" },
-    { id: "dengue", nombre: "Dengue", nota: "Confianza media · Piloto" },
-    { id: "calor", nombre: "Calor", nota: "Señal a verificar · Piloto" },
-    { id: "lluvia", nombre: "Lluvia", nota: "ECMWF SEAS5 · Open-Meteo" },
-    { id: null, nombre: "Crecidas de ríos", nota: "Próximamente · Fase NEA" },
-    { id: null, nombre: "Incendios", nota: "Próximamente · Fase La Niña" },
+    { id: "anegamiento", nota: "nota.alta" },
+    { id: "dengue", nota: "nota.media" },
+    { id: "calor", nota: "nota.verificar" },
+    { id: "lluvia", nota: null, notaFija: "ECMWF SEAS5 · Open-Meteo" },
+    { id: null, nombre: "tmod.crecidas", nota: "nota.nea" },
+    { id: null, nombre: "tmod.incendios", nota: "nota.nina" },
   ];
 
   let datos, mapa, modulo = "anegamiento", capa = "cat", depto = "san-fernando", orden = { campo: "R", desc: true };
@@ -61,8 +64,8 @@
       leyenda = [4, 3, 2, 1, 0].map((i) => `<div class="leyenda-item"><span class="leyenda-color" style="background:${rampa[i]}"></span><span class="mono" style="font-size:13px">${S.num(lo + i * paso, c.dec)} – ${S.num(lo + (i + 1) * paso, c.dec)}</span></div>`).join("");
     }
     mapa.colorear(colores);
-    $("leyenda").innerHTML = `<h3>${c.nombre}</h3>${leyenda}<p>${c.categorica ? "Clases por quintiles: 5 departamentos por clase." : "Cinco intervalos iguales entre el mínimo y el máximo del área."} <span class="etiqueta-demo">Demo</span></p>`;
-    $("titulo-mapa").textContent = `${NOMBRES_MOD[modulo]} · ${c.nombre} · ${datos.emision.trimestre}`;
+    $("leyenda").innerHTML = `<h3>${c.nombre}</h3>${leyenda}<p>${T(c.categorica ? "ley.quintiles" : "ley.intervalos")} <span class="etiqueta-demo">Demo</span></p>`;
+    $("titulo-mapa").textContent = `${T("tmod." + modulo)} · ${c.nombre} · ${I.trimestre(datos.emision)}`;
   }
 
   function armarCapas() {
@@ -77,39 +80,40 @@
 
   function desglose() {
     const p = datos.porId[depto], d = datos.emision.departamentos[depto], w = datos.emision.metodo.pesos;
-    $("titulo-desglose").textContent = `Desglose · ${p.nombre}, Chaco`;
-    $("desglose-id").textContent = `id_depto ${depto} · cabecera ${p.cabecera}`;
+    $("titulo-desglose").textContent = T("des.titulo", p.nombre);
+    $("desglose-id").textContent = T("des.id", depto, p.cabecera);
+    const cab = `<thead><tr><th>${T("des.variable")}</th><th>${T("des.fuente")}</th><th class="num">${T("des.valor")}</th></tr></thead>`;
     const a = d.anegamiento;
     $("desglose-formula").innerHTML =
-      `<p class="rotulo">Anegamiento y caminos</p><table class="tabla"><thead><tr><th>Variable</th><th>Fuente prevista</th><th class="num">Valor</th></tr></thead><tbody>` +
+      `<p class="rotulo">${T("tmod.anegamiento")}</p><table class="tabla">${cab}<tbody>` +
       fila("P(Niño)", "IRI / CPC", S.num(datos.emision.prob_nino, 2)) +
-      fila("H amenaza", "CHIRPS, ONI, ECMWF SEAS5", S.num(a.H, 2)) +
-      fila("E exposición", "Densidad de caminos rurales (OSM)", S.num(a.E, 2)) +
-      fila("V vulnerabilidad", "Relieve HAND, pérdida de bosque", S.num(a.V, 2)) +
-      fila("&nbsp;&nbsp;incl. pérdida de bosque", "2004–2024", S.num(a.perdida_bosque_pct, 1) + " %") +
-      `<tr style="border-top:2px solid var(--texto)"><td><strong>R índice</strong></td><td>Quintil ${a.categoria}</td><td class="num"><strong>${S.num(a.R, 2)}</strong></td></tr>` +
-      `</tbody></table><p class="mono" style="margin:8px 0 0;font-size:12px;color:var(--texto-4)">w₁ = ${w.w1} · w₂ = ${w.w2} · w₃ = ${w.w3} · media geométrica</p>`;
+      fila(T("des.H"), "CHIRPS, ONI, ECMWF SEAS5", S.num(a.H, 2)) +
+      fila(T("des.E"), T("des.E-fuente"), S.num(a.E, 2)) +
+      fila(T("des.V"), T("des.V-fuente"), S.num(a.V, 2)) +
+      fila("&nbsp;&nbsp;" + T("des.bosque"), "Hansen GFC 2004–2023", S.num(a.perdida_bosque_pct, 1) + " %") +
+      `<tr style="border-top:2px solid var(--texto)"><td><strong>${T("des.R")}</strong></td><td>${T("des.quintil", a.categoria)}</td><td class="num"><strong>${S.num(a.R, 2)}</strong></td></tr>` +
+      `</tbody></table><p class="mono" style="margin:8px 0 0;font-size:12px;color:var(--texto-4)">w₁ = ${w.w1} · w₂ = ${w.w2} · w₃ = ${w.w3} · ${T("des.media")}</p>`;
     const l = d.lluvia;
     $("desglose-extra").innerHTML =
-      `<p class="rotulo">Otros módulos</p><table class="tabla"><thead><tr><th>Variable</th><th>Fuente prevista</th><th class="num">Valor</th></tr></thead><tbody>` +
+      `<p class="rotulo">${T("des.otros")}</p><table class="tabla">${cab}<tbody>` +
       (l.prob_normal === null || l.prob_normal === undefined
-        ? fila("P(lluvia sup. / inf.)", "ECMWF SEAS5 · Open-Meteo", `${S.num(l.prob_superior, 2)} / ${S.num(l.prob_inferior, 2)}`)
-        : fila("P(lluvia sup. / normal / inf.)", "Copernicus C3S", `${S.num(l.prob_superior, 2)} / ${S.num(l.prob_normal, 2)} / ${S.num(l.prob_inferior, 2)}`)) +
-      (typeof l.anom_pronostico_pct === "number" ? fila("Anomalía pronosticada (media)", "ECMWF SEAS5, 51 miembros", (l.anom_pronostico_pct > 0 ? "+" : "") + l.anom_pronostico_pct + " %") : "") +
-      fila("Lluvia normal del trimestre", "CHIRPS 1991–2020", l.normal_mm + " mm") +
-      fila("Anomalía media en años Niño", "Composites ERA5 / CHIRPS", (l.anom_nino_pct > 0 ? "+" : "") + l.anom_nino_pct + " %") +
-      fila("Dengue, índice", "ERA5, INDEC", `${S.num(d.dengue.indice, 2)}<br><small style="font-family:'IBM Plex Sans',sans-serif;color:var(--texto-3)">${chip("dengue", d)}</small>`) +
-      fila("Calor, índice", "ERA5, SMN", `${S.num(d.calor.indice, 2)}<br><small style="font-family:'IBM Plex Sans',sans-serif;color:var(--texto-3)">${chip("calor", d)}</small>`) +
+        ? fila(T("des.p2"), "ECMWF SEAS5 · Open-Meteo", `${S.num(l.prob_superior, 2)} / ${S.num(l.prob_inferior, 2)}`)
+        : fila(T("des.p3"), "Copernicus C3S", `${S.num(l.prob_superior, 2)} / ${S.num(l.prob_normal, 2)} / ${S.num(l.prob_inferior, 2)}`)) +
+      (typeof l.anom_pronostico_pct === "number" ? fila(T("des.anompron"), T("des.miembros"), (l.anom_pronostico_pct > 0 ? "+" : "") + l.anom_pronostico_pct + " %") : "") +
+      fila(T("des.normal"), "CHIRPS 1991–2020", l.normal_mm + " mm") +
+      fila(T("des.anom"), "CHIRPS, ONI (NOAA)", (l.anom_nino_pct > 0 ? "+" : "") + l.anom_nino_pct + " %") +
+      fila(T("des.dengue"), "ERA5-Land, WorldPop", `${S.num(d.dengue.indice, 2)}<br><small style="font-family:'IBM Plex Sans',sans-serif;color:var(--texto-3)">${chip("dengue", d)}</small>`) +
+      fila(T("des.calor"), "ERA5-Land, WorldPop", `${S.num(d.calor.indice, 2)}<br><small style="font-family:'IBM Plex Sans',sans-serif;color:var(--texto-3)">${chip("calor", d)}</small>`) +
       `</tbody></table>`;
 
     const o = d.agua_obs, e = datos.emision.agua_obs;
     const dif = o.km2_mes_anterior === null || o.km2_mes_anterior === undefined ? null : o.km2 - o.km2_mes_anterior;
-    $("agua-meta").textContent = `${e.sensor} · ${e.fecha_imagen} · umbral ${S.num(e.umbral_db, 1)} dB`;
+    $("agua-meta").textContent = T("agua.meta", e.sensor, e.fecha_imagen, S.num(e.umbral_db, 1));
     $("agua-metricas").innerHTML =
-      `<div><small>Anegado fuera de lo habitual</small><strong>${S.num(o.km2)} km²</strong></div>` +
-      `<div><small>Variación vs. mes anterior</small><strong>${dif === null ? "—" : (dif >= 0 ? "+" : "−") + S.num(Math.abs(dif)) + " km²"}</strong></div>` +
-      `<div><small>Caminos en zona anegada</small><strong>${o.km_caminos === null || o.km_caminos === undefined ? "Sin dato" : S.num(o.km_caminos) + " km"}</strong></div>` +
-      `<div><small>Riesgo pronosticado</small><strong style="font-family:inherit;font-size:15px;font-weight:600">${chip("anegamiento", d)}</strong></div>`;
+      `<div><small>${T("met.anegado")}</small><strong>${S.num(o.km2)} km²</strong></div>` +
+      `<div><small>${T("met.variacion")}</small><strong>${dif === null ? "—" : (dif >= 0 ? "+" : "−") + S.num(Math.abs(dif)) + " km²"}</strong></div>` +
+      `<div><small>${T("met.caminos")}</small><strong>${o.km_caminos === null || o.km_caminos === undefined ? T("met.sin-dato") : S.num(o.km_caminos) + " km"}</strong></div>` +
+      `<div><small>${T("met.riesgo")}</small><strong style="font-family:inherit;font-size:15px;font-weight:600">${chip("anegamiento", d)}</strong></div>`;
 
     $("sel-depto").value = depto;
     mapa.seleccionar(depto);
@@ -153,23 +157,30 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  function armar() {
+  // Textos que dependen del idioma
+  function textos() {
     const e = datos.emision;
-    $("meta").textContent = `Emisión ${e.emision} · ${e.trimestre} · P(Niño) ${S.num(e.prob_nino, 2)}${e.demo ? " · DEMO" : ""}`;
-    $("opt-trimestre").textContent = e.trimestre;
-    $("metodo-texto").textContent = `Normalización ${e.metodo.normalizacion}; categorías por ${e.metodo.categorias}.`;
+    $("meta").textContent = T("meta", e.emision, I.trimestre(e), S.num(e.prob_nino, 2)) + (e.demo ? " · DEMO" : "");
+    $("opt-trimestre").textContent = I.trimestre(e);
+    $("metodo-texto").textContent = T("metodo", e);
+    $("modulos").innerHTML = MODULOS_TARJETA.map((m) => {
+      const nombre = T(m.id ? "tmod." + m.id : m.nombre), nota = m.nota ? T(m.nota) : m.notaFija;
+      return m.id
+        ? `<button type="button" class="modulo" data-mod="${m.id}" aria-pressed="${m.id === modulo}"><strong>${nombre}</strong><small>${nota}</small></button>`
+        : `<button type="button" class="modulo" disabled><strong>${nombre}</strong><small>${nota}</small></button>`;
+    }).join("");
+    $("descargas").innerHTML = [
+      [T("desc.emision"), "JSON", "data/" + `emision-${e.emision}.json`],
+      [T("desc.limites"), "GeoJSON", "data/departamentos.geojson"],
+      [T("desc.localidades"), "JSON", "data/localidades.json"],
+    ].map(([n, f, h]) => `<tr><td>${n}${e.demo && h.includes("emision") ? ' <span class="etiqueta-demo">Demo</span>' : ""}</td><td class="mono">${f}</td><td><a href="${h}" download>${h.split("/").pop()}</a></td></tr>`).join("") +
+      `<tr><td>${T("desc.indicadores")}</td><td class="mono">CSV</td><td><a href="#" id="link-csv">riesgo_chaco_${e.emision}.csv</a></td></tr>`;
+  }
+
+  function armar() {
+    textos();
     $("sel-depto").innerHTML = datos.deptos.features.slice().sort((a, b) => a.properties.nombre.localeCompare(b.properties.nombre, "es"))
       .map((f) => `<option value="${f.id}">${f.properties.nombre}</option>`).join("");
-    $("modulos").innerHTML = MODULOS_TARJETA.map((m) => m.id
-      ? `<button type="button" class="modulo" data-mod="${m.id}" aria-pressed="false"><strong>${m.nombre}</strong><small>${m.nota}</small></button>`
-      : `<button type="button" class="modulo" disabled><strong>${m.nombre}</strong><small>${m.nota}</small></button>`).join("");
-    $("descargas").innerHTML = [
-      ["Emisión completa (todos los módulos)", "JSON", "data/" + `emision-${e.emision}.json`],
-      ["Límites departamentales de Chaco", "GeoJSON", "data/departamentos.geojson"],
-      ["Localidades para búsqueda", "JSON", "data/localidades.json"],
-    ].map(([n, f, h]) => `<tr><td>${n}${e.demo && h.includes("emision") ? ' <span class="etiqueta-demo">Demo</span>' : ""}</td><td class="mono">${f}</td><td><a href="${h}" download>${h.split("/").pop()}</a></td></tr>`).join("") +
-      `<tr><td>Indicadores por departamento</td><td class="mono">CSV</td><td><a href="#" id="link-csv">riesgo_chaco_${e.emision}.csv</a></td></tr>`;
-
     $("modulos").addEventListener("click", (ev) => { const b = ev.target.closest(".modulo:not([disabled])"); if (b) { modulo = b.dataset.mod; armarCapas(); pintar(); } });
     $("sel-modulo").addEventListener("change", (ev) => { modulo = ev.target.value; armarCapas(); pintar(); });
     $("capas").addEventListener("change", (ev) => { capa = ev.target.value; pintar(); });
@@ -183,7 +194,7 @@
     document.querySelector("#ranking tbody").addEventListener("click", (ev) => elegirFila(ev.target.closest("tr")));
     document.querySelector("#ranking tbody").addEventListener("keydown", (ev) => { if (ev.key === "Enter") elegirFila(ev.target.closest("tr")); });
     $("bajar-csv").addEventListener("click", csv);
-    $("link-csv").addEventListener("click", (ev) => { ev.preventDefault(); csv(); });
+    $("descargas").addEventListener("click", (ev) => { if (ev.target.id === "link-csv") { ev.preventDefault(); csv(); } });
   }
 
   async function iniciar() {
@@ -196,6 +207,7 @@
     await mapa.listo;
     pintar();
     desglose();
+    document.addEventListener("idioma", () => { textos(); armarCapas(); pintar(); desglose(); });
   }
 
   S.registrarSW();

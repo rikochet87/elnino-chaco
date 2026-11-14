@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   const S = window.SIG;
+  const I = window.I18N, T = I.T;
   const $ = (id) => document.getElementById(id);
   const ORDEN_TABS = ["lluvia", "anegamiento", "dengue", "calor", "agua"];
   const POR_DEFECTO = "san-fernando";
@@ -17,9 +18,7 @@
   }
 
   function textoCaminos(cat) {
-    if (cat >= 4) return "Los caminos de tierra en zonas bajas suelen quedar intransitables después de lluvias fuertes. Es una de las zonas más expuestas de la provincia.";
-    if (cat === 3) return "Algunos caminos de tierra pueden cortarse después de lluvias fuertes, sobre todo en zonas bajas.";
-    return "La posibilidad de cortes es menor que en otras zonas de la provincia, aunque una lluvia fuerte siempre puede afectar los caminos de tierra.";
+    return T(cat >= 4 ? "caminos.alta" : cat === 3 ? "caminos.media" : "caminos.baja");
   }
 
   function mostrarZona(id, { desplazar = false } = {}) {
@@ -29,16 +28,16 @@
     const d = datos.emision.departamentos[id];
     const e = datos.emision;
 
-    $("titulo-zona").textContent = `${p.cabecera} y alrededores (${p.nombre}, Chaco)`;
-    $("linea-nino").innerHTML = `Hay <strong>${S.pct(e.prob_nino)} de probabilidad</strong> de que este verano haya El Niño <span class="etiqueta-demo">dato de ejemplo</span>. En esta zona, eso suele significar más lluvia de lo normal.`;
+    $("titulo-zona").textContent = T("zona.titulo", p.cabecera, p.nombre);
+    $("linea-nino").innerHTML = T("zona.nino", S.pct(e.prob_nino), ` <span class="etiqueta-demo">${T("demo.dato")}</span>`);
 
     // Lluvia
     const l = d.lluvia;
     $("lluvia-titular").textContent = S.MODULOS.lluvia.clases[S.MODULOS.lluvia.clase(d)].texto;
     const dosCat = l.prob_normal === null || l.prob_normal === undefined;
     const cats = dosCat
-      ? [["Más de lo normal", l.prob_superior], ["Menos de lo normal", l.prob_inferior]]
-      : [["Más de lo normal", l.prob_superior], ["Normal", l.prob_normal], ["Menos de lo normal", l.prob_inferior]];
+      ? [[T("lluvia.mas"), l.prob_superior], [T("lluvia.menos"), l.prob_inferior]]
+      : [[T("lluvia.mas"), l.prob_superior], [T("lluvia.normal"), l.prob_normal], [T("lluvia.menos"), l.prob_inferior]];
     const mayor = Math.max(...cats.map((c) => c[1]));
     // Las 51 simulaciones del modelo europeo, una por punto
     const puntos = $("lluvia-miembros");
@@ -48,9 +47,9 @@
       const total = 51, si = Math.round(l.prob_superior * total);
       puntos.innerHTML = Array.from({ length: total }, (_, i) => `<i class="${i < si ? "si" : ""}"></i>`).join("");
       puntos.setAttribute("role", "img");
-      puntos.setAttribute("aria-label", `${si} de ${total} simulaciones dan más lluvia que lo normal`);
+      puntos.setAttribute("aria-label", T("lluvia.puntos-aria", si, total));
       puntos.hidden = false;
-      puntos.insertAdjacentHTML("afterend", `<p class="leyenda-miembros">Cada punto es una simulación del modelo europeo: <strong>${si} de ${total}</strong> dan más lluvia que lo normal.</p>`);
+      puntos.insertAdjacentHTML("afterend", `<p class="leyenda-miembros">${T("lluvia.puntos", si, total)}</p>`);
     } else {
       puntos.hidden = true;
     }
@@ -58,26 +57,26 @@
     caja.style.gridTemplateColumns = `repeat(${cats.length}, minmax(0, 1fr))`;
     caja.innerHTML = cats.map(([t, v]) => `<div class="${v === mayor ? "destacado" : ""}">${t}<span>${S.pct(v)}</span></div>`).join("");
     caja.hidden = dosCat; // con dos categorías, los 51 puntos ya muestran la proporción
-    const masMenos = (v) => (v >= 0 ? `${v} % más` : `${-v} % menos`);
-    const pron = typeof l.anom_pronostico_pct === "number" ? ` El pronóstico espera en promedio <strong>${masMenos(l.anom_pronostico_pct)}</strong> de lo normal.` : "";
-    $("lluvia-texto").innerHTML = `Lo normal en esta zona son unos <strong>${l.normal_mm} mm</strong> de ${e.trimestre_texto}.${pron} En los veranos con El Niño de años anteriores llovió en promedio <strong>${masMenos(l.anom_nino_pct)}</strong>.`;
+    const masMenos = (v) => T("lluvia.masmenos", v);
+    const pron = typeof l.anom_pronostico_pct === "number" ? T("lluvia.pron", masMenos(l.anom_pronostico_pct)) : "";
+    $("lluvia-texto").innerHTML = T("lluvia.texto", l.normal_mm, I.trimestreTexto(e), pron, masMenos(l.anom_nino_pct));
 
     // Caminos, dengue y calor
-    $("caminos-nivel").innerHTML = nivelHTML("anegamiento", d, "Posibilidad de cortes por agua");
+    $("caminos-nivel").innerHTML = nivelHTML("anegamiento", d, T("rot.caminos"));
     $("caminos-texto").textContent = textoCaminos(d.anegamiento.categoria);
-    $("dengue-nivel").innerHTML = nivelHTML("dengue", d, "Condiciones para el mosquito");
-    $("calor-nivel").innerHTML = nivelHTML("calor", d, "Calor húmedo y noches pesadas");
+    $("dengue-nivel").innerHTML = nivelHTML("dengue", d, T("rot.dengue"));
+    $("calor-nivel").innerHTML = nivelHTML("calor", d, T("rot.calor"));
 
     // Agua observada
     const a = d.agua_obs;
     const hayPrevio = a.km2_mes_anterior !== null && a.km2_mes_anterior !== undefined;
     const dif = hayPrevio ? a.km2 - a.km2_mes_anterior : 0;
     const parecido = hayPrevio && Math.abs(dif) < Math.max(0.5, 0.1 * a.km2_mes_anterior);
-    const comp = !hayPrevio ? "" : parecido ? ", parecido al mes pasado" : dif > 0 ? ", más que el mes pasado" : ", menos que el mes pasado";
-    $("agua-texto").innerHTML = `Según la imagen satelital del <strong>${S.fechaLarga(e.agua_obs.fecha_imagen)}</strong>, en el departamento ${p.nombre} hay unos <strong>${S.num(a.km2)} km²</strong> de campos y caminos con agua fuera de lo habitual${comp}.`;
+    const comp = !hayPrevio ? "" : T(parecido ? "agua.parecido" : dif > 0 ? "agua.mas" : "agua.menos");
+    $("agua-texto").innerHTML = T("agua.texto", S.fechaLarga(e.agua_obs.fecha_imagen), p.nombre, S.num(a.km2), comp);
     $("agua-km2").textContent = `${S.num(a.km2)} km²`;
-    $("agua-caminos").textContent = a.km_caminos === null || a.km_caminos === undefined ? "Sin dato aún" : `${S.num(a.km_caminos)} km`;
-    $("agua-cambio").textContent = !hayPrevio ? "Sin dato del mes pasado" : parecido ? "Parecido" : `${dif > 0 ? "Más" : "Menos"} agua (${dif > 0 ? "+" : "−"}${S.num(Math.abs(dif))} km²)`;
+    $("agua-caminos").textContent = a.km_caminos === null || a.km_caminos === undefined ? T("agua.sin-dato") : `${S.num(a.km_caminos)} km`;
+    $("agua-cambio").textContent = !hayPrevio ? T("agua.sin-previo") : parecido ? T("agua.similar") : T("agua.cambio", dif > 0, S.num(Math.abs(dif)));
 
     mapa.seleccionar(id);
     S.guardarPreferido(id);
@@ -94,12 +93,16 @@
     mapa.colorear(colores);
     $("leyenda").innerHTML = `<h3>${m.leyendaTitulo}</h3>` +
       m.clases.slice().reverse().map((c) => `<div class="leyenda-item"><span class="leyenda-color" style="background:${c.color}"></span>${c.texto}</div>`).join("") +
-      `<p>Tocá un departamento para ver su ficha. Es una tendencia para toda la temporada, no el pronóstico de un día. <span class="etiqueta-demo">Datos de ejemplo</span></p>`;
+      `<p>${T("mapa.ayuda")} <span class="etiqueta-demo">${T("demo.datos")}</span></p>`;
     document.querySelectorAll("#tabs .tab").forEach((b) => {
       const sel = b.dataset.tab === tabActiva;
       b.setAttribute("aria-selected", sel);
       b.tabIndex = sel ? 0 : -1;
     });
+  }
+
+  function rotularTabs() {
+    document.querySelectorAll("#tabs .tab").forEach((b) => { b.textContent = S.MODULOS[b.dataset.tab].nombre; });
   }
 
   function armarTabs() {
@@ -123,7 +126,7 @@
     let resultados = [], marcado = -1;
 
     const cerrar = () => { lista.hidden = true; input.setAttribute("aria-expanded", "false"); marcado = -1; };
-    const elegir = (r) => { input.value = r.texto.replace(/^Departamento /, ""); cerrar(); $("mensaje").textContent = ""; mostrarZona(r.depto, { desplazar: true }); };
+    const elegir = (r) => { input.value = r.valor; cerrar(); $("mensaje").textContent = ""; mostrarZona(r.depto, { desplazar: true }); };
     const dibujar = () => {
       lista.innerHTML = resultados.map((r, i) => `<li role="option" id="op-${i}" aria-selected="${i === marcado}"><span>${r.texto}</span><small>${r.sub}</small></li>`).join("");
       lista.hidden = !resultados.length;
@@ -146,17 +149,17 @@
       e.preventDefault();
       const r = marcado >= 0 ? resultados[marcado] : S.buscar(indice, input.value, 1)[0];
       if (r) elegir(r);
-      else $("mensaje").textContent = input.value.trim() ? "No encontramos esa localidad en Chaco. Probá con el nombre del departamento o usá tu ubicación." : "Escribí el nombre de tu localidad.";
+      else $("mensaje").textContent = T(input.value.trim() ? "buscar.no-encontrado" : "buscar.vacio");
     });
 
     $("ubicacion").addEventListener("click", () => {
-      if (!navigator.geolocation) { $("mensaje").textContent = "Tu navegador no permite usar la ubicación."; return; }
-      $("mensaje").textContent = "Buscando tu ubicación…";
+      if (!navigator.geolocation) { $("mensaje").textContent = T("ubic.no-soportada"); return; }
+      $("mensaje").textContent = T("ubic.buscando");
       navigator.geolocation.getCurrentPosition((pos) => {
         const id = S.deptoEnPunto(datos, pos.coords.longitude, pos.coords.latitude);
-        if (id) { $("mensaje").textContent = `Estás en el departamento ${datos.porId[id].nombre}.`; mostrarZona(id, { desplazar: true }); }
-        else $("mensaje").textContent = "Tu ubicación está fuera de Chaco. Por ahora el sitio cubre solo esta provincia; buscá una localidad.";
-      }, () => { $("mensaje").textContent = "No pudimos obtener tu ubicación. Podés buscar tu localidad por nombre."; }, { timeout: 10000, maximumAge: 600000 });
+        if (id) { $("mensaje").textContent = T("ubic.encontrada", datos.porId[id].nombre); mostrarZona(id, { desplazar: true }); }
+        else $("mensaje").textContent = T("ubic.fuera");
+      }, () => { $("mensaje").textContent = T("ubic.error"); }, { timeout: 10000, maximumAge: 600000 });
     });
   }
 
@@ -164,10 +167,10 @@
     $("compartir").addEventListener("click", async () => {
       const p = datos.porId[actual], d = datos.emision.departamentos[actual];
       const url = location.href;
-      const texto = `El Niño en ${p.cabecera} (${p.nombre}, Chaco), ${datos.emision.trimestre_texto}: ` +
-        `${S.MODULOS.lluvia.clases[S.MODULOS.lluvia.clase(d)].texto.toLowerCase()}; ` +
-        `posibilidad de cortes de caminos ${S.MODULOS.anegamiento.clases[d.anegamiento.categoria - 1].texto.toLowerCase()}. ` +
-        (datos.emision.demo ? "(Versión de demostración, datos de ejemplo)" : "(Riesgo relativo, no es una alerta oficial)");
+      const texto = T("compartir.texto", p.cabecera, p.nombre, I.trimestreTexto(datos.emision),
+        S.MODULOS.lluvia.clases[S.MODULOS.lluvia.clase(d)].texto.toLowerCase(),
+        S.MODULOS.anegamiento.clases[d.anegamiento.categoria - 1].texto.toLowerCase()) + " " +
+        T(datos.emision.demo ? "compartir.demo" : "compartir.real");
       if (navigator.share) {
         try { await navigator.share({ title: "SIG El Niño Argentina", text: texto, url }); } catch (e) { /* cancelado */ }
       } else {
@@ -176,13 +179,20 @@
     });
   }
 
+  // Textos que dependen de la emisión y del idioma
+  function textosGenerales() {
+    const e = datos.emision;
+    document.querySelectorAll(".js-trimestre").forEach((n) => { n.textContent = I.trimestreTexto(e); });
+    $("franja-emision").textContent = T("franja", S.mesLargo(e.emision + "-01"), S.mesLargo(e.proxima_emision + "-01"));
+  }
+
   async function iniciar() {
+    $("titulo-zona").textContent = T("cargando");
     try {
       datos = await S.cargarDatos();
     } catch (err) { S.mostrarError(err); return; }
     const e = datos.emision;
-    document.querySelectorAll(".js-trimestre").forEach((n) => { n.textContent = e.trimestre_texto; });
-    $("franja-emision").textContent = `Información de ${S.mesLargo(e.emision + "-01")} · Próxima actualización: ${S.mesLargo(e.proxima_emision + "-01")}`;
+    textosGenerales();
     indice = S.indiceBusqueda(datos);
     mapa = S.crearMapa("mapa-contenedor", datos, (id) => mostrarZona(id, { desplazar: true }));
     armarTabs();
@@ -193,6 +203,15 @@
     const pedido = new URLSearchParams(location.search).get("d");
     const inicial = [pedido, S.leerPreferido(), POR_DEFECTO].find((x) => x && e.departamentos[x]);
     mostrarZona(inicial);
+
+    document.addEventListener("idioma", () => {
+      textosGenerales();
+      indice = S.indiceBusqueda(datos);
+      $("mensaje").textContent = "";
+      rotularTabs();
+      pintarMapa();
+      if (actual) mostrarZona(actual);
+    });
   }
 
   S.registrarSW();

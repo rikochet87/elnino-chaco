@@ -39,6 +39,8 @@ En la parte de arriba hay un buscador. Podés:
 - **Escribir el nombre de tu localidad o departamento**, por ejemplo *Resistencia*, *Charata* o *Castelli*, y elegirlo de la lista.
 - **Tocar "Usar mi ubicación"**: el sitio detecta en qué departamento estás. Tu ubicación no se guarda ni se envía a ningún lado; se usa solo en tu teléfono o computadora.
 
+Arriba a la derecha está el botón **ES / EN** para ver el sitio en español o en inglés. El idioma elegido queda guardado y se incluye en el enlace cuando compartís la ficha.
+
 ### 2. Leé la ficha de tu zona
 
 Aparecen cuatro tarjetas (lluvia, caminos rurales, dengue y calor) y un recuadro con el agua que se ve desde el satélite este mes. Cada una explica en una frase qué significa. El detalle está en [Qué significa cada parte de la ficha](#qué-significa-cada-parte-de-la-ficha).
