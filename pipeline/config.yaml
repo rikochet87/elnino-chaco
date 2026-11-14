@@ -12,7 +12,7 @@ rutas:
   publicacion: docs/data         # lo que lee la web
 
 gee:
-  proyecto: TU-PROYECTO-GEE      # id del proyecto de Google Cloud registrado en Earth Engine
+  proyecto: chaco-2727           # proyecto de Google Cloud registrado en Earth Engine (uso no comercial)
   asset_caminos: null            # opcional: "projects/<proyecto>/assets/caminos_chaco"
 
 estacion:
