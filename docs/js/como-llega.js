@@ -118,6 +118,7 @@ let estado = { escena: "inicio" };
 
 async function iniciar() {
   registrarSW();
+  observarCabecera();
   const [globo, pacifico, atm, emision] = await Promise.all([
     json("data/globo.json"),
     opcional(json("data/pacifico.json")),
@@ -138,6 +139,13 @@ async function iniciar() {
   await vista.cargar();
   observarPasos((nombre) => { if (!vista.explorando()) { vista.irA(nombre); leyenda(); } });
   leyenda();
+}
+
+// Mientras la cabecera está a la vista, la leyenda del celular se oculta para no taparla
+function observarCabecera() {
+  const cab = document.querySelector(".cabecera");
+  if (!cab || !("IntersectionObserver" in window)) return;
+  new IntersectionObserver(([e]) => document.body.classList.toggle("cabecera-visible", e.isIntersecting)).observe(cab);
 }
 
 function registrarSW() {
@@ -479,8 +487,12 @@ function crearVista() {
     capaEt.appendChild(el);
     return { ...e, el, pos: xyz(e.lat, e.lon, 1.01) };
   });
-  etiquetasTexto = () => etiquetas.forEach((e) => { e.el.textContent = T(e.k); });
+  // Prioridad al dibujar: primero las destacadas (Chaco, chorro), después el resto en orden
+  const porPrioridad = [...etiquetas].sort((a, b) => (b.clase === "destacada") - (a.clase === "destacada"));
+  const medir = () => etiquetas.forEach((e) => { e.w = e.el.offsetWidth; e.h = e.el.offsetHeight; });
+  etiquetasTexto = () => { etiquetas.forEach((e) => { e.el.textContent = T(e.k); }); medir(); };
   etiquetasTexto();
+  document.fonts?.ready.then(medir);
 
   // --- Detalle de Sudamérica (costas, países, provincias y departamentos de Chaco), nítido al acercarse
   let detalle = null, cargandoDetalle = false;
@@ -553,8 +565,13 @@ function crearVista() {
   let interactuado = false, explorando = false;
   nav.alInteractuar = () => { interactuado = true; };
   // En pantallas angostas (celular vertical) la cámara se aleja para que entre el globo de lado a lado
-  const factorDist = () => lim(0.95 / (canvas.clientWidth / canvas.clientHeight), 1, 1.9);
-  const vistaDe = (nombre) => { const e = ESCENAS[nombre]; return { lat: e.lat, lon: e.lon, alt: e.dist * factorDist() - 1, rumbo: 0, incl: 0 }; };
+  const factorDist = () => lim(1.3 / (canvas.clientWidth / canvas.clientHeight), 1, 2.6);
+  // Las vistas de todo el globo se alejan del todo; las regionales (Sudamérica), menos
+  const vistaDe = (nombre) => {
+    const e = ESCENAS[nombre];
+    const f = 1 + (factorDist() - 1) * lim((e.dist - 1.6) / 2, 0.35, 1);
+    return { lat: e.lat, lon: e.lon, alt: e.dist * f - 1, rumbo: 0, incl: 0 };
+  };
   nav.saltar(vistaDe("inicio"));
 
   function irA(nombre) {
@@ -573,7 +590,7 @@ function crearVista() {
     camara.aspect = w / h;
     // En el relato el globo se corre para no quedar debajo de la tarjeta: a la derecha en compu, apenas arriba en celular
     if (explorando) camara.clearViewOffset();
-    else if (MOVIL) camara.setViewOffset(w, h, 0, h * 0.06, w, h);
+    else if (MOVIL) camara.setViewOffset(w, h, 0, h * 0.14, w, h);
     else camara.setViewOffset(w, h, -w * 0.15, 0, w, h);
     camara.updateProjectionMatrix();
   }
@@ -699,15 +716,26 @@ function crearVista() {
     // etiquetas: del paso (relato) o de las capas encendidas (explorar), solo del lado visible del globo
     const cam = camara.position;
     const w = canvas.clientWidth, h = canvas.clientHeight;
-    etiquetas.forEach((e) => {
+    // y sin pisarse entre sí ni salirse de la pantalla
+    const ocupadas = [];
+    porPrioridad.forEach((e) => {
       const frente = tmp.copy(e.pos).normalize().dot(cam) > 1.02;
-      const activa = frente && (explorando
+      let activa = frente && (explorando
         ? nombresVisibles && (!e.capa || capasEncendidas[e.capa])
         : e.en.includes(estado.escena));
+      if (activa) {
+        const p = tmp.copy(e.pos).project(camara);
+        const x = ((p.x + 1) / 2) * w, y = ((1 - p.y) / 2) * h;
+        const caja = [x - e.w / 2 - 3, y - e.h / 2 - 2, x + e.w / 2 + 3, y + e.h / 2 + 2];
+        const dentro = caja[0] > 2 && caja[2] < w - 2 && caja[1] > 2 && caja[3] < h - 2;
+        const pisa = ocupadas.some((o) => caja[0] < o[2] && caja[2] > o[0] && caja[1] < o[3] && caja[3] > o[1]);
+        activa = dentro && !pisa;
+        if (activa) {
+          ocupadas.push(caja);
+          e.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+        }
+      }
       e.el.classList.toggle("visible", activa);
-      if (!frente) return;
-      const p = tmp.copy(e.pos).project(camara);
-      e.el.style.transform = `translate(${((p.x + 1) / 2) * w}px, ${((1 - p.y) / 2) * h}px) translate(-50%, -50%)`;
     });
 
     renderer.render(escena, camara);

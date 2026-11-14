@@ -146,14 +146,20 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 @media (max-width: 760px) {
   /* Entre una tarjeta y la siguiente queda una pantalla libre para ver el globo */
   .g-paso { min-height: 175vh; align-items: center; padding: 0; }
-  .g-paso:first-child { min-height: calc(100vh - 120px); align-items: flex-end; padding-bottom: 20px; }
-  .g-tarjeta { margin: 0 auto; padding: 18px 18px; font-size: 15px; background: rgba(9, 21, 34, 0.92); }
-  .g-tarjeta h1 { font-size: 28px; }
+  .g-paso:first-child { min-height: calc(100vh - 110px); min-height: calc(100svh - 110px); align-items: flex-end; padding-bottom: 16px; }
+  .g-tarjeta { width: calc(100% - 24px); margin: 0 auto; padding: 16px 16px; font-size: 15px; line-height: 1.55; background: rgba(9, 21, 34, 0.93); }
+  .g-tarjeta h1 { font-size: 25px; margin-bottom: 10px; }
   .g-tarjeta h2 { font-size: 20px; }
-  .g-leyenda { bottom: auto; right: 8px; left: 8px; width: auto; top: 8px; padding: 8px 10px; font-size: 12px; z-index: 3; background: rgba(9, 21, 34, 0.94); }
+  .g-tarjeta p { margin-bottom: 10px; }
+  .g-dato { font-size: 14px; }
+  .g-bajar { margin-top: 12px !important; }
+  /* Leyenda compacta arriba; mientras se ve la cabecera queda oculta para no taparla */
+  .g-leyenda { bottom: auto; right: 8px; left: 8px; width: auto; top: 8px; padding: 6px 10px; font-size: 11px; z-index: 2; background: rgba(9, 21, 34, 0.94); }
+  .cabecera-visible:not(.explorando) .g-leyenda { opacity: 0; visibility: hidden; }
   .g-leyenda .g-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
-  .g-leyenda .g-grupo + .g-grupo { margin-top: 4px; }
-  .g-leyenda h3 { width: 100%; font-size: 12px; margin-bottom: 4px; }
+  .g-leyenda .g-grupo + .g-grupo { margin-top: 3px; }
+  .g-leyenda h3 { width: 100%; font-size: 11px; margin-bottom: 3px; }
+  .g-leyenda .g-barra { height: 7px; }
   .g-leyenda .g-barra, .g-leyenda .g-barra-rotulos { width: 100%; }
   .g-item { margin-top: 2px; }
   .g-cuerpo .g-leyenda { position: fixed; }
@@ -171,7 +177,7 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
   .g-panel-capas { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 3px; background: transparent; border: 1px solid #7F93A8; color: var(--g-texto); font-weight: 600; }
   .g-panel-cuerpo { display: none; }
   .g-panel.abierto .g-panel-cuerpo { display: block; }
-  .explorando .g-leyenda { top: 8px; bottom: auto; left: 8px; right: 62px; }
+  .explorando .g-leyenda { top: 8px; bottom: auto; left: 8px; right: 62px; z-index: 3; }
   .g-panel-cab h2 { display: none; }
   .g-panel-cab .g-boton-sec, .g-panel-capas { min-height: 44px; }
 }
