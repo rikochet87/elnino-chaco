@@ -1,5 +1,5 @@
 /* Service worker: la app funciona sin conexión con la última emisión descargada. */
-const VERSION = "v0.4.0";
+const VERSION = "v0.4.1";
 const CACHE_APP = `app-${VERSION}`;
 const CACHE_DATOS = "datos";
 
@@ -54,16 +54,22 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Aplicación: primero la copia guardada, y se actualiza en segundo plano.
+  // Archivos que no cambian (tipografías, MapLibre, íconos): primero la copia guardada.
+  const fijo = /\/(fonts|vendor|icons)\//.test(url.pathname);
+  // Páginas, JS y CSS: primero la red, para que HTML y JS siempre sean de la misma versión;
+  // sin conexión, la copia guardada.
+  const guardar = (r) => {
+    if (r.ok) { const copia = r.clone(); caches.open(CACHE_APP).then((c) => c.put(e.request, copia)); }
+    return r;
+  };
+  if (fijo) {
+    e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((g) => g || fetch(e.request).then(guardar)));
+    return;
+  }
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then((guardada) => {
-      const red = fetch(e.request)
-        .then((r) => {
-          if (r.ok) { const copia = r.clone(); caches.open(CACHE_APP).then((c) => c.put(e.request, copia)); }
-          return r;
-        })
-        .catch(() => guardada || (e.request.mode === "navigate" ? caches.match("index.html") : undefined));
-      return guardada || red;
-    })
+    fetch(e.request.url, { cache: "no-cache", credentials: "same-origin" }) // revalida con el servidor
+      .then(guardar)
+      .catch(() => caches.match(e.request, { ignoreSearch: true })
+        .then((g) => g || (e.request.mode === "navigate" ? caches.match("index.html") : undefined)))
   );
 });
