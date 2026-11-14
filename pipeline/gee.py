@@ -9,7 +9,7 @@ Requiere `earthengine authenticate` una vez y el proyecto en config.yaml (gee.pr
 
 from . import otsu
 
-VERSION_AGUA = 2  # cambia cuando cambia el método: invalida las mediciones guardadas
+VERSION_AGUA = 3  # cambia cuando cambia el método: invalida las mediciones guardadas
 from .comun import anios_estacion, departamentos
 
 
@@ -145,7 +145,20 @@ def agua_observada(cfg: dict, anio: int, mes: int, asset_caminos: str | None = N
         umbral_db, metodo = a["umbral_respaldo_db"], "respaldo"
 
     habitual = ee.Image(f["jrc_agua"]).select("occurrence").unmask(0).gte(u["agua_permanente_ocurrencia"])
-    agua = vv.lt(umbral_db).And(habitual.Not()).selfMask()
+
+    # Detección de cambio: además de oscuro, el píxel tiene que estar más oscuro que lo
+    # habitual para ese mes (mediana del mismo mes en años de referencia). Así se descartan
+    # suelos lisos, arenales y cauces secos que en radar siempre se ven oscuros.
+    a0, a1 = a["referencia_anios"]
+    meses_ref = [ee.Date.fromYMD(y, mes, 1) for y in range(a0, a1 + 1) if y != anio]
+    ref = ee.ImageCollection([])
+    for ini_ref in meses_ref:
+        ref = ref.merge(ee.ImageCollection(f["sentinel1"]).filterBounds(region).filterDate(ini_ref, ini_ref.advance(1, "month"))
+                        .filter(ee.Filter.eq("instrumentMode", "IW"))
+                        .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VV")).select("VV"))
+    referencia = ref.median().focalMedian(30, "circle", "meters")
+    cambio = vv.subtract(referencia)
+    agua = vv.lt(umbral_db).And(cambio.lt(a["cambio_min_db"])).And(habitual.Not()).selfMask()
 
     km2 = _por_depto(ee, ee.Image.pixelArea().divide(1e6).updateMask(agua).rename("km2"), deptos, ee.Reducer.sum(), 30)
     resultado = {d: {"km2": round(v.get("sum") or 0.0, 2), "km_caminos": None} for d, v in km2.items()}
@@ -164,6 +177,8 @@ def agua_observada(cfg: dict, anio: int, mes: int, asset_caminos: str | None = N
         "fecha_ultima_imagen": ee.Date(ultimo).format("YYYY-MM-dd").getInfo(),
         "umbral_db": round(umbral_db, 2),
         "metodo_umbral": metodo,
+        "cambio_min_db": a["cambio_min_db"],
+        "referencia_anios": a["referencia_anios"],
         "version": VERSION_AGUA,
         "asset_caminos": asset_caminos,
         "departamentos": resultado,

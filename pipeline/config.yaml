@@ -59,6 +59,8 @@ agua:
   umbral_min_db: -24             # rango físicamente razonable para agua en VV
   umbral_max_db: -15
   umbral_respaldo_db: -18        # si Otsu sale fuera de rango
+  cambio_min_db: -3              # además, el píxel debe estar 3 dB más oscuro que lo habitual para ese mes
+  referencia_anios: [2017, 2025] # años para la mediana de referencia (se excluye el año medido)
 
 c3s:
   centro: ecmwf

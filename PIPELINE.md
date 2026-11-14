@@ -91,7 +91,7 @@ La publicación se frena (y el resultado queda como `-rechazada.json` en `pipeli
 
 - **Amenaza en escala fija:** la amenaza vial no se reescala entre departamentos. La anomalía histórica se divide por `anom_lluvia_max_pct` (30 %) y la probabilidad del pronóstico se usa tal cual. Así, si el pronóstico es húmedo en toda la provincia, la amenaza es alta en toda la provincia.
 - **Exposición por densidad:** km de camino rural por km² del departamento, para que los departamentos grandes no salgan primeros solo por su tamaño.
-- **Agua observada:** el umbral de Otsu se calcula cerca de agua conocida (JRC), donde el histograma tiene agua y tierra. Si sale fuera de −24 a −15 dB, se usa −18 dB.
+- **Agua observada:** el umbral de Otsu se calcula cerca de agua conocida (JRC), donde el histograma tiene agua y tierra. Si sale fuera de −24 a −15 dB, se usa −18 dB. Además se exige un cambio: el píxel debe estar al menos 3 dB más oscuro que la mediana del mismo mes en 2017–2025, para descartar suelos y cauces que siempre se ven oscuros.
 
 - **Pesos del índice vial** (`w1`, `w2`, `w3` en `config.yaml`): son una decisión propia; hay que contrastarlos con las inundaciones de 1997-98 y 2015-16.
 - **Pronóstico en dos categorías:** la probabilidad se mide contra la climatología del propio modelo (hindcast del ECMWF), en el punto representativo de cada departamento (grilla de unos 36 km).
