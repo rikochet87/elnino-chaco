@@ -67,21 +67,41 @@ Sin este paso, la web muestra "Sin dato aún" en caminos con agua y el resto fun
 
 ## 5. Emisión mensual
 
-1. Buscá la **probabilidad oficial de El Niño** para el trimestre diciembre–febrero en el pronóstico ENSO de IRI/CPC, publicado alrededor del día 10 de cada mes (https://iri.columbia.edu/our-expertise/climate/forecasts/enso/current/).
-2. Corré primero un borrador:
-   ```powershell
-   python -m pipeline mensual --emision 2026-12 --prob-nino 0.62 --intensidad moderada --borrador
-   ```
-3. Revisá los avisos y el archivo `pipeline/datos/emision-2026-12-borrador.json`.
-4. Si está bien, publicá (mismo comando sin `--borrador`). Eso escribe `docs/data/emision-2026-12.json` y actualiza `emision-actual.json`.
-5. Probá la web localmente (`cd docs` y `python -m http.server 8000`) y subí los cambios:
-   ```powershell
-   git add docs/data
-   git commit -m "Emisión 2026-12"
-   git push
-   ```
+Todo el ciclo (actualizar, correr el pipeline, guardar y subir) lo hace el script `emision.ps1`, desde la carpeta del proyecto:
 
-En cuanto la web recibe una emisión con `"demo": false`, oculta sola la franja y las etiquetas de demostración.
+```powershell
+.\emision.ps1 -ProbNino 1.0 -Intensidad "muy fuerte"
+```
+
+- `-ProbNino` es la probabilidad oficial de El Niño para diciembre–febrero, del pronóstico ENSO de IRI/CPC, que se publica alrededor del día 19 de cada mes: https://iri.columbia.edu/our-expertise/climate/forecasts/enso/current/
+- `-UsarAnterior` repite la probabilidad y la intensidad de la última emisión.
+- `-Borrador` genera la emisión para revisar, sin publicar ni subir nada.
+- `-Emision 2026-12` fuerza un mes; por defecto se usa el mes actual.
+- Si el control de calidad falla, el script se detiene y no sube nada. Todo queda registrado en `pipeline/datos/emision.log`.
+
+Si Windows no deja ejecutar el script por la política de ejecución, usá:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\emision.ps1 -ProbNino 1.0 -Intensidad "muy fuerte"
+```
+
+### Programarlo todos los meses
+
+```powershell
+.\emision.ps1 -Programar
+```
+
+Crea una tarea de Windows que corre el **día 21 de cada mes a las 9:30** con `-UsarAnterior`: la PC tiene que estar encendida y con tu sesión iniciada. Como reutiliza la probabilidad anterior, cuando IRI/CPC cambie su pronóstico conviene correr el script a mano con el valor nuevo. Para quitar la tarea: `schtasks /Delete /TN "SIG El Nino - emision mensual" /F`.
+
+### Paso a paso, sin el script
+
+```powershell
+git pull
+python -m pipeline mensual --emision 2026-12 --prob-nino 1.0 --intensidad "muy fuerte"
+git add docs/data
+git commit -m "Emisión 2026-12"
+git push
+```
 
 ### Control de calidad
 
