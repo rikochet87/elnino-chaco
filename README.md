@@ -239,4 +239,4 @@ python -m http.server 8000
 
 ---
 
-Proyecto independiente de **Matias Roselló**, especialista SIG en Chaco, Argentina. No está asociado a ningún organismo público.
+Proyecto independiente de **[Matias Roselló](https://github.com/rikochet87)**, especialista SIG en Chaco, Argentina. No está asociado a ningún organismo público.
