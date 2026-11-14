@@ -71,28 +71,40 @@ def historico(cfg: dict, anio_hasta: int) -> dict:
         for d, vals in res.items():
             series.setdefault(d, {})[nombre] = {int(k.split("_")[-1]): v for k, v in vals.items()}
 
-    # Capas fijas
+    for d, v in capas_fijas(cfg, ee, deptos).items():
+        series[d].update(v)
+
+    return {"anios": anios, "departamentos": series}
+
+
+def capas_fijas(cfg: dict, ee=None, deptos=None) -> dict:
+    """Capas que no cambian por año: relieve (HAND), pérdida de bosque y población."""
+    if ee is None:
+        ee = iniciar(cfg)
+        deptos = coleccion_deptos(ee, cfg)
+    f, u = cfg["fuentes"], cfg["umbrales"]
+    salida = {}
     area = ee.Image.pixelArea()
-    baja = ee.Image(f["hand"]).select("hnd").lt(u["zona_baja_hand_m"]).rename("zona_baja")
-    res = _por_depto(ee, baja, deptos, ee.Reducer.mean(), 90)
-    for d, v in res.items():
-        series[d]["frac_zona_baja"] = v.get("mean")
+
+    # Chaco es una llanura: con 5 m casi todo queda como "zona baja". Se guarda la altura
+    # media sobre el drenaje (HAND, continua) y la fracción bajo el umbral de config.
+    hnd = ee.Image(f["hand"]).select("hnd")
+    img = ee.Image.cat(hnd.rename("hand_medio"), hnd.lt(u["zona_baja_hand_m"]).rename("frac_zona_baja"))
+    for d, v in _por_depto(ee, img, deptos, ee.Reducer.mean(), 90).items():
+        salida.setdefault(d, {}).update({"hand_medio": v.get("hand_medio"), "frac_zona_baja": v.get("frac_zona_baja")})
 
     h = ee.Image(f["hansen"])
     bosque = h.select("treecover2000").gte(u["bosque_cobertura_2000_pct"])
     perdida = h.select("lossyear").gte(u["bosque_perdida_desde"] - 2000).And(h.select("lossyear").lte(u["bosque_perdida_hasta"] - 2000)).And(bosque)
     img = ee.Image.cat(area.updateMask(bosque).rename("bosque"), area.updateMask(perdida).rename("perdida"))
-    res = _por_depto(ee, img, deptos, ee.Reducer.sum(), 30)
-    for d, v in res.items():
+    for d, v in _por_depto(ee, img, deptos, ee.Reducer.sum(), 30).items():
         b = v.get("bosque") or 0
-        series[d]["perdida_bosque_pct"] = 100 * (v.get("perdida") or 0) / b if b > 0 else 0.0
+        salida.setdefault(d, {})["perdida_bosque_pct"] = 100 * (v.get("perdida") or 0) / b if b > 0 else 0.0
 
     pob = ee.ImageCollection(f["worldpop"]).filter(ee.Filter.eq("country", "ARG")).filter(ee.Filter.eq("year", 2020)).mosaic()
-    res = _por_depto(ee, pob.rename("poblacion"), deptos, ee.Reducer.sum(), 100)
-    for d, v in res.items():
-        series[d]["poblacion"] = v.get("sum")
-
-    return {"anios": anios, "departamentos": series}
+    for d, v in _por_depto(ee, pob.rename("poblacion"), deptos, ee.Reducer.sum(), 100).items():
+        salida.setdefault(d, {})["poblacion"] = v.get("sum")
+    return salida
 
 
 def agua_observada(cfg: dict, anio: int, mes: int, asset_caminos: str | None = None) -> dict:

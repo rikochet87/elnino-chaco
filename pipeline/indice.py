@@ -8,7 +8,7 @@ Anegamiento y caminos
         C: consistencia de signo de esa anomalía (0–1)
         F̂: probabilidad de lluvia superior a lo normal según ECMWF SEAS5 (normalizada)
     E = norm( km de caminos rurales )
-    V = norm( media de: fracción de zona baja (HAND), proporción de caminos rurales,
+    V = norm( media de: relieve bajo (inverso de la altura media HAND), proporción de caminos rurales,
                          pérdida de bosque nativo )
     R = (H·E·V)^(1/3); categorías por quintiles.
 
@@ -63,7 +63,8 @@ def resumir_historico(historico: dict, veranos_nino: dict, cfg: dict) -> dict:
             "lluvia_normal_mm": ll["normal"], "anom_nino_pct": ll["anom_nino"], "consistencia": ll["consistencia"],
             "noches_normal": nt["normal"], "noches_anom_nino": nt["anom_nino"],
             "aptos_normal": da["normal"], "aptos_anom_nino": da["anom_nino"],
-            "frac_zona_baja": s["frac_zona_baja"], "perdida_bosque_pct": s["perdida_bosque_pct"],
+            "frac_zona_baja": s["frac_zona_baja"], "hand_medio": s.get("hand_medio"),
+            "perdida_bosque_pct": s["perdida_bosque_pct"],
             "poblacion": s["poblacion"], "n_nino": ll["n_nino"],
         }
     return salida
@@ -86,7 +87,11 @@ def construir(cfg: dict, *, emision: str, anio_final: int, prob_nino: float, int
     F = n({d: c3s["departamentos"][d]["prob_superior"] for d in ids})
     H = n({d: P * (w["w1"] * A[d] + w["w2"] * hist[d]["consistencia"]) + w["w3"] * F[d] for d in ids})
     E = n({d: caminos[d]["km_rurales"] for d in ids})
-    baja = n({d: hist[d]["frac_zona_baja"] for d in ids})
+    # Zonas bajas: con la altura media sobre el drenaje (HAND), menor altura = más vulnerable.
+    if all(hist[d].get("hand_medio") is not None for d in ids):
+        baja = n({d: -hist[d]["hand_medio"] for d in ids})
+    else:
+        baja = n({d: hist[d]["frac_zona_baja"] for d in ids})
     rural = n({d: caminos[d]["prop_rural"] for d in ids})
     bosque = n({d: hist[d]["perdida_bosque_pct"] for d in ids})
     V = n({d: (baja[d] + rural[d] + bosque[d]) / 3 for d in ids})
@@ -126,6 +131,7 @@ def construir(cfg: dict, *, emision: str, anio_final: int, prob_nino: float, int
             "componentes": {
                 "consistencia": round(hist[d]["consistencia"], 2),
                 "frac_zona_baja": round(hist[d]["frac_zona_baja"], 3),
+                "hand_medio_m": None if hist[d].get("hand_medio") is None else round(hist[d]["hand_medio"], 2),
                 "km_caminos_rurales": caminos[d]["km_rurales"],
                 "prop_caminos_rurales": round(caminos[d]["prop_rural"], 3),
                 "poblacion": int(round(hist[d]["poblacion"])),

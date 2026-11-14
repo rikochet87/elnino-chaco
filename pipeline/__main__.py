@@ -32,6 +32,24 @@ def cmd_historico(cfg, args):
     print(f"Listo: {len(resumen)} departamentos en {ruta(cfg, 'intermedio')}")
 
 
+def cmd_capas(cfg, args):
+    """Recalcula solo las capas fijas (relieve, bosque, población) sin repetir las series anuales."""
+    p = ruta(cfg, "intermedio", "historico.json")
+    try:
+        hist = leer_json(p)
+        ninos = {int(k): v for k, v in leer_json(ruta(cfg, "intermedio", "oni.json"))["veranos_nino"].items()}
+    except FileNotFoundError:
+        sys.exit("Falta el histórico. Corré antes `python -m pipeline historico`.")
+    print("Recalculando relieve (HAND), pérdida de bosque y población en Earth Engine…")
+    for d, v in gee.capas_fijas(cfg).items():
+        hist["departamentos"][d].update(v)
+    escribir_json(p, hist)
+    resumen = indice.resumir_historico(hist, ninos, cfg)
+    escribir_json(ruta(cfg, "intermedio", "historico_resumen.json"), resumen)
+    hs = sorted(v["hand_medio"] for v in resumen.values())
+    print(f"Listo. Altura media sobre el drenaje: de {hs[0]:.1f} m a {hs[-1]:.1f} m según el departamento.")
+
+
 def cmd_caminos(cfg, args):
     print("Descargando caminos de OpenStreetMap (Overpass)…")
     tot, geo = caminos.resumir(cfg, caminos.descargar(cfg))
@@ -123,8 +141,9 @@ def main(argv=None):
     p.add_argument("--config", help="ruta a otro config.yaml")
     sub = p.add_subparsers(dest="comando", required=True)
     sub.add_parser("historico", help="series históricas y compuestos Niño (Earth Engine + ONI)")
+    sub.add_parser("capas", help="recalcula solo relieve, bosque y población (sin repetir las series)")
     sub.add_parser("caminos", help="red de caminos de OpenStreetMap por departamento")
-    m = sub.add_parser("mensual", help="emisión del mes (C3S + Sentinel-1 + índices)")
+    m = sub.add_parser("mensual", help="emisión del mes (pronóstico SEAS5 + Sentinel-1 + índices)")
     m.add_argument("--emision", required=True, help="AAAA-MM, mes de la emisión")
     m.add_argument("--prob-nino", required=True, type=float, help="probabilidad oficial de El Niño para el trimestre (0–1), de IRI/CPC")
     m.add_argument("--intensidad", default="sin definir", help="intensidad esperada según IRI/CPC (débil, moderada, fuerte)")
@@ -133,7 +152,7 @@ def main(argv=None):
     m.add_argument("--borrador", action="store_true", help="no publica: deja el resultado en pipeline/datos")
     args = p.parse_args(argv)
     cfg = cargar_config(args.config)
-    {"historico": cmd_historico, "caminos": cmd_caminos, "mensual": cmd_mensual}[args.comando](cfg, args)
+    {"historico": cmd_historico, "capas": cmd_capas, "caminos": cmd_caminos, "mensual": cmd_mensual}[args.comando](cfg, args)
 
 
 if __name__ == "__main__":

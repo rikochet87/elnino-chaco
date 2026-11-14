@@ -47,6 +47,11 @@ python -m pipeline historico
 python -m pipeline caminos
 ```
 
+Si cambiás un umbral de relieve, bosque o población, no hace falta repetir `historico`: alcanza con `python -m pipeline capas`.
+
+```powershell
+```
+
 - `historico` tarda varios minutos: Earth Engine procesa más de 40 veranos.
 - `caminos` descarga los caminos de Chaco desde OpenStreetMap; si Overpass está saturado, reintentá más tarde.
 

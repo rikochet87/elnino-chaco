@@ -36,7 +36,7 @@ fuentes:
   overpass: https://overpass-api.de/api/interpreter
 
 umbrales:
-  zona_baja_hand_m: 5            # altura sobre el drenaje más cercano
+  zona_baja_hand_m: 1            # altura sobre el drenaje más cercano (con 5 m, todo Chaco era zona baja)
   bosque_cobertura_2000_pct: 30
   bosque_perdida_desde: 2004     # años de pérdida contados (Hansen)
   bosque_perdida_hasta: 2023
