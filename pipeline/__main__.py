@@ -3,6 +3,8 @@
     python -m pipeline historico          # una vez (y cuando cambie el método)
     python -m pipeline caminos            # una vez (y cada tanto, para actualizar OSM)
     python -m pipeline mensual --emision 2026-12 --prob-nino 0.62 --intensidad moderada
+    python -m pipeline pacifico           # temperatura del mar del día (lo corre GitHub Actions)
+    python -m pipeline atmosfera          # vientos y lluvia de los veranos Niño (GitHub Actions, a pedido)
 """
 
 import argparse
@@ -153,6 +155,29 @@ def cmd_mensual(cfg, args):
     print(f"Emisión {args.emision} publicada en {publicacion}. Revisá la web local y subí los cambios con git.")
 
 
+def cmd_pacifico(cfg, args):
+    from . import pacifico
+
+    publicacion = ruta(cfg, "publicacion")
+    print("Temperatura del mar (NOAA OISST)…")
+    indice_web = pacifico.actualizar(cfg, publicacion / "pacifico", cfg["fuentes"]["oisst_erddap"])
+    escribir_json(publicacion / "pacifico.json", indice_web)
+    print(f"Último dato: {indice_web['ultimo']} · Niño 3.4: {indice_web['nino34']:+.2f} °C · {len(indice_web['cuadros'])} cuadros")
+
+
+def cmd_atmosfera(cfg, args):
+    from . import atmosfera
+
+    serie = oni.parsear(oni.descargar(cfg["fuentes"]["oni"]))
+    u = cfg["umbrales"]
+    anios_nino = sorted(oni.veranos_nino(serie, u["oni_umbral"], u["oni_temporadas_minimas"]))
+    print(f"Veranos Niño según el ONI: {anios_nino}")
+    datos = atmosfera.calcular(cfg, anios_nino)
+    destino = ruta(cfg, "publicacion") / "atmosfera.json"
+    escribir_json(destino, datos, indent=None)
+    print(f"{destino}: {destino.stat().st_size / 1024:.0f} KB, compuesto de {len(datos['anios_nino'])} veranos")
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="python -m pipeline", description="Pipeline del SIG El Niño Argentina")
     p.add_argument("--config", help="ruta a otro config.yaml")
@@ -167,9 +192,12 @@ def main(argv=None):
     m.add_argument("--anio-objetivo", type=int, help="año del febrero del trimestre objetivo (por defecto, el próximo verano)")
     m.add_argument("--mes-agua", help="AAAA-MM del agua observada (por defecto, el mes anterior a la emisión)")
     m.add_argument("--borrador", action="store_true", help="no publica: deja el resultado en pipeline/datos")
+    sub.add_parser("pacifico", help="temperatura del mar del día para la página 3D (NOAA OISST)")
+    sub.add_parser("atmosfera", help="vientos y lluvia promedio de los veranos Niño (NCEP/NCAR y GPCP)")
     args = p.parse_args(argv)
     cfg = cargar_config(args.config)
-    {"historico": cmd_historico, "capas": cmd_capas, "caminos": cmd_caminos, "mensual": cmd_mensual}[args.comando](cfg, args)
+    {"historico": cmd_historico, "capas": cmd_capas, "caminos": cmd_caminos, "mensual": cmd_mensual,
+     "pacifico": cmd_pacifico, "atmosfera": cmd_atmosfera}[args.comando](cfg, args)
 
 
 if __name__ == "__main__":

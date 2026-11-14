@@ -34,6 +34,10 @@ fuentes:
   jrc_agua: JRC/GSW1_4/GlobalSurfaceWater
   oni: https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt
   overpass: https://overpass-api.de/api/interpreter
+  # Página 3D "Cómo llega El Niño a Chaco" (NOAA, sin cuenta; se actualizan solos con GitHub Actions)
+  oisst_erddap: https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21NrtAgg
+  ncep_mensual: https://psl.noaa.gov/thredds/dodsC/Datasets/ncep.reanalysis/Monthlies/pressure/{var}.mon.mean.nc
+  gpcp_mensual: https://psl.noaa.gov/thredds/dodsC/Datasets/gpcp/precip.mon.mean.nc
 
 umbrales:
   zona_baja_hand_m: 1            # altura sobre el drenaje más cercano (con 5 m, todo Chaco era zona baja)

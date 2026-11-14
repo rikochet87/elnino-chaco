@@ -1,0 +1,37 @@
+# Temperatura del mar del día para la página "Cómo llega El Niño a Chaco".
+# Corre sola todos los días y sube a docs/data solo lo que cambió.
+name: Temperatura del Pacífico (diaria)
+
+on:
+  schedule:
+    - cron: "17 14 * * *"   # 11:17 en Argentina; NOAA publica el análisis con unos 2 días de atraso
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datos-web
+  cancel-in-progress: false
+
+jobs:
+  pacifico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m pipeline pacifico
+      - name: Subir los datos nuevos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A docs/data/pacifico docs/data/pacifico.json
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "Temperatura del Pacífico: $(python -c 'import json;print(json.load(open("docs/data/pacifico.json"))["ultimo"])')"
+          git pull --rebase
+          git push
