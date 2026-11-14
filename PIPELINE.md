@@ -1,8 +1,8 @@
 # Pipeline de datos: puesta en marcha
 
-El pipeline reemplaza la emisión de demostración por datos reales. Corre en tu PC con tus cuentas de Google Earth Engine y Copernicus, y escribe el archivo que lee la web (`docs/data/emision-AAAA-MM.json`).
+El pipeline reemplaza la emisión de demostración por datos reales. Corre en tu PC con tu cuenta de Google Earth Engine (proyecto `chaco-2727`, ya configurado) y escribe el archivo que lee la web (`docs/data/emision-AAAA-MM.json`).
 
-> **Estado:** el código está probado con datos simulados (20 pruebas automáticas y un ensayo completo de la emisión mensual). Todavía no se corrió contra Earth Engine ni Copernicus, porque eso requiere tus cuentas. La primera corrida real puede pedir ajustes menores, por ejemplo si cambió el nombre de un conjunto de datos o el formato de las descargas.
+> **Estado:** el código está probado con datos simulados (26 pruebas automáticas y un ensayo completo de la emisión mensual). El formato de la API de Open-Meteo se verificó con una consulta real. Todavía no se corrió contra Earth Engine: la primera corrida puede pedir ajustes menores, por ejemplo si cambió el nombre de un conjunto de datos.
 
 ## Qué hace cada paso
 
@@ -10,7 +10,7 @@ El pipeline reemplaza la emisión de demostración por datos reales. Corre en tu
 | --- | --- | --- | --- |
 | `historico` | Una vez (y si cambia el método) | Veranos Niño desde 1982; lluvia normal y anomalía Niño; noches tropicales; días aptos para el mosquito; zonas bajas; pérdida de bosque; población | NOAA CPC (ONI), CHIRPS, ERA5-Land, MERIT Hydro (HAND), Hansen GFC, WorldPop |
 | `caminos` | Una vez (y cada tanto) | Km de caminos rurales por departamento | OpenStreetMap (Overpass) |
-| `mensual` | Cada mes | Probabilidades de lluvia del trimestre, agua observada del mes, índices y categorías; control de calidad; publicación | Copernicus C3S (SEAS5), Sentinel-1, JRC Global Surface Water |
+| `mensual` | Cada mes | Probabilidad de lluvia por encima de lo normal en el trimestre, agua observada del mes, índices y categorías; control de calidad; publicación | ECMWF SEAS5 vía Open-Meteo (sin cuenta), Sentinel-1, JRC Global Surface Water |
 
 Los archivos de trabajo quedan en `pipeline/datos/` (no se suben a GitHub).
 
@@ -22,7 +22,7 @@ En Windows, desde la carpeta del proyecto, con Python 3.11 o superior:
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest -q tests      # deberían pasar las 20 pruebas
+python -m pytest -q tests      # deberían pasar las 26 pruebas
 ```
 
 ## 2. Cuenta de Google Earth Engine (gratis, uso no comercial)
@@ -30,18 +30,15 @@ python -m pytest -q tests      # deberían pasar las 20 pruebas
 1. Entrá a https://earthengine.google.com y registrá un proyecto **no comercial** de Google Cloud.
 2. Anotá el **ID del proyecto** (por ejemplo `sig-el-nino-472013`).
 3. En la terminal: `earthengine authenticate` y seguí los pasos del navegador.
-4. En `pipeline/config.yaml`, reemplazá `TU-PROYECTO-GEE` por tu ID.
+4. El ID ya está cargado en `pipeline/config.yaml` (`chaco-2727`).
 
-## 3. Cuenta de Copernicus Climate Data Store (gratis)
+## 3. Pronóstico de lluvia: Open-Meteo (sin cuenta)
 
-1. Registrate en https://cds.climate.copernicus.eu.
-2. En tu perfil, copiá tu **API token**.
-3. Creá el archivo `C:\Users\<tu usuario>\.cdsapirc` con este contenido:
-   ```
-   url: https://cds.climate.copernicus.eu/api
-   key: TU-TOKEN
-   ```
-4. Abrí la página del conjunto **Seasonal forecast monthly statistics on single levels** (`seasonal-monthly-single-levels`), pestaña *Download*, y **aceptá la licencia**. Sin ese paso la descarga falla.
+El pronóstico estacional sale del modelo ECMWF SEAS5 (51 miembros) a través de la API de Open-Meteo, que no pide registro. Para cada departamento se calcula la **probabilidad de que llueva más que lo normal** del modelo en el trimestre: la fracción de miembros por encima de su climatología. Son dos categorías (más o menos de lo normal), no terciles.
+
+La web cita la fuente como exige la licencia (Open-Meteo.com, CC BY 4.0). El uso gratuito es para fines no comerciales.
+
+**Alternativa con terciles (opcional):** si más adelante querés las tres categorías oficiales (más, normal, menos), creá una cuenta en el Climate Data Store (cds.climate.copernicus.eu, distinta de Copernicus Browser), guardá tu token en `C:\Users\<usuario>\.cdsapirc`, aceptá la licencia de *seasonal-monthly-single-levels* y cambiá `pronostico.fuente` a `c3s` en `config.yaml`. La web admite los dos formatos.
 
 ## 4. Primera corrida
 
@@ -88,7 +85,7 @@ La publicación se frena (y el resultado queda como `-rechazada.json` en `pipeli
 ## Decisiones de método a revisar en la calibración
 
 - **Pesos del índice vial** (`w1`, `w2`, `w3` en `config.yaml`): son una decisión propia; hay que contrastarlos con las inundaciones de 1997-98 y 2015-16.
-- **Resolución de C3S:** la grilla es de 1°, así que varios departamentos comparten celda. Cada departamento toma la celda más cercana a su punto representativo.
+- **Pronóstico en dos categorías:** la probabilidad se mide contra la climatología del propio modelo (hindcast del ECMWF), en el punto representativo de cada departamento (grilla de unos 36 km).
 - **Dengue y calor:** por ahora la vulnerabilidad se reduce a la población (WorldPop 2020). Faltan NBI y población de 65 años o más (INDEC).
 - **Agua observada:** se usa el mes anterior a la emisión, con un umbral de Otsu sobre la mediana VV de Sentinel-1. Conviene revisar visualmente en QGIS los primeros meses.
 - **Pérdida de bosque:** se usa Hansen (2004–2023) por estar disponible en Earth Engine; MapBiomas Argentina es una alternativa local.

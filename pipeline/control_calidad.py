@@ -16,7 +16,7 @@ def revisar(emision: dict, ids_esperados: list[str], anterior: dict | None = Non
 
     for d, v in deps.items():
         l = v["lluvia"]
-        suma = l["prob_superior"] + l["prob_normal"] + l["prob_inferior"]
+        suma = l["prob_superior"] + (l.get("prob_normal") or 0) + l["prob_inferior"]
         if abs(suma - 1) > 0.03:
             errores.append(f"{d}: las probabilidades de lluvia suman {suma:.2f}")
         if not 50 <= l["normal_mm"] <= 2000:

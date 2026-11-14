@@ -52,7 +52,7 @@ def main() -> None:
         base[i] = (x, y)
         A[i] = 10 + 25 * x + ruido(i + "a", 4)            # anomalía Niño histórica, %
         C[i] = 0.55 + 0.3 * x + ruido(i + "c", 0.05)      # consistencia de signo
-        F[i] = 0.40 + 0.20 * x + ruido(i + "f", 0.03)     # prob. lluvia superior (C3S)
+        F[i] = 0.50 + 0.40 * x + ruido(i + "f", 0.05)     # prob. lluvia superior (SEAS5, 2 categorías)
         E[i] = 0.5 + ruido(i + "e", 0.35)                 # exposición
         V[i] = 0.35 + 0.4 * x + ruido(i + "v", 0.12)      # vulnerabilidad
         dengue[i] = 0.5 * x + 0.3 * y + ruido(i + "d", 0.1) + (0.25 if i == "san-fernando" else 0)
@@ -69,14 +69,14 @@ def main() -> None:
     for f in deptos:
         i = f["id"]
         x, y = base[i]
-        sup = round(F[i], 2)
-        inf = round(0.20 - 0.08 * x, 2)
+        sup = round(min(F[i], 0.98), 2)
         km2 = round(4 + 110 * x * x * R[i] + ruido(i + "w", 3), 1)
         salida[i] = {
             "lluvia": {
                 "prob_superior": sup,
-                "prob_normal": round(1 - sup - inf, 2),
-                "prob_inferior": inf,
+                "prob_normal": None,
+                "prob_inferior": round(1 - sup, 2),
+                "anom_pronostico_pct": int(round(5 + 60 * x + ruido(i + "ap", 6))),
                 "normal_mm": int(round((330 + 150 * x + ruido(i + "mm", 15)) / 10) * 10),
                 "anom_nino_pct": int(round(A[i])),
             },
@@ -104,6 +104,7 @@ def main() -> None:
         "trimestre_texto": "diciembre a febrero",
         "prob_nino": PROB_NINO,
         "intensidad": "moderada",
+        "pronostico": {"sistema": "ECMWF SEAS5 vía Open-Meteo (valores simulados)", "categorias": 2},
         "agua_obs": {"fecha_imagen": "2026-11-08", "sensor": "Sentinel-1 (radar)", "umbral_db": -17.5},
         "metodo": {
             "pesos": {"w1": W1, "w2": W2, "w3": W3},

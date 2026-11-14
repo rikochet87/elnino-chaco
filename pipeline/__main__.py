@@ -9,7 +9,7 @@ import argparse
 import sys
 from datetime import date
 
-from . import c3s, caminos, control_calidad, gee, indice, oni
+from . import c3s, caminos, control_calidad, gee, indice, oni, openmeteo
 from .comun import cargar_config, departamentos, escribir_json, leer_json, ruta
 
 
@@ -69,9 +69,15 @@ def cmd_mensual(cfg, args):
     except FileNotFoundError as e:
         sys.exit(f"Falta {e.filename}. Corré antes `python -m pipeline historico` y `python -m pipeline caminos`.")
 
-    print(f"Pronóstico C3S iniciado en {args.emision} para {cfg['estacion']['nombre']} {anio_final - 1}-{anio_final}…")
-    pron = c3s.pronostico(cfg, anio, mes, anio_final, ruta(cfg, "intermedio", "c3s"))
-    escribir_json(ruta(cfg, "intermedio", f"c3s_{args.emision}.json"), pron)
+    fuente = cfg.get("pronostico", {}).get("fuente", "openmeteo")
+    temporada = f"{cfg['estacion']['nombre']} {anio_final - 1}-{anio_final}"
+    if fuente == "c3s":
+        print(f"Pronóstico C3S iniciado en {args.emision} para {temporada}…")
+        pron = c3s.pronostico(cfg, anio, mes, anio_final, ruta(cfg, "intermedio", "c3s"))
+    else:
+        print(f"Pronóstico ECMWF SEAS5 vía Open-Meteo para {temporada}…")
+        pron = openmeteo.pronostico(cfg, anio_final)
+    escribir_json(ruta(cfg, "intermedio", f"pronostico_{args.emision}.json"), pron)
 
     a_ag, m_ag = _mes_anterior(anio, mes) if not args.mes_agua else map(int, args.mes_agua.split("-"))
     agua = _agua(cfg, a_ag, m_ag)
@@ -119,7 +125,7 @@ def main(argv=None):
     sub.add_parser("historico", help="series históricas y compuestos Niño (Earth Engine + ONI)")
     sub.add_parser("caminos", help="red de caminos de OpenStreetMap por departamento")
     m = sub.add_parser("mensual", help="emisión del mes (C3S + Sentinel-1 + índices)")
-    m.add_argument("--emision", required=True, help="AAAA-MM, mes de inicio del pronóstico")
+    m.add_argument("--emision", required=True, help="AAAA-MM, mes de la emisión")
     m.add_argument("--prob-nino", required=True, type=float, help="probabilidad oficial de El Niño para el trimestre (0–1), de IRI/CPC")
     m.add_argument("--intensidad", default="sin definir", help="intensidad esperada según IRI/CPC (débil, moderada, fuerte)")
     m.add_argument("--anio-objetivo", type=int, help="año del febrero del trimestre objetivo (por defecto, el próximo verano)")

@@ -35,12 +35,17 @@
     // Lluvia
     const l = d.lluvia;
     $("lluvia-titular").textContent = S.MODULOS.lluvia.clases[S.MODULOS.lluvia.clase(d)].texto;
-    const mayor = Math.max(l.prob_superior, l.prob_normal, l.prob_inferior);
-    $("lluvia-terciles").innerHTML = [
-      ["Más de lo normal", l.prob_superior], ["Normal", l.prob_normal], ["Menos de lo normal", l.prob_inferior],
-    ].map(([t, v]) => `<div class="${v === mayor ? "destacado" : ""}">${t}<span>${S.pct(v)}</span></div>`).join("");
-    const signo = l.anom_nino_pct >= 0 ? `${l.anom_nino_pct} % más` : `${-l.anom_nino_pct} % menos`;
-    $("lluvia-texto").innerHTML = `Lo normal en esta zona son unos <strong>${l.normal_mm} mm</strong> de ${e.trimestre_texto}. En los veranos con El Niño de años anteriores llovió en promedio <strong>${signo}</strong>.`;
+    const dosCat = l.prob_normal === null || l.prob_normal === undefined;
+    const cats = dosCat
+      ? [["Más de lo normal", l.prob_superior], ["Menos de lo normal", l.prob_inferior]]
+      : [["Más de lo normal", l.prob_superior], ["Normal", l.prob_normal], ["Menos de lo normal", l.prob_inferior]];
+    const mayor = Math.max(...cats.map((c) => c[1]));
+    const caja = $("lluvia-terciles");
+    caja.style.gridTemplateColumns = `repeat(${cats.length}, minmax(0, 1fr))`;
+    caja.innerHTML = cats.map(([t, v]) => `<div class="${v === mayor ? "destacado" : ""}">${t}<span>${S.pct(v)}</span></div>`).join("");
+    const masMenos = (v) => (v >= 0 ? `${v} % más` : `${-v} % menos`);
+    const pron = typeof l.anom_pronostico_pct === "number" ? ` El pronóstico espera en promedio <strong>${masMenos(l.anom_pronostico_pct)}</strong> de lo normal.` : "";
+    $("lluvia-texto").innerHTML = `Lo normal en esta zona son unos <strong>${l.normal_mm} mm</strong> de ${e.trimestre_texto}.${pron} En los veranos con El Niño de años anteriores llovió en promedio <strong>${masMenos(l.anom_nino_pct)}</strong>.`;
 
     // Caminos, dengue y calor
     $("caminos-nivel").innerHTML = nivelHTML("anegamiento", d, "Posibilidad de cortes por agua");

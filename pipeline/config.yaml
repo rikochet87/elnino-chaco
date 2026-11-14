@@ -47,6 +47,11 @@ umbrales:
   oni_umbral: 0.5
   oni_temporadas_minimas: 5
 
+pronostico:
+  # openmeteo: ECMWF SEAS5 vía Open-Meteo, sin cuenta (dos categorías: arriba o abajo de lo normal)
+  # c3s: Copernicus Climate Data Store, requiere cuenta y ~/.cdsapirc (terciles)
+  fuente: openmeteo
+
 c3s:
   centro: ecmwf
   sistema: "51"

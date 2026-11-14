@@ -17,6 +17,7 @@
     ],
     lluvia: [
       { id: "sup", nombre: "P(lluvia superior a lo normal)", valor: (d) => d.lluvia.prob_superior, rampa: "azul", dec: 2 },
+      { id: "anompron", nombre: "Anomalía pronosticada (%)", valor: (d) => d.lluvia.anom_pronostico_pct ?? 0, rampa: "azul", dec: 0 },
       { id: "anom", nombre: "Anomalía histórica en años Niño (%)", valor: (d) => d.lluvia.anom_nino_pct, rampa: "azul", dec: 0 },
       { id: "mm", nombre: "Lluvia normal del trimestre (mm)", valor: (d) => d.lluvia.normal_mm, rampa: "azul", dec: 0 },
     ],
@@ -34,7 +35,7 @@
     { id: "anegamiento", nombre: "Anegamiento y caminos", nota: "Confianza alta · Piloto" },
     { id: "dengue", nombre: "Dengue", nota: "Confianza media · Piloto" },
     { id: "calor", nombre: "Calor", nota: "Señal a verificar · Piloto" },
-    { id: "lluvia", nombre: "Lluvia", nota: "Pronóstico estacional" },
+    { id: "lluvia", nombre: "Lluvia", nota: "ECMWF SEAS5 · Open-Meteo" },
     { id: null, nombre: "Crecidas de ríos", nota: "Próximamente · Fase NEA" },
     { id: null, nombre: "Incendios", nota: "Próximamente · Fase La Niña" },
   ];
@@ -91,7 +92,10 @@
     const l = d.lluvia;
     $("desglose-extra").innerHTML =
       `<p class="rotulo">Otros módulos</p><table class="tabla"><thead><tr><th>Variable</th><th>Fuente prevista</th><th class="num">Valor</th></tr></thead><tbody>` +
-      fila("P(lluvia sup. / normal / inf.)", "Copernicus C3S", `${S.num(l.prob_superior, 2)} / ${S.num(l.prob_normal, 2)} / ${S.num(l.prob_inferior, 2)}`) +
+      (l.prob_normal === null || l.prob_normal === undefined
+        ? fila("P(lluvia sup. / inf.)", "ECMWF SEAS5 · Open-Meteo", `${S.num(l.prob_superior, 2)} / ${S.num(l.prob_inferior, 2)}`)
+        : fila("P(lluvia sup. / normal / inf.)", "Copernicus C3S", `${S.num(l.prob_superior, 2)} / ${S.num(l.prob_normal, 2)} / ${S.num(l.prob_inferior, 2)}`)) +
+      (typeof l.anom_pronostico_pct === "number" ? fila("Anomalía pronosticada (media)", "ECMWF SEAS5, 51 miembros", (l.anom_pronostico_pct > 0 ? "+" : "") + l.anom_pronostico_pct + " %") : "") +
       fila("Lluvia normal del trimestre", "CHIRPS 1991–2020", l.normal_mm + " mm") +
       fila("Anomalía media en años Niño", "Composites ERA5 / CHIRPS", (l.anom_nino_pct > 0 ? "+" : "") + l.anom_nino_pct + " %") +
       fila("Dengue, índice", "ERA5, INDEC", `${S.num(d.dengue.indice, 2)}<br><small style="font-family:'IBM Plex Sans',sans-serif;color:var(--texto-3)">${chip("dengue", d)}</small>`) +
@@ -135,11 +139,11 @@
   }
 
   function csv() {
-    const enc = ["id_depto", "departamento", "cabecera", "R", "H", "E", "V", "categoria_caminos", "perdida_bosque_pct", "prob_lluvia_sup", "prob_lluvia_normal", "prob_lluvia_inf", "lluvia_normal_mm", "anom_nino_pct", "dengue_indice", "dengue_categoria", "calor_indice", "calor_categoria", "agua_obs_km2", "agua_obs_km2_mes_ant", "km_caminos_anegados"];
+    const enc = ["id_depto", "departamento", "cabecera", "R", "H", "E", "V", "categoria_caminos", "perdida_bosque_pct", "prob_lluvia_sup", "prob_lluvia_normal", "prob_lluvia_inf", "anom_pronostico_pct", "lluvia_normal_mm", "anom_nino_pct", "dengue_indice", "dengue_categoria", "calor_indice", "calor_categoria", "agua_obs_km2", "agua_obs_km2_mes_ant", "km_caminos_anegados"];
     const lineas = [enc.join(",")];
     Object.entries(datos.emision.departamentos).forEach(([id, d]) => {
       const p = datos.porId[id], a = d.anegamiento, l = d.lluvia, o = d.agua_obs;
-      lineas.push([id, `"${p.nombre}"`, `"${p.cabecera}"`, a.R, a.H, a.E, a.V, a.categoria, a.perdida_bosque_pct, l.prob_superior, l.prob_normal, l.prob_inferior, l.normal_mm, l.anom_nino_pct, d.dengue.indice, d.dengue.categoria, d.calor.indice, d.calor.categoria, o.km2, o.km2_mes_anterior, o.km_caminos].join(","));
+      lineas.push([id, `"${p.nombre}"`, `"${p.cabecera}"`, a.R, a.H, a.E, a.V, a.categoria, a.perdida_bosque_pct, l.prob_superior, l.prob_normal ?? "", l.prob_inferior, l.anom_pronostico_pct ?? "", l.normal_mm, l.anom_nino_pct, d.dengue.indice, d.dengue.categoria, d.calor.indice, d.calor.categoria, o.km2, o.km2_mes_anterior, o.km_caminos].join(","));
     });
     const blob = new Blob(["﻿" + lineas.join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");

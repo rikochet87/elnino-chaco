@@ -2,7 +2,7 @@
 
 Aplicación web instalable (PWA) que traduce los pronósticos oficiales de El Niño en información territorial: qué puede pasar con la lluvia, los caminos rurales, el dengue y el calor en cada departamento, y cómo prepararse. Piloto: provincia de Chaco.
 
-> **Estado: demostración.** La web funciona, pero los valores publicados son ilustrativos (`"demo": true` en la emisión). Todavía no provienen de ERA5, Copernicus ni Sentinel. El esquema de datos es el definitivo, así que la emisión real reemplazará a la demo sin cambiar la web.
+> **Estado: demostración.** La web funciona, pero los valores publicados son ilustrativos (`"demo": true` en la emisión). Todavía no provienen del pipeline de datos reales. El esquema de datos es el definitivo, así que la emisión real reemplazará a la demo sin cambiar la web.
 
 ## Qué incluye
 
@@ -32,7 +32,7 @@ scripts/
 
 ## Publicar una emisión nueva
 
-El pipeline (`pipeline/`) genera la emisión real con Earth Engine y Copernicus. La puesta en marcha y los comandos están en **[PIPELINE.md](PIPELINE.md)**. En resumen:
+El pipeline (`pipeline/`) genera la emisión real con Earth Engine y el pronóstico ECMWF SEAS5 vía Open-Meteo. La puesta en marcha y los comandos están en **[PIPELINE.md](PIPELINE.md)**. En resumen:
 
 ```bash
 python -m pipeline historico     # una vez

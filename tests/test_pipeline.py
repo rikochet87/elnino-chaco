@@ -117,6 +117,65 @@ def test_c3s_probabilidades_humedo(tmp_path):
     assert all(v["prob_superior"] == 1.0 and v["prob_inferior"] == 0.0 for v in res.values())
 
 
+# --- Open-Meteo (estructura tal como la devuelve la API) ----------------------
+
+from datetime import date, timedelta  # noqa: E402
+
+from pipeline import openmeteo  # noqa: E402
+
+
+def _respuestas_openmeteo(inicio="2026-11-14", dias=200, diario=10.0, media=260.0, anom=100.0, miembros_altos=51):
+    t0 = date.fromisoformat(inicio)
+    tiempos = [(t0 + timedelta(days=i)).isoformat() for i in range(dias)]
+    daily = {"time": tiempos}
+    claves = ["precipitation_sum"] + [f"precipitation_sum_member{i:02d}" for i in range(1, 51)]
+    for j, k in enumerate(claves):
+        v = diario if j < miembros_altos else 1.0
+        daily[k] = [v] * dias
+    meses = sorted({t[:7] + "-01" for t in tiempos})[:6]
+    monthly = {"time": meses, "precipitation_mean": [media] * len(meses), "precipitation_anomaly": [anom] * len(meses)}
+    return {"latitude": -27.4, "longitude": -59.07, "daily": daily}, {"latitude": -27.4, "longitude": -59.07, "monthly": monthly}
+
+
+def test_openmeteo_todos_los_miembros_humedos():
+    d, m = _respuestas_openmeteo()
+    r = openmeteo.resumir_punto(d, m, [(2026, 12), (2027, 1), (2027, 2)])
+    # 90 días × 10 mm = 900 mm contra 3 × (260 − 100) = 480 mm de climatología del modelo
+    assert r["clima_modelo_mm"] == pytest.approx(480)
+    assert r["prob_superior"] == 1.0 and r["prob_inferior"] == 0.0 and r["prob_normal"] is None
+    assert r["anom_pronostico_pct"] == round(100 * (900 / 480 - 1))
+    assert r["miembros"] == 51
+
+
+def test_openmeteo_proporcion_de_miembros():
+    d, m = _respuestas_openmeteo(miembros_altos=17)  # 17 de 51 por encima de lo normal
+    r = openmeteo.resumir_punto(d, m, [(2026, 12), (2027, 1), (2027, 2)])
+    assert r["prob_superior"] == pytest.approx(round(17 / 51, 2))
+
+
+def test_openmeteo_mes_parcial_se_prorratea():
+    d, m = _respuestas_openmeteo(inicio="2026-12-15")  # diciembre cubierto 17 de 31 días
+    r = openmeteo.resumir_punto(d, m, [(2026, 12), (2027, 1), (2027, 2)])
+    assert r["clima_modelo_mm"] == pytest.approx(160 * 17 / 31 + 160 + 160, abs=0.1)
+    assert r["cobertura"] == pytest.approx(76 / 90, abs=0.01)
+
+
+def test_openmeteo_cobertura_insuficiente():
+    d, m = _respuestas_openmeteo(inicio="2027-02-10")
+    with pytest.raises(RuntimeError, match="cubre solo"):
+        openmeteo.resumir_punto(d, m, [(2026, 12), (2027, 1), (2027, 2)])
+
+
+def test_openmeteo_pronostico_por_departamento(monkeypatch):
+    def falso(puntos, dias=215):
+        pares = [_respuestas_openmeteo() for _ in puntos]
+        return [p[0] for p in pares], [p[1] for p in pares]
+    monkeypatch.setattr(openmeteo, "descargar", falso)
+    res = openmeteo.pronostico(CFG, 2027)
+    assert set(res["departamentos"]) == set(IDS)
+    assert res["categorias"] == 2 and "Open-Meteo" in res["atribucion"]
+
+
 # --- Caminos ------------------------------------------------------------------
 
 def test_caminos_por_departamento():
@@ -209,6 +268,19 @@ def test_r_es_media_geometrica():
     for v in em["departamentos"].values():
         a = v["anegamiento"]
         assert a["R"] == pytest.approx((a["H"] * a["E"] * a["V"]) ** (1 / 3), rel=0.05, abs=5e-3)
+
+
+def test_emision_con_dos_categorias_pasa_control():
+    hist, tramos, pron, agua = _entradas()
+    for v in pron["departamentos"].values():
+        v["prob_normal"] = None
+        v["prob_inferior"] = round(1 - v["prob_superior"], 2)
+        v["anom_pronostico_pct"] = 25
+    em = indice.construir(CFG, emision="2026-11", anio_final=2027, prob_nino=0.6, intensidad="moderada",
+                          hist=hist, caminos=tramos, c3s=pron, agua=agua, agua_anterior=None, veranos_nino={})
+    errores, _ = control_calidad.revisar(em, IDS)
+    assert errores == []
+    assert em["departamentos"]["bermejo"]["lluvia"]["anom_pronostico_pct"] == 25
 
 
 def test_control_calidad_aprueba_emision_valida():

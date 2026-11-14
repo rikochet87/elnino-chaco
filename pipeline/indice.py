@@ -6,7 +6,7 @@ Anegamiento y caminos
     H = norm( P(Niño)·(w1·Â + w2·C) + w3·F̂ )
         Â: anomalía de lluvia de verano en años Niño (normalizada)
         C: consistencia de signo de esa anomalía (0–1)
-        F̂: probabilidad de lluvia superior a lo normal según C3S (normalizada)
+        F̂: probabilidad de lluvia superior a lo normal según ECMWF SEAS5 (normalizada)
     E = norm( km de caminos rurales )
     V = norm( media de: fracción de zona baja (HAND), proporción de caminos rurales,
                          pérdida de bosque nativo )
@@ -107,7 +107,8 @@ def construir(cfg: dict, *, emision: str, anio_final: int, prob_nino: float, int
         previo = (agua_anterior or {}).get("departamentos", {}).get(d, {}).get("km2")
         deptos[d] = {
             "lluvia": {
-                "prob_superior": p["prob_superior"], "prob_normal": p["prob_normal"], "prob_inferior": p["prob_inferior"],
+                "prob_superior": p["prob_superior"], "prob_normal": p.get("prob_normal"), "prob_inferior": p["prob_inferior"],
+                "anom_pronostico_pct": p.get("anom_pronostico_pct"),
                 "normal_mm": int(round(hist[d]["lluvia_normal_mm"] / 10) * 10),
                 "anom_nino_pct": int(round(hist[d]["anom_nino_pct"])),
             },
@@ -150,7 +151,7 @@ def construir(cfg: dict, *, emision: str, anio_final: int, prob_nino: float, int
             "umbral_db": agua["umbral_db"],
             "imagenes": agua["imagenes"],
         },
-        "pronostico": {"sistema": c3s["sistema"], "inicio": c3s["inicio"], "plazos": c3s["plazos"]},
+        "pronostico": {k: v for k, v in c3s.items() if k != "departamentos"},
         "veranos_nino": {str(k): v for k, v in sorted(veranos_nino.items())},
         "metodo": {
             "version": "0.1",

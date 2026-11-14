@@ -12,13 +12,22 @@
       leyendaTitulo: "Lluvia esperada respecto de lo normal",
       clases: [
         { color: "#C9A15E", texto: "Más probable menos lluvia" },
-        { color: "#EDEAE3", texto: "Cerca de lo normal" },
+        { color: "#EDEAE3", texto: "Sin tendencia clara" },
         { color: "#A9C3DA", texto: "Algo más probable más lluvia" },
         { color: "#5C8AB5", texto: "Probablemente más lluvia" },
         { color: "#1F4E79", texto: "Muy probablemente más lluvia" },
       ],
       clase(d) {
         const l = d.lluvia;
+        if (l.prob_normal === null || l.prob_normal === undefined) {
+          // Dos categorías (por encima o por debajo de lo normal): 50 % es "sin señal".
+          if (l.prob_superior >= 0.8) return 4;
+          if (l.prob_superior >= 0.65) return 3;
+          if (l.prob_superior > 0.55) return 2;
+          if (l.prob_superior >= 0.45) return 1;
+          return 0;
+        }
+        // Terciles: 33 % es "sin señal".
         if (l.prob_inferior > l.prob_superior) return 0;
         if (l.prob_superior >= 0.55) return 4;
         if (l.prob_superior >= 0.47) return 3;
