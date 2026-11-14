@@ -18,7 +18,7 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 .g-escena canvas.arrastrando { cursor: grabbing; }
 .explorando .g-escena canvas { touch-action: none; }
 .explorando .g-escena canvas:focus-visible { box-shadow: inset 0 0 0 3px #4A90D9; }
-.g-etiquetas { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.g-etiquetas { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .g-etiqueta {
   position: absolute; left: 0; top: 0; white-space: nowrap;
   font-size: 13px; font-weight: 500; color: #EEF3F8; letter-spacing: .01em;
@@ -144,10 +144,14 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 .g-ayuda strong { color: var(--g-texto); }
 
 @media (max-width: 760px) {
-  /* Entre una tarjeta y la siguiente queda una pantalla libre para ver el globo */
-  .g-paso { min-height: 175vh; align-items: center; padding: 0; }
-  .g-paso:first-child { min-height: calc(100vh - 110px); min-height: calc(100svh - 110px); align-items: flex-end; padding-bottom: 16px; }
-  .g-tarjeta { width: calc(100% - 24px); margin: 0 auto; padding: 16px 16px; font-size: 15px; line-height: 1.55; background: rgba(9, 21, 34, 0.93); }
+  /* Pantalla dividida: el globo queda fijo arriba y las explicaciones pasan por debajo, sin taparlo */
+  .g-escena { position: sticky; inset: auto; top: 0; height: 55vh; height: 55svh; z-index: 2; background: var(--g-fondo); border-bottom: 1px solid var(--g-borde); }
+  .explorando .g-escena { position: fixed; inset: 0; height: auto; border: 0; }
+  .g-relato { z-index: 1; }
+  .g-paso, .g-paso:first-child { min-height: 0; display: block; padding: 20px 0 8px; }
+  .g-paso:last-child { padding-bottom: 50vh; padding-bottom: 50svh; }
+  .g-tarjeta { width: calc(100% - 24px); margin: 0 auto; padding: 16px 16px; font-size: 15px; line-height: 1.55; background: transparent; border: 0; padding: 4px 4px 16px; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .g-paso + .g-paso .g-tarjeta { border-top: 1px solid var(--g-borde); padding-top: 20px; }
   .g-tarjeta h1 { font-size: 25px; margin-bottom: 10px; }
   .g-tarjeta h2 { font-size: 20px; }
   .g-tarjeta p { margin-bottom: 10px; }

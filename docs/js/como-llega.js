@@ -163,7 +163,7 @@ function observarPasos(alCambiar) {
         alCambiar(estado.escena);
       }
     });
-  }, { rootMargin: "-45% 0px -45% 0px" });
+  }, { rootMargin: MOVIL ? "-62% 0px -30% 0px" : "-45% 0px -45% 0px" }); // en el celular, la franja de lectura está debajo del globo
   pasos.forEach((p) => obs.observe(p));
 }
 
@@ -590,11 +590,12 @@ function crearVista() {
     camara.aspect = w / h;
     // En el relato el globo se corre para no quedar debajo de la tarjeta: a la derecha en compu, apenas arriba en celular
     if (explorando) camara.clearViewOffset();
-    else if (MOVIL) camara.setViewOffset(w, h, 0, h * 0.14, w, h);
+    else if (MOVIL) camara.clearViewOffset(); // el globo tiene su propia franja arriba
     else camara.setViewOffset(w, h, -w * 0.15, 0, w, h);
     camara.updateProjectionMatrix();
   }
   addEventListener("resize", encuadre);
+  if ("ResizeObserver" in window) new ResizeObserver(() => encuadre()).observe(canvas); // cambia de tamaño al explorar
   encuadre();
 
   // --- Modo explorar
