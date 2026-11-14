@@ -261,3 +261,6 @@ select.campo-chico, .campo-chico { height: 40px; padding: 0 10px; font-size: 14p
   .dos-col > div + div { border-left: 0; border-top: 1px solid var(--borde-suave); }
   .nav { gap: 2px 18px; font-size: 14px; }
 }
+
+.oceano-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; padding: 0 18px; font-size: 15px; font-weight: 600; color: #0B1A2A; background: #F2A541; border-radius: 3px; text-decoration: none; }
+.oceano-link:hover { color: #0B1A2A; background: #F7BC69; }

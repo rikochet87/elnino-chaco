@@ -66,7 +66,19 @@ El sitio se puede instalar como una aplicación:
 
 Una vez abierto, **funciona sin conexión**: guarda la última información, algo útil en zonas rurales con poca señal.
 
-### 7. Vista técnica
+### 7. Cómo llega El Niño a Chaco (3D)
+
+Desde el gráfico del océano, el botón **"Ver en 3D cómo llega El Niño hasta Chaco"** abre un recorrido sobre un globo en 3D. Bajando con el scroll se ven cinco pasos:
+
+1. El Pacífico se calienta: la temperatura del mar de los últimos seis meses, semana por semana, actualizada todos los días.
+2. Sobre el agua caliente hay más evaporación y más tormentas.
+3. Esas tormentas generan una onda en la atmósfera que refuerza la corriente en chorro subtropical sobre el centro de Argentina.
+4. La humedad que llueve en Chaco llega desde la Amazonía, por el chorro de capas bajas que baja pegado a los Andes.
+5. La lluvia carga los ríos de la cuenca del Plata, y la crecida baja por el Paraná y el Paraguay hasta Corrientes y Barranqueras.
+
+Los vientos, la humedad y la lluvia que se muestran son el promedio real de los años con El Niño desde 1983. Las alturas de las capas están exageradas para que se distingan. En celulares viejos o navegadores sin 3D se puede leer el recorrido igual.
+
+### 8. Vista técnica
 
 El botón **"Vista técnica"** abre una página para profesionales: los componentes del índice de riesgo, capas numéricas en el mapa, una tabla ordenable de los 25 departamentos y archivos para descargar (JSON, GeoJSON y CSV).
 
@@ -122,6 +134,10 @@ Todos los datos son **públicos y gratuitos**. El sitio no inventa números: los
 | Pérdida de bosque nativo 2004–2023 | **Global Forest Change** (Universidad de Maryland) | Vulnerabilidad: menos monte, menos absorción de agua |
 | Población | **WorldPop 2020** (Universidad de Southampton) | Cuántas personas están expuestas al dengue y al calor |
 | Caminos | **OpenStreetMap** | Kilómetros de caminos rurales por departamento y caminos con agua |
+| Temperatura diaria del mar (página 3D) | **NOAA OISST v2.1**, a través de NOAA CoastWatch y NOAA PSL | Animación del calentamiento del Pacífico, actualizada todos los días |
+| Vientos en altura y humedad (página 3D) | **Reanálisis NCEP/NCAR R1** (NOAA PSL) | Chorro subtropical, onda en altura y chorro de capas bajas en los años con El Niño |
+| Lluvia en Sudamérica (página 3D) | **GPCP v2.3** (NOAA PSL), satélite y pluviómetros | Cuánto más llueve en la cuenca del Plata en los años con El Niño |
+| Costas, países y ríos (página 3D) | **Natural Earth** (dominio público) | Mapa del globo y ríos de la cuenca del Plata |
 | Límites de los departamentos | **Instituto Geográfico Nacional** | Mapa y cálculos por departamento |
 
 Las capas satelitales e históricas se procesan en **Google Earth Engine**, una plataforma gratuita para uso no comercial que permite calcular sobre imágenes de satélite sin descargarlas.
@@ -140,6 +156,8 @@ Cada mes, un programa (el *pipeline*, en la carpeta `pipeline/`) hace estos paso
 4. **Combina todo** en índices de riesgo por departamento.
 5. **Controla la calidad.** Si falta un departamento o hay valores imposibles, no publica nada.
 6. **Publica** los resultados en la web.
+
+Los datos de la página 3D se actualizan solos en GitHub, sin necesidad de una computadora encendida. La temperatura del mar se descarga todos los días. Los vientos y la lluvia de los años con El Niño se calculan una vez, y se vuelven a calcular cuando hay un Niño nuevo.
 
 ### Riesgo de cortes de caminos
 
@@ -196,7 +214,7 @@ Después se suman los km² por departamento y se cruzan con los caminos rurales 
 - **No es un pronóstico del tiempo diario** ni reemplaza las alertas oficiales del SMN o de Defensa Civil.
 - **No da certezas:** son probabilidades. Ningún Niño es igual a otro.
 - **No predice casos de dengue**, solo si el clima favorece al mosquito.
-- **Por ahora no incluye las crecidas de los grandes ríos** (Paraná, Paraguay, Bermejo), que dependen de lluvias en otras provincias y países. Está planificado para una etapa siguiente.
+- **No pronostica la altura de los ríos** (Paraná, Paraguay, Bermejo), que depende de lluvias en otras provincias y países. La página 3D explica cómo se cargan los ríos, pero las alturas oficiales las pronostica el [INA](https://www.ina.gob.ar/). Calcular la crecida está planificado para una etapa siguiente.
 - **Cubre solo la provincia de Chaco.** La idea es extenderlo al resto del noreste y después al país.
 
 ---
@@ -207,14 +225,15 @@ Después se suman los km² por departamento y se cruzan con los caminos rurales 
 
 ```
 docs/        el sitio web (lo que publica GitHub Pages)
-  data/      resultados que lee la web: emisión del mes, límites, ONI
+  data/      resultados que lee la web: emisión del mes, límites, ONI, datos de la página 3D
 pipeline/    programa que descarga, procesa y calcula los datos
 tests/       pruebas automáticas del pipeline
 scripts/     herramientas auxiliares (geometrías, íconos, datos de demostración)
 emision.ps1  publica la emisión del mes en un solo paso (Windows)
+.github/     procesos automáticos de GitHub: temperatura del mar diaria y vientos de los años Niño
 ```
 
-El sitio es una aplicación web instalable (PWA) hecha con HTML, CSS, JavaScript y [MapLibre GL JS](https://maplibre.org/). No usa servidores ni mapas de terceros, y por eso funciona sin conexión. El pipeline está en Python.
+El sitio es una aplicación web instalable (PWA) hecha con HTML, CSS, JavaScript, [MapLibre GL JS](https://maplibre.org/) y, en la página 3D, [three.js](https://threejs.org/). No usa servidores ni mapas de terceros, y por eso funciona sin conexión. El pipeline está en Python.
 
 ### Actualizar los datos cada mes
 
@@ -237,7 +256,7 @@ python -m http.server 8000
 - **Código:** licencia MIT (archivo `LICENSE`).
 - **Resultados publicados:** CC BY 4.0. Podés usarlos citando la fuente.
 - **Datos de terceros:** pertenecen a sus autores, listados en [De dónde salen los datos](#de-dónde-salen-los-datos). El pronóstico de lluvia se cita como *Open-Meteo.com (CC BY 4.0), basado en ECMWF SEAS5*.
-- **Componentes:** MapLibre GL JS (licencia BSD-3) y tipografía IBM Plex (SIL Open Font License).
+- **Componentes:** MapLibre GL JS (licencia BSD-3), three.js (licencia MIT) y tipografía IBM Plex (SIL Open Font License).
 
 ---
 

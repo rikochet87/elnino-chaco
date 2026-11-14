@@ -1,0 +1,119 @@
+/* Página "Cómo llega El Niño a Chaco": relato por pasos sobre un globo 3D. */
+:root {
+  --g-fondo: #08131F;
+  --g-tarjeta: rgba(9, 21, 34, 0.86);
+  --g-borde: rgba(169, 184, 199, 0.22);
+  --g-texto: #E3EAF1;
+  --g-texto-2: #AEBBC8;
+  --g-ambar: #F2A541;
+  --g-humedad: #5FD3C6;
+}
+
+body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
+.g-cuerpo .cabecera { position: relative; z-index: 3; }
+
+/* Globo: fijo detrás del relato */
+.g-escena { position: fixed; inset: 0; z-index: 0; }
+.g-escena canvas { display: block; width: 100%; height: 100%; }
+.g-etiquetas { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.g-etiqueta {
+  position: absolute; left: 0; top: 0; white-space: nowrap;
+  font-size: 13px; font-weight: 500; color: #EEF3F8; letter-spacing: .01em;
+  text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 8px rgba(0,0,0,.7);
+  opacity: 0; transition: opacity .5s;
+  will-change: transform;
+}
+.g-etiqueta.visible { opacity: 1; }
+.g-etiqueta.destacada { color: var(--g-ambar); font-weight: 600; font-size: 14px; }
+.g-etiqueta.humedad { color: var(--g-humedad); }
+
+/* Relato */
+.g-relato { position: relative; z-index: 2; pointer-events: none; }
+.g-paso { min-height: 100vh; display: flex; align-items: center; padding: 48px 0; }
+.g-paso:first-child { min-height: calc(100vh - 76px); }
+.g-paso:last-child { padding-bottom: 96px; }
+.g-tarjeta {
+  pointer-events: auto;
+  width: min(440px, calc(100% - 32px));
+  margin-left: max(24px, 5vw);
+  padding: 24px 26px;
+  background: var(--g-tarjeta);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  border: 1px solid var(--g-borde);
+  border-radius: 4px;
+  font-size: 16px; line-height: 1.6;
+}
+.g-tarjeta h1 { font-size: clamp(30px, 4vw, 42px); line-height: 1.12; margin: 0 0 14px; letter-spacing: -.01em; }
+.g-tarjeta h2 { font-size: 23px; margin: 0 0 12px; }
+.g-tarjeta p { margin: 0 0 12px; color: var(--g-texto-2); }
+.g-tarjeta p strong { color: var(--g-texto); font-weight: 600; }
+.g-tarjeta a { color: #8CC0EE; }
+.g-tarjeta a:hover { color: #B9D9F5; }
+.g-paso-num { display: block; font-size: 13px; color: var(--g-texto-2); margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+.g-dato { color: var(--g-texto) !important; border-left: 3px solid var(--g-ambar); padding-left: 12px; }
+.g-dato:empty { display: none; }
+.g-fuente { font-size: 13px; margin: 14px 0 0 !important; }
+.g-nota { font-size: 14px; border-top: 1px solid var(--g-borde); padding-top: 12px; margin-top: 4px !important; }
+.g-bajar { font-size: 14px; margin: 18px 0 0 !important; display: flex; align-items: center; gap: 8px; }
+.g-bajar svg { animation: g-bajar 2.4s ease-in-out infinite; }
+@keyframes g-bajar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* Línea de tiempo del Pacífico */
+.g-tiempo { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 6px 12px; margin: 16px 0 4px; }
+.g-tiempo button {
+  min-height: 40px; min-width: 40px; padding: 0 12px; border-radius: 3px; cursor: pointer;
+  background: transparent; border: 1px solid #7F93A8; color: var(--g-texto); font-size: 14px; font-weight: 600;
+}
+.g-tiempo button:hover { background: rgba(255,255,255,.08); }
+.g-tiempo input[type=range] { width: 100%; accent-color: #E2674A; }
+.g-tiempo output { grid-column: 1 / -1; font-size: 14px; color: var(--g-texto); font-variant-numeric: tabular-nums; }
+
+.g-boton {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; margin-top: 6px;
+  font-weight: 600; color: #0B1A2A !important; background: var(--g-ambar); border-radius: 3px; text-decoration: none;
+}
+.g-boton:hover { background: #F7BC69; }
+.g-fuentes { font-size: 13px; color: var(--g-texto-2); margin: 18px 0 0; padding: 0 0 0 18px; }
+.g-fuentes li { margin-bottom: 4px; }
+
+/* Leyenda del tramo actual */
+.g-leyenda {
+  position: fixed; right: 20px; bottom: 20px; z-index: 2; width: 250px;
+  padding: 12px 14px; background: var(--g-tarjeta); border: 1px solid var(--g-borde); border-radius: 4px;
+  font-size: 13px; color: var(--g-texto-2); transition: opacity .4s;
+}
+.g-leyenda:empty { opacity: 0; }
+.g-leyenda h3 { font-size: 13px; font-weight: 600; color: var(--g-texto); margin: 0 0 8px; }
+.g-leyenda h3 + .g-barra { margin-top: 0; }
+.g-leyenda .g-grupo + .g-grupo { margin-top: 12px; }
+.g-barra { height: 10px; border-radius: 2px; }
+.g-barra-rotulos { display: flex; justify-content: space-between; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.g-item { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.g-item i { flex: none; width: 18px; height: 3px; border-radius: 2px; }
+.g-item i.punto { width: 8px; height: 8px; border-radius: 50%; }
+
+.g-sin-3d { position: fixed; inset: 0; z-index: 0; display: flex; align-items: center; justify-content: flex-end; padding: 24px 5vw; color: var(--g-texto-2); }
+.g-sin-3d p { max-width: 360px; }
+
+@media (max-width: 760px) {
+  /* Entre una tarjeta y la siguiente queda una pantalla libre para ver el globo */
+  .g-paso { min-height: 175vh; align-items: center; padding: 0; }
+  .g-paso:first-child { min-height: calc(100vh - 120px); align-items: flex-end; padding-bottom: 20px; }
+  .g-tarjeta { margin: 0 auto; padding: 18px 18px; font-size: 15px; background: rgba(9, 21, 34, 0.92); }
+  .g-tarjeta h1 { font-size: 28px; }
+  .g-tarjeta h2 { font-size: 20px; }
+  .g-leyenda { bottom: auto; right: 8px; left: 8px; width: auto; top: 8px; padding: 8px 10px; font-size: 12px; z-index: 3; background: rgba(9, 21, 34, 0.94); }
+  .g-leyenda .g-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
+  .g-leyenda .g-grupo + .g-grupo { margin-top: 4px; }
+  .g-leyenda h3 { width: 100%; font-size: 12px; margin-bottom: 4px; }
+  .g-leyenda .g-barra, .g-leyenda .g-barra-rotulos { width: 100%; }
+  .g-item { margin-top: 2px; }
+  .g-cuerpo .g-leyenda { position: fixed; }
+  .g-etiqueta { font-size: 12px; }
+  .g-sin-3d { justify-content: center; align-items: flex-start; padding-top: 140px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-bajar svg { animation: none; }
+  .g-etiqueta, .g-leyenda { transition: none; }
+}

@@ -118,3 +118,20 @@ La publicación se frena (y el resultado queda como `-rechazada.json` en `pipeli
 - **Dengue y calor:** por ahora la vulnerabilidad se reduce a la población (WorldPop 2020). Faltan NBI y población de 65 años o más (INDEC).
 - **Agua observada:** se usa el mes anterior a la emisión, con un umbral de Otsu sobre la mediana VV de Sentinel-1. Conviene revisar visualmente en QGIS los primeros meses.
 - **Pérdida de bosque:** se usa Hansen (2004–2023) por estar disponible en Earth Engine; MapBiomas Argentina es una alternativa local.
+
+## Datos de la página 3D (automáticos, en GitHub)
+
+La página "Cómo llega El Niño a Chaco" usa datos que se generan solos en GitHub Actions, sin la PC:
+
+| Proceso | Cuándo corre | Qué hace | Archivo |
+| --- | --- | --- | --- |
+| **Temperatura del Pacífico (diaria)** | Todos los días a las 11:17 (hora argentina) | Descarga la anomalía diaria de temperatura del mar de NOAA OISST v2.1 (CoastWatch ERDDAP; si no responde, NOAA PSL) y guarda un cuadro por semana de los últimos seis meses | `docs/data/pacifico.json` y `docs/data/pacifico/*.png` |
+| **Vientos y lluvia de los veranos Niño** | A mano | Promedia los años con El Niño (según el ONI) del reanálisis NCEP/NCAR y de la lluvia GPCP: viento y altura a 200 hPa, humedad y viento a 850 hPa, lluvia de diciembre a febrero y de septiembre a febrero | `docs/data/atmosfera.json` |
+
+Para correr a mano cualquiera de los dos: en GitHub, pestaña **Actions** → elegir el proceso → **Run workflow**. El de vientos conviene correrlo de nuevo después de cada verano con El Niño (por ejemplo, en marzo de 2027).
+
+Los mismos comandos se pueden correr en la PC: `python -m pipeline pacifico` y `python -m pipeline atmosfera`. No necesitan cuenta.
+
+Como GitHub sube estos datos al repositorio todos los días, antes de trabajar en la PC hay que hacer `git pull` (el script `emision.ps1` ya lo hace).
+
+La geometría del globo (costas, fronteras, ríos de la cuenca del Plata y contorno de Chaco) sale de Natural Earth y se arma una sola vez con `python scripts/preparar_globo.py <carpeta con los geojson>`.
