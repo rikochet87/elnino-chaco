@@ -52,6 +52,14 @@ pronostico:
   # c3s: Copernicus Climate Data Store, requiere cuenta y ~/.cdsapirc (terciles)
   fuente: openmeteo
 
+agua:
+  # El histograma para Otsu se arma cerca de agua conocida (JRC), para que tenga dos modos.
+  ocurrencia_muestra: 10         # % de ocurrencia JRC que define "agua conocida"
+  distancia_muestra_m: 1000      # radio alrededor de esa agua
+  umbral_min_db: -24             # rango físicamente razonable para agua en VV
+  umbral_max_db: -15
+  umbral_respaldo_db: -18        # si Otsu sale fuera de rango
+
 c3s:
   centro: ecmwf
   sistema: "51"
@@ -64,6 +72,7 @@ caminos:
 
 indice:
   pesos: {w1: 0.4, w2: 0.2, w3: 0.4}   # decisión propia, a calibrar
+  anom_lluvia_max_pct: 30        # anomalía histórica Niño que se toma como amenaza plena (escala fija)
   piso_normalizacion: 0.01
 
 control_calidad:

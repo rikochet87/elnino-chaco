@@ -3,13 +3,12 @@
 Fórmulas (versión 0.1, a calibrar):
 
 Anegamiento y caminos
-    H = norm( P(Niño)·(w1·Â + w2·C) + w3·F̂ )
-        Â: anomalía de lluvia de verano en años Niño (normalizada)
+    H = P(Niño)·(w1·Â + w2·C) + w3·F       (escala fija 0–1, sin min-max)
+        Â: anomalía de lluvia de verano en años Niño / anom_lluvia_max_pct, recortada a [0, 1]
         C: consistencia de signo de esa anomalía (0–1)
-        F̂: probabilidad de lluvia superior a lo normal según ECMWF SEAS5 (normalizada)
-    E = norm( km de caminos rurales )
-    V = norm( media de: relieve bajo (inverso de la altura media HAND), proporción de caminos rurales,
-                         pérdida de bosque nativo )
+        F: probabilidad de lluvia superior a lo normal según ECMWF SEAS5 (0–1)
+    E = norm( densidad de caminos rurales, km/km² )
+    V = norm( media de: relieve bajo (inverso de la altura media HAND), pérdida de bosque nativo )
     R = (H·E·V)^(1/3); categorías por quintiles.
 
 Dengue (condiciones climáticas para el vector, no casos)
@@ -25,7 +24,16 @@ norm(): min-max sobre los departamentos del área, al rango [piso, 1].
 
 from datetime import date
 
+from pyproj import Geod
+from shapely.geometry import shape
+
 from . import compuestos
+from .comun import departamentos
+
+
+def areas_km2(cfg: dict) -> dict:
+    g = Geod(ellps="WGS84")
+    return {f["id"]: abs(g.geometry_area_perimeter(shape(f["geometry"]))[0]) / 1e6 for f in departamentos(cfg)["features"]}
 
 
 def norm(valores: dict, piso: float = 0.01) -> dict:
@@ -85,16 +93,24 @@ def construir(cfg: dict, *, emision: str, anio_final: int, prob_nino: float, int
     n = lambda vals: norm(vals, piso)
     A = n({d: hist[d]["anom_nino_pct"] for d in ids})
     F = n({d: c3s["departamentos"][d]["prob_superior"] for d in ids})
-    H = n({d: P * (w["w1"] * A[d] + w["w2"] * hist[d]["consistencia"]) + w["w3"] * F[d] for d in ids})
-    E = n({d: caminos[d]["km_rurales"] for d in ids})
+    # La amenaza va en escala fija (no min-max): si el pronóstico da ~95 % de lluvia superior
+    # en todos lados, la amenaza es alta en todos lados y no se inventan diferencias.
+    tope = cfg["indice"].get("anom_lluvia_max_pct", 30)
+    A_fija = {d: min(max(hist[d]["anom_nino_pct"], 0) / tope, 1.0) for d in ids}
+    H = {d: max(piso, P * (w["w1"] * A_fija[d] + w["w2"] * hist[d]["consistencia"])
+                + w["w3"] * c3s["departamentos"][d]["prob_superior"]) for d in ids}
+    # Exposición por densidad (km de camino rural por km²): con km totales, los departamentos
+    # más grandes salían primeros solo por tamaño.
+    area = areas_km2(cfg)
+    dens = {d: caminos[d]["km_rurales"] / area[d] for d in ids}
+    E = n(dens)
     # Zonas bajas: con la altura media sobre el drenaje (HAND), menor altura = más vulnerable.
     if all(hist[d].get("hand_medio") is not None for d in ids):
         baja = n({d: -hist[d]["hand_medio"] for d in ids})
     else:
         baja = n({d: hist[d]["frac_zona_baja"] for d in ids})
-    rural = n({d: caminos[d]["prop_rural"] for d in ids})
     bosque = n({d: hist[d]["perdida_bosque_pct"] for d in ids})
-    V = n({d: (baja[d] + rural[d] + bosque[d]) / 3 for d in ids})
+    V = n({d: (baja[d] + bosque[d]) / 2 for d in ids})
     R = {d: (H[d] * E[d] * V[d]) ** (1 / 3) for d in ids}
 
     pob = n({d: hist[d]["poblacion"] for d in ids})
@@ -133,6 +149,8 @@ def construir(cfg: dict, *, emision: str, anio_final: int, prob_nino: float, int
                 "frac_zona_baja": round(hist[d]["frac_zona_baja"], 3),
                 "hand_medio_m": None if hist[d].get("hand_medio") is None else round(hist[d]["hand_medio"], 2),
                 "km_caminos_rurales": caminos[d]["km_rurales"],
+                "km_rurales_por_km2": round(dens[d], 3),
+                "area_km2": round(area[d]),
                 "prop_caminos_rurales": round(caminos[d]["prop_rural"], 3),
                 "poblacion": int(round(hist[d]["poblacion"])),
                 "noches_tropicales_normal": round(hist[d]["noches_normal"], 1),

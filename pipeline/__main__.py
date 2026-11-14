@@ -68,13 +68,19 @@ def _mes_anterior(anio, mes):
 
 def _agua(cfg, anio, mes):
     p = ruta(cfg, "intermedio", f"agua_{anio}-{mes:02d}.json")
+    asset = cfg["gee"].get("asset_caminos")
     try:
-        return leer_json(p)
+        previo = leer_json(p)
+        # Se reutiliza solo si se midió con el mismo método y el mismo asset de caminos
+        if previo.get("version") == gee.VERSION_AGUA and previo.get("asset_caminos") == asset:
+            return previo
     except FileNotFoundError:
-        print(f"Midiendo agua observada {anio}-{mes:02d} con Sentinel-1…")
-        datos = gee.agua_observada(cfg, anio, mes, cfg["gee"].get("asset_caminos"))
-        escribir_json(p, datos)
-        return datos
+        pass
+    print(f"Midiendo agua observada {anio}-{mes:02d} con Sentinel-1…")
+    datos = gee.agua_observada(cfg, anio, mes, asset)
+    escribir_json(p, datos)
+    print(f"  {datos['imagenes']} imágenes, umbral {datos['umbral_db']} dB ({datos['metodo_umbral']})")
+    return datos
 
 
 def cmd_mensual(cfg, args):

@@ -83,9 +83,9 @@
     $("desglose-formula").innerHTML =
       `<p class="rotulo">Anegamiento y caminos</p><table class="tabla"><thead><tr><th>Variable</th><th>Fuente prevista</th><th class="num">Valor</th></tr></thead><tbody>` +
       fila("P(Niño)", "IRI / CPC", S.num(datos.emision.prob_nino, 2)) +
-      fila("H amenaza", "ERA5, CHIRPS, C3S", S.num(a.H, 2)) +
-      fila("E exposición", "IGN, OSM, INDEC", S.num(a.E, 2)) +
-      fila("V vulnerabilidad", "OSM, DEM, MapBiomas", S.num(a.V, 2)) +
+      fila("H amenaza", "CHIRPS, ONI, ECMWF SEAS5", S.num(a.H, 2)) +
+      fila("E exposición", "Densidad de caminos rurales (OSM)", S.num(a.E, 2)) +
+      fila("V vulnerabilidad", "Relieve HAND, pérdida de bosque", S.num(a.V, 2)) +
       fila("&nbsp;&nbsp;incl. pérdida de bosque", "2004–2024", S.num(a.perdida_bosque_pct, 1) + " %") +
       `<tr style="border-top:2px solid var(--texto)"><td><strong>R índice</strong></td><td>Quintil ${a.categoria}</td><td class="num"><strong>${S.num(a.R, 2)}</strong></td></tr>` +
       `</tbody></table><p class="mono" style="margin:8px 0 0;font-size:12px;color:var(--texto-4)">w₁ = ${w.w1} · w₂ = ${w.w2} · w₃ = ${w.w3} · media geométrica</p>`;

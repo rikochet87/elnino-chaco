@@ -8,6 +8,8 @@ Requiere `earthengine authenticate` una vez y el proyecto en config.yaml (gee.pr
 """
 
 from . import otsu
+
+VERSION_AGUA = 2  # cambia cuando cambia el método: invalida las mediciones guardadas
 from .comun import anios_estacion, departamentos
 
 
@@ -126,9 +128,21 @@ def agua_observada(cfg: dict, anio: int, mes: int, asset_caminos: str | None = N
     fechas = s1.aggregate_array("system:time_start").getInfo()
     vv = s1.median().focalMedian(30, "circle", "meters").clip(region)
 
-    # Umbral de Otsu sobre el histograma del área (VV en dB)
-    hist = vv.reduceRegion(ee.Reducer.histogram(255, 0.1), region, 100, maxPixels=1e10, tileScale=4).getInfo()["VV"]
-    umbral_db = otsu.umbral(hist["bucketMeans"], hist["histogram"])
+    # Umbral de Otsu. Otsu necesita un histograma con dos modos (agua y tierra): sobre toda
+    # la provincia casi todo es tierra y el umbral sale demasiado alto. Por eso el histograma
+    # se arma solo cerca de cuerpos de agua conocidos (JRC), donde hay mezcla de ambos.
+    a = cfg["agua"]
+    cerca_agua = (ee.Image(f["jrc_agua"]).select("occurrence").unmask(0).gt(a["ocurrencia_muestra"])
+                  .focalMax(a["distancia_muestra_m"], "circle", "meters"))
+    hist = vv.updateMask(cerca_agua).reduceRegion(ee.Reducer.histogram(255, 0.1), region, 100, maxPixels=1e10, tileScale=4).getInfo()["VV"]
+    metodo = "otsu"
+    try:
+        umbral_db = otsu.umbral(hist["bucketMeans"], hist["histogram"])
+    except (ValueError, TypeError):
+        umbral_db = None
+    if umbral_db is None or not a["umbral_min_db"] <= umbral_db <= a["umbral_max_db"]:
+        print(f"  Umbral de Otsu fuera de rango ({umbral_db}); se usa el de respaldo {a['umbral_respaldo_db']} dB")
+        umbral_db, metodo = a["umbral_respaldo_db"], "respaldo"
 
     habitual = ee.Image(f["jrc_agua"]).select("occurrence").unmask(0).gte(u["agua_permanente_ocurrencia"])
     agua = vv.lt(umbral_db).And(habitual.Not()).selfMask()
@@ -149,5 +163,8 @@ def agua_observada(cfg: dict, anio: int, mes: int, asset_caminos: str | None = N
         "anio": anio, "mes": mes, "imagenes": n,
         "fecha_ultima_imagen": ee.Date(ultimo).format("YYYY-MM-dd").getInfo(),
         "umbral_db": round(umbral_db, 2),
+        "metodo_umbral": metodo,
+        "version": VERSION_AGUA,
+        "asset_caminos": asset_caminos,
         "departamentos": resultado,
     }
