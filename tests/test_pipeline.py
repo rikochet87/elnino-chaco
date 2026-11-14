@@ -46,6 +46,15 @@ def test_oni_parsea_y_clasifica():
     assert v == {1998: "muy fuerte"}
 
 
+def test_oni_para_web_alinea_episodios():
+    vals = [0.0] * 12 + [-0.4, -0.2, 0.1, 0.3, 0.8, 1.2, 1.6, 1.9, 2.2, 2.4, 2.4, 2.2] + [1.9, 1.4, 1.0, 0.5, 0.0, -0.6]
+    w = oni.para_web(oni.parsear(_texto_oni(vals)), comparar=(1997,))
+    actual, ref = w["episodios"]
+    assert actual["nombre"] == "1998-99" and actual["actual"]  # último dato: MJJ 1998
+    assert ref["valores"][:3] == [0.3, 0.8, 1.2] and ref["valores"][9] == 1.9  # MAM, AMJ, MJJ … DJF 1998
+    assert w["ultimo"]["meses"] == "may–jul" and len(w["ventana"]) == 13
+
+
 def test_oni_descarta_episodios_cortos():
     vals = [0.0, 0.6, 0.7, 0.6, 0.6, 0.0] + [0.0] * 6
     assert oni.episodios(oni.parsear(_texto_oni(vals))) == []

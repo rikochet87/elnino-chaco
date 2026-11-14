@@ -22,9 +22,13 @@
   --demo-borde: #E3B45C;
   --demo-texto: #5C3D05;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --calor: #B2361C;          /* océano más caliente: solo para el El Niño en curso */
+  --referencia: #8A96A3;     /* episodios anteriores */
+  --referencia-2: #B5BFC9;
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; font-family: "IBM Plex Sans", system-ui, sans-serif; color: var(--texto); background: var(--fondo); line-height: 1.5; }
 a { color: var(--azul); }
@@ -113,13 +117,45 @@ select.campo-chico, .campo-chico { height: 40px; padding: 0 10px; font-size: 14p
 .titular { font-size: 21px; font-weight: 700; color: var(--azul-hover); }
 .tarjeta-link { margin-top: auto; font-size: 14px; font-weight: 600; }
 
+/* El Niño de este año: el océano */
+.oceano { background: var(--navy); color: #E6ECF2; }
+.oceano-grilla { display: flex; flex-wrap: wrap; align-items: center; gap: 24px 48px; padding-top: 40px; padding-bottom: 40px; }
+.oceano-texto { flex: 1 1 340px; min-width: 0; max-width: 520px; }
+.oceano-texto h2 { margin: 0; font-size: clamp(26px, 3.4vw, 38px); font-weight: 600; line-height: 1.15; color: #fff; }
+.oceano-texto p { margin: 14px 0 0; font-size: 17px; line-height: 1.6; }
+.oceano-texto .oceano-fuente { font-size: 14px; color: #A9B8C7; }
+.oceano-grafico { flex: 1.3 1 420px; min-width: 0; margin: 0; }
+.oceano-grafico svg { width: 100%; height: auto; display: block; overflow: visible; }
+.oni-eje text { fill: #A9B8C7; font-size: 12px; }
+.oni-eje line { stroke: rgba(255,255,255,.12); }
+.oni-umbral { stroke: rgba(255,255,255,.45); stroke-dasharray: 4 4; }
+.oni-ref { fill: none; stroke-width: 2; stroke-linejoin: round; }
+.oni-actual { fill: none; stroke: #F06B4B; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.oni-etiqueta { font-size: 13px; }
+.oni-punto { fill: #F06B4B; }
+.oni-pulso { fill: none; stroke: #F06B4B; stroke-width: 2; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .oni-actual.dibujar { animation: dibujar 1.8s ease-out forwards; }
+  .oni-pulso { animation: pulso 1.6s ease-out 1.8s 3 both; }
+  .oni-punto, .oni-hoy { animation: aparecer .4s ease-out 1.6s both; }
+}
+@keyframes dibujar { to { stroke-dashoffset: 0; } }
+@keyframes pulso { from { transform: scale(1); opacity: .9; } to { transform: scale(3.2); opacity: 0; } }
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+
+/* Lluvia: las 51 simulaciones del modelo */
+.miembros { display: grid; grid-template-columns: repeat(17, 1fr); gap: 4px; }
+.miembros i { aspect-ratio: 1; border-radius: 50%; background: #D9E2EA; }
+.miembros i.si { background: var(--azul); }
+.miembros + p.leyenda-miembros { margin: -4px 0 0; font-size: 14px; color: var(--texto-3); }
+
 /* Agua observada */
 .agua { display: flex; flex-wrap: wrap; }
 .agua-texto { flex: 2 1 420px; min-width: 0; padding: 22px; }
 .agua-texto h2 { margin: 6px 0 0; font-size: 22px; font-weight: 600; }
 .agua-texto p { margin: 10px 0 0; font-size: 16px; color: var(--texto-2); }
 .agua-texto p.nota { font-size: 14px; color: var(--texto-4); }
-.sobretitulo { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-4); }
+.sobretitulo { margin: 0; font-size: 14px; font-weight: 600; color: var(--texto-3); }
 .agua-datos { flex: 1 1 260px; min-width: 0; border-left: 1px solid var(--borde-suave); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .agua-datos div { padding: 18px 20px; }
 .agua-datos div:nth-child(1), .agua-datos div:nth-child(2) { border-bottom: 1px solid var(--borde-suave); }
@@ -177,7 +213,7 @@ select.campo-chico, .campo-chico { height: 40px; padding: 0 10px; font-size: 14p
 .bloque-cab h2 { margin: 0; font-size: 16px; font-weight: 600; }
 .bloque-cab span { font-family: var(--mono); font-size: 12px; color: var(--texto-4); }
 .bloque-cuerpo { padding: 14px 16px; }
-.rotulo { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-4); }
+.rotulo { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--texto-3); }
 .param { display: flex; flex-direction: column; gap: 4px; font-size: 14px; margin-bottom: 12px; }
 .opcion { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 14px; cursor: pointer; }
 .modulos { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }

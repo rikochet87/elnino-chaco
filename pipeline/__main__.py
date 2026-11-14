@@ -23,6 +23,7 @@ def cmd_historico(cfg, args):
              if cfg["clima"]["historico_desde"] <= a <= anio_hasta}
     print(f"Veranos Niño desde {cfg['clima']['historico_desde']}: " + ", ".join(f"{a - 1}-{str(a)[-2:]} ({i})" for a, i in sorted(ninos.items())))
     escribir_json(ruta(cfg, "intermedio", "oni.json"), {"serie": serie, "veranos_nino": ninos})
+    escribir_json(ruta(cfg, "publicacion", "oni.json"), oni.para_web(serie))
 
     print(f"Calculando series de verano {cfg['clima']['historico_desde']}–{anio_hasta} en Earth Engine (puede tardar varios minutos)…")
     hist = gee.historico(cfg, anio_hasta)
@@ -92,6 +93,16 @@ def cmd_mensual(cfg, args):
         ninos = {int(k): v for k, v in leer_json(ruta(cfg, "intermedio", "oni.json"))["veranos_nino"].items()}
     except FileNotFoundError as e:
         sys.exit(f"Falta {e.filename}. Corré antes `python -m pipeline historico` y `python -m pipeline caminos`.")
+
+    # ONI actualizado para el gráfico de la web (si falla, queda el anterior)
+    try:
+        serie = oni.parsear(oni.descargar(cfg["fuentes"]["oni"]))
+        if not args.borrador:
+            escribir_json(ruta(cfg, "publicacion", "oni.json"), oni.para_web(serie))
+        u = serie[-1]
+        print(f"ONI más reciente: {u['temporada']} {u['anio']} = {u['anom']:+.2f} °C")
+    except Exception as e:  # noqa: BLE001
+        print(f"AVISO: no se pudo actualizar el ONI ({e}); la web mantiene el gráfico anterior")
 
     fuente = cfg.get("pronostico", {}).get("fuente", "openmeteo")
     temporada = f"{cfg['estacion']['nombre']} {anio_final - 1}-{anio_final}"

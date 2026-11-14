@@ -1,0 +1,83 @@
+{
+ "fuente": "NOAA CPC, Oceanic Niño Index (ERSSTv5)",
+ "ultimo": {
+  "temporada": "ASO",
+  "meses": "ago–oct",
+  "anio": 2026,
+  "anom": 2.46
+ },
+ "ventana": [
+  "mar–may",
+  "abr–jun",
+  "may–jul",
+  "jun–ago",
+  "jul–sep",
+  "ago–oct",
+  "sep–nov",
+  "oct–dic",
+  "nov–ene",
+  "dic–feb",
+  "ene–mar",
+  "feb–abr",
+  "mar–may"
+ ],
+ "episodios": [
+  {
+   "nombre": "2026-27",
+   "actual": true,
+   "valores": [
+    0.46,
+    0.95,
+    1.39,
+    1.8,
+    2.16,
+    2.46,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "nombre": "1997-98",
+   "actual": false,
+   "valores": [
+    0.3,
+    0.71,
+    1.13,
+    1.48,
+    1.79,
+    2.04,
+    2.24,
+    2.34,
+    2.37,
+    2.22,
+    1.91,
+    1.4,
+    1.03
+   ]
+  },
+  {
+   "nombre": "2015-16",
+   "actual": false,
+   "valores": [
+    0.86,
+    1.04,
+    1.19,
+    1.44,
+    1.73,
+    2.02,
+    2.28,
+    2.45,
+    2.59,
+    2.5,
+    2.21,
+    1.69,
+    1.11
+   ]
+  }
+ ]
+}

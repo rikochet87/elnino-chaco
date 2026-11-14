@@ -40,9 +40,24 @@
       ? [["Más de lo normal", l.prob_superior], ["Menos de lo normal", l.prob_inferior]]
       : [["Más de lo normal", l.prob_superior], ["Normal", l.prob_normal], ["Menos de lo normal", l.prob_inferior]];
     const mayor = Math.max(...cats.map((c) => c[1]));
+    // Las 51 simulaciones del modelo europeo, una por punto
+    const puntos = $("lluvia-miembros");
+    const leyendaPrevia = puntos.nextElementSibling;
+    if (leyendaPrevia && leyendaPrevia.classList.contains("leyenda-miembros")) leyendaPrevia.remove();
+    if (dosCat) {
+      const total = 51, si = Math.round(l.prob_superior * total);
+      puntos.innerHTML = Array.from({ length: total }, (_, i) => `<i class="${i < si ? "si" : ""}"></i>`).join("");
+      puntos.setAttribute("role", "img");
+      puntos.setAttribute("aria-label", `${si} de ${total} simulaciones dan más lluvia que lo normal`);
+      puntos.hidden = false;
+      puntos.insertAdjacentHTML("afterend", `<p class="leyenda-miembros">Cada punto es una simulación del modelo europeo: <strong>${si} de ${total}</strong> dan más lluvia que lo normal.</p>`);
+    } else {
+      puntos.hidden = true;
+    }
     const caja = $("lluvia-terciles");
     caja.style.gridTemplateColumns = `repeat(${cats.length}, minmax(0, 1fr))`;
     caja.innerHTML = cats.map(([t, v]) => `<div class="${v === mayor ? "destacado" : ""}">${t}<span>${S.pct(v)}</span></div>`).join("");
+    caja.hidden = dosCat; // con dos categorías, los 51 puntos ya muestran la proporción
     const masMenos = (v) => (v >= 0 ? `${v} % más` : `${-v} % menos`);
     const pron = typeof l.anom_pronostico_pct === "number" ? ` El pronóstico espera en promedio <strong>${masMenos(l.anom_pronostico_pct)}</strong> de lo normal.` : "";
     $("lluvia-texto").innerHTML = `Lo normal en esta zona son unos <strong>${l.normal_mm} mm</strong> de ${e.trimestre_texto}.${pron} En los veranos con El Niño de años anteriores llovió en promedio <strong>${masMenos(l.anom_nino_pct)}</strong>.`;

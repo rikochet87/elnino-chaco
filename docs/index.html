@@ -67,6 +67,19 @@
     </div>
   </section>
 
+  <section class="oceano" aria-labelledby="titulo-oceano" hidden id="oceano">
+    <div class="contenedor oceano-grilla">
+      <div class="oceano-texto">
+        <h2 id="titulo-oceano">El Pacífico está <span id="oni-valor"></span> más caliente que lo normal</h2>
+        <p id="oni-texto"></p>
+        <p class="oceano-fuente">Temperatura del océano Pacífico ecuatorial (índice ONI de NOAA), promedio de tres meses. Más de +0,5 °C sostenido es El Niño.</p>
+      </div>
+      <figure class="oceano-grafico">
+        <svg id="grafico-oni" viewBox="0 0 640 320" role="img" aria-labelledby="oni-desc"><desc id="oni-desc"></desc></svg>
+      </figure>
+    </div>
+  </section>
+
   <section class="seccion" id="resumen" aria-labelledby="titulo-zona">
     <div class="contenedor">
       <div class="seccion-titulo">
@@ -83,6 +96,7 @@
           </div>
           <div class="tarjeta-cuerpo">
             <p class="titular" id="lluvia-titular"></p>
+            <div class="miembros" id="lluvia-miembros" hidden></div>
             <div class="terciles" id="lluvia-terciles"></div>
             <p id="lluvia-texto"></p>
           </div>
@@ -230,5 +244,6 @@
 <script src="vendor/maplibre-gl.js"></script>
 <script src="js/comun.js"></script>
 <script src="js/ciudadana.js"></script>
+<script src="js/oceano.js"></script>
 </body>
 </html>
