@@ -78,6 +78,22 @@ Desde el gráfico del océano, el botón **"Ver en 3D cómo llega El Niño hasta
 
 Los vientos, la humedad y la lluvia que se muestran son el promedio real de los años con El Niño desde 1983. Las alturas de las capas están exageradas para que se distingan. En celulares viejos o navegadores sin 3D se puede leer el recorrido igual.
 
+El globo se maneja como Google Earth, también durante el recorrido:
+
+| Qué hacer | Mouse | Celular | Teclado |
+| --- | --- | --- | --- |
+| Mover el globo | Arrastrar | Un dedo | Flechas |
+| Acercar o alejar | Rueda (en el recorrido, Ctrl + rueda) | Pellizcar con dos dedos | + y − |
+| Girar el rumbo | Clic derecho y arrastrar a los costados (o Shift + arrastrar) | Rotar dos dedos | Shift + ← → |
+| Inclinar la vista | Clic derecho y arrastrar arriba o abajo | Deslizar dos dedos arriba o abajo | Shift + ↑ ↓ |
+| Acercarse a un lugar | Doble clic | Doble toque | |
+
+Los botones de la derecha también acercan, alejan, vuelven el norte arriba (la brújula), inclinan la vista (**3D**), activan la **imagen satelital** de la NASA y vuelven a la vista inicial.
+
+Con **"Explorar el globo"** se pasa a pantalla completa con un panel de capas: temperatura del mar, tormentas, onda en altura, chorro subtropical, humedad de la Amazonía, lluvia en años con El Niño, ríos de la cuenca del Plata, Chaco y nombres. Al acercarse aparecen los límites de provincias y de los departamentos de Chaco. Con **Esc** o **"Volver al recorrido"** se vuelve al relato.
+
+La imagen satelital tiene unos 10 km por píxel: sirve para ver el continente y la región, no calles ni campos.
+
 ### 8. Vista técnica
 
 El botón **"Vista técnica"** abre una página para profesionales: los componentes del índice de riesgo, capas numéricas en el mapa, una tabla ordenable de los 25 departamentos y archivos para descargar (JSON, GeoJSON y CSV).
@@ -137,7 +153,8 @@ Todos los datos son **públicos y gratuitos**. El sitio no inventa números: los
 | Temperatura diaria del mar (página 3D) | **NOAA OISST v2.1**, a través de NOAA CoastWatch y NOAA PSL | Animación del calentamiento del Pacífico, actualizada todos los días |
 | Vientos en altura y humedad (página 3D) | **Reanálisis NCEP/NCAR R1** (NOAA PSL) | Chorro subtropical, onda en altura y chorro de capas bajas en los años con El Niño |
 | Lluvia en Sudamérica (página 3D) | **GPCP v2.3** (NOAA PSL), satélite y pluviómetros | Cuánto más llueve en la cuenca del Plata en los años con El Niño |
-| Costas, países y ríos (página 3D) | **Natural Earth** (dominio público) | Mapa del globo y ríos de la cuenca del Plata |
+| Costas, países, provincias y ríos (página 3D) | **Natural Earth** (dominio público) | Mapa del globo, límites al acercarse y ríos de la cuenca del Plata |
+| Imagen satelital (página 3D) | **NASA Blue Marble Next Generation**, a través de NASA GIBS (dominio público) | Vista satelital del globo |
 | Límites de los departamentos | **Instituto Geográfico Nacional** | Mapa y cálculos por departamento |
 
 Las capas satelitales e históricas se procesan en **Google Earth Engine**, una plataforma gratuita para uso no comercial que permite calcular sobre imágenes de satélite sin descargarlas.

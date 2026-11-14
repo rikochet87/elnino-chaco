@@ -11,6 +11,7 @@
  * Las alturas de las capas están exageradas para que se distingan.
  */
 import * as THREE from "../vendor/three/three.module.min.js";
+import { Navegacion, xyz } from "./navegacion.js";
 
 const I = window.I18N, T = I.T;
 const $ = (id) => document.getElementById(id);
@@ -21,11 +22,6 @@ const POCOS = MOVIL || matchMedia("(pointer: coarse)").matches;
 THREE.ColorManagement.enabled = false; // colores tal cual (sRGB) en toda la escena
 
 // ---------------------------------------------------------------- utilidades
-// Convención de SphereGeometry de three.js: u = (lon + 180) / 360, norte arriba.
-function xyz(lat, lon, r = 1, v = new THREE.Vector3()) {
-  const la = lat * D2R, ph = (lon + 180) * D2R;
-  return v.set(-Math.cos(ph) * Math.cos(la) * r, Math.sin(la) * r, Math.sin(ph) * Math.cos(la) * r);
-}
 const suave = (t) => t * t * (3 - 2 * t);
 const lim = (v, a, b) => Math.max(a, Math.min(b, v));
 const lon360 = (lon) => ((lon % 360) + 360) % 360;
@@ -100,21 +96,21 @@ const ESCENAS = {
 const CAPAS = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco"];
 
 const ETIQUETAS = [
-  { k: "g.et.pacifico", lat: 0, lon: -140, en: ["inicio", "pacifico", "tormentas"] },
-  { k: "g.et.peru", lat: -6, lon: -86, en: ["pacifico"] },
-  { k: "g.et.indonesia", lat: -4, lon: 128, en: ["pacifico"] },
-  { k: "g.et.tormentas", lat: 9, lon: -130, en: ["tormentas"] },
+  { k: "g.et.pacifico", lat: 0, lon: -140, en: ["inicio", "pacifico", "tormentas"], capa: "sst" },
+  { k: "g.et.peru", lat: -6, lon: -86, en: ["pacifico"], capa: "sst" },
+  { k: "g.et.indonesia", lat: -4, lon: 128, en: ["pacifico"], capa: "sst" },
+  { k: "g.et.tormentas", lat: 9, lon: -130, en: ["tormentas"], capa: "tormentas" },
   { k: "g.et.andes", lat: -17, lon: -70, en: ["tormentas", "humedad"] },
-  { k: "g.et.onda", lat: -52, lon: -150, en: ["onda"] },
-  { k: "g.et.chorro", lat: -31, lon: -66, en: ["onda"], clase: "destacada" },
+  { k: "g.et.onda", lat: -52, lon: -150, en: ["onda"], capa: "onda" },
+  { k: "g.et.chorro", lat: -31, lon: -66, en: ["onda"], clase: "destacada", capa: "chorro" },
   { k: "g.et.amazonia", lat: -4, lon: -62, en: ["humedad"], clase: "humedad" },
-  { k: "g.et.capas-bajas", lat: -16, lon: -61.5, en: ["humedad"], clase: "humedad" },
-  { k: "g.et.chaco", lat: -26, lon: -60.6, en: ["onda", "humedad", "rios", "final"], clase: "destacada" },
-  { k: "g.et.pantanal", lat: -18.5, lon: -56.5, en: ["rios"] },
-  { k: "g.et.cuenca-alta", lat: -21, lon: -49.5, en: ["rios"] },
-  { k: "g.et.paraguay", lat: -23, lon: -58.6, en: ["rios"] },
-  { k: "g.et.parana", lat: -25.2, lon: -54.2, en: ["rios"] },
-  { k: "g.et.corrientes", lat: -28.6, lon: -58.6, en: ["rios", "final"] },
+  { k: "g.et.capas-bajas", lat: -16, lon: -61.5, en: ["humedad"], clase: "humedad", capa: "humedad" },
+  { k: "g.et.chaco", lat: -26, lon: -60.6, en: ["onda", "humedad", "rios", "final"], clase: "destacada", capa: "chaco" },
+  { k: "g.et.pantanal", lat: -18.5, lon: -56.5, en: ["rios"], capa: "rios" },
+  { k: "g.et.cuenca-alta", lat: -21, lon: -49.5, en: ["rios"], capa: "rios" },
+  { k: "g.et.paraguay", lat: -23, lon: -58.6, en: ["rios"], capa: "rios" },
+  { k: "g.et.parana", lat: -25.2, lon: -54.2, en: ["rios"], capa: "rios" },
+  { k: "g.et.corrientes", lat: -28.6, lon: -58.6, en: ["rios", "final"], capa: "rios" },
 ];
 
 // ---------------------------------------------------------------- arranque
@@ -130,7 +126,7 @@ async function iniciar() {
   ]);
   estado = { ...estado, globo, pacifico, atm, emision };
   textos();
-  document.addEventListener("idioma", () => { textos(); leyenda(); etiquetasTexto(); actualizarFecha(); });
+  document.addEventListener("idioma", () => { textos(); leyenda(); etiquetasTexto(); actualizarFecha(); idiomaControles(); });
 
   let vista;
   try { vista = crearVista(); } catch (e) {
@@ -140,7 +136,7 @@ async function iniciar() {
     return;
   }
   await vista.cargar();
-  observarPasos((nombre) => { vista.irA(nombre); leyenda(); });
+  observarPasos((nombre) => { if (!vista.explorando()) { vista.irA(nombre); leyenda(); } });
   leyenda();
 }
 
@@ -202,7 +198,9 @@ function textos() {
 // Leyenda según el paso
 const BARRA_SST = "linear-gradient(90deg,#2166AC,#67A9CF,#D1E5F0,#16304A,#FDDBC7,#EF8A62,#B2182B,#67001F)";
 const BARRA_LLUVIA = "linear-gradient(90deg,#8C510A,#D8B365,rgba(0,0,0,0),#7FB2E5,#2B6CB0)";
+let capasEncendidas = null; // en modo explorar: { sst: true, ... }
 function leyenda() {
+  if (capasEncendidas) return leyendaExplorar();
   const e = estado.escena;
   const sst = `<div class="g-grupo"><h3>${T("g.ley.sst")}</h3><div class="g-barra" style="background:${BARRA_SST}"></div>` +
     `<div class="g-barra-rotulos"><span>${signo(-3, 0)}</span><span>0</span><span>${signo(3, 0)}</span></div></div>`;
@@ -225,9 +223,26 @@ function leyenda() {
   $("leyenda").innerHTML = html;
 }
 
+function leyendaExplorar() {
+  const c = capasEncendidas, pc = I.idioma === "en" ? "%" : " %";
+  let html = "";
+  if (c.sst) html += `<div class="g-grupo"><h3>${T("g.ley.sst")}</h3><div class="g-barra" style="background:${BARRA_SST}"></div>` +
+    `<div class="g-barra-rotulos"><span>${signo(-3, 0)}</span><span>0</span><span>${signo(3, 0)}</span></div></div>`;
+  if (c.lluvia) html += `<div class="g-grupo"><h3>${T("g.ley.lluvia")}</h3><div class="g-barra" style="background:${BARRA_LLUVIA}"></div>` +
+    `<div class="g-barra-rotulos"><span>−50${pc}</span><span>0</span><span>+50${pc}</span></div></div>`;
+  const items = [];
+  if (c.chorro) items.push(`<div class="g-item"><i style="background:#F2A541"></i>${T("g.ley.chorro-mas")} (${T("g.capa.chorro")})</div>`);
+  if (c.onda) items.push(`<div class="g-item"><i class="punto" style="background:#E0614A"></i>${T("g.ley.alta")}</div><div class="g-item"><i class="punto" style="background:#4C8DD6"></i>${T("g.ley.baja")}</div>`);
+  if (c.humedad) items.push(`<div class="g-item"><i style="background:#5FD3C6"></i>${T("g.ley.humedad-flujo")}</div>`);
+  if (c.rios) items.push(`<div class="g-item"><i style="background:#9FD3FF"></i>${T("g.ley.rios")}</div>`);
+  if (items.length) html += `<div class="g-grupo">${items.join("")}</div>`;
+  $("leyenda").innerHTML = html;
+}
+
 // ---------------------------------------------------------------- vista 3D
 let etiquetasTexto = () => {};
 let actualizarFecha = () => {};
+let idiomaControles = () => {};
 
 function crearVista() {
   const canvas = $("globo");
@@ -254,8 +269,6 @@ function crearVista() {
     g.fillStyle = "#22374A"; g.strokeStyle = "#3D5A74"; g.lineWidth = W / 4096;
     globo.tierra.forEach((a) => { poligono(a); g.fill(); g.stroke(); });
     globo.tierra_sa.forEach((a) => { poligono(a); g.fill(); g.stroke(); });
-    g.strokeStyle = "rgba(120,148,174,.55)"; g.lineWidth = W / 4096;
-    globo.fronteras_sa.forEach((ln) => { g.beginPath(); ln.forEach(([lo, la], i) => { const [x, y] = p(lo, la); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); });
     const t = new THREE.CanvasTexture(c);
     t.anisotropy = renderer.capabilities.getMaxAnisotropy();
     return t;
@@ -265,6 +278,7 @@ function crearVista() {
     uBase: { value: texturaBase() },
     uSstA: { value: null }, uSstB: { value: null }, uMezcla: { value: 0 },
     uSst: { value: 0 }, uHaySst: { value: 0 },
+    uSatTex: { value: null }, uSat: { value: 0 },
   };
   const matGlobo = new THREE.ShaderMaterial({
     uniforms: uGlobo,
@@ -272,7 +286,7 @@ function crearVista() {
       varying vec2 vUv; varying vec3 vN;
       void main() { vUv = uv; vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: `
-      uniform sampler2D uBase, uSstA, uSstB; uniform float uMezcla, uSst, uHaySst;
+      uniform sampler2D uBase, uSstA, uSstB, uSatTex; uniform float uMezcla, uSst, uHaySst, uSat;
       varying vec2 vUv; varying vec3 vN;
       // Bilineal manual que ignora tierra/hielo (255) para no inventar valores en la costa
       vec2 anom(sampler2D t, vec2 uv) {
@@ -300,6 +314,7 @@ function crearVista() {
       }
       void main() {
         vec3 base = texture2D(uBase, vUv).rgb;
+        if (uSat > 0.001) base = mix(base, texture2D(uSatTex, vUv).rgb * 0.92, uSat);
         if (uHaySst > 0.5 && uSst > 0.001) {
           vec2 uvS = vec2(fract(vUv.x + 0.5), vUv.y);
           vec2 a = anom(uSstA, uvS), b = anom(uSstB, uvS);
@@ -386,7 +401,7 @@ function crearVista() {
   const grupoRios = new THREE.Group();
   const matRio = new THREE.LineBasicMaterial({ color: 0x6fb6e8, transparent: true, opacity: 0 });
   const tramos = globo.rios.map((r) => {
-    const pts = r.c.map(([lo, la]) => xyz(la, lo, 1.0025));
+    const pts = r.c.map(([lo, la]) => xyz(la, lo, 1.0011));
     grupoRios.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), matRio));
     const largos = [0];
     for (let i = 1; i < pts.length; i++) largos.push(largos[i - 1] + pts[i].distanceTo(pts[i - 1]));
@@ -399,10 +414,10 @@ function crearVista() {
   // Chaco: contorno y punto en Resistencia
   const matChaco = new THREE.LineBasicMaterial({ color: 0xf2a541, transparent: true, opacity: 0 });
   globo.chaco.forEach((anillo) => {
-    escena.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(anillo.map(([lo, la]) => xyz(la, lo, 1.003))), matChaco));
+    escena.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(anillo.map(([lo, la]) => xyz(la, lo, 1.001))), matChaco));
   });
   const matPulso = new THREE.PointsMaterial({ color: 0xf2a541, size: 0.05, map: puntoRedondo(), transparent: true, depthWrite: false, opacity: 0 });
-  const pulso = new THREE.Points(new THREE.BufferGeometry().setFromPoints([xyz(-27.45, -58.99, 1.004)]), matPulso);
+  const pulso = new THREE.Points(new THREE.BufferGeometry().setFromPoints([xyz(-27.45, -58.99, 1.0015)]), matPulso);
   escena.add(pulso);
 
   // --- Temperatura del mar: cuadros semanales + último día
@@ -467,66 +482,204 @@ function crearVista() {
   etiquetasTexto = () => etiquetas.forEach((e) => { e.el.textContent = T(e.k); });
   etiquetasTexto();
 
-  // --- Cámara
-  let viaje = null;
+  // --- Detalle de Sudamérica (costas, países, provincias y departamentos de Chaco), nítido al acercarse
+  let detalle = null, cargandoDetalle = false;
+  async function cargarDetalle() {
+    if (detalle || cargandoDetalle) return;
+    cargandoDetalle = true;
+    const d = await json("data/detalle_sa.json").catch(() => null);
+    if (!d) return;
+    // Líneas vectoriales (no una imagen): se ven nítidas a cualquier zoom
+    const grupo = new THREE.Group();
+    const capa = (lineas, color, opacidad, radio) => {
+      const pts = [];
+      lineas.forEach((ln) => {
+        for (let i = 1; i < ln.length; i++) {
+          pts.push(xyz(ln[i - 1][1], ln[i - 1][0], radio), xyz(ln[i][1], ln[i][0], radio));
+        }
+      });
+      const mat = new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, opacity: 0 });
+      mat.userData.max = opacidad;
+      grupo.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), mat));
+    };
+    capa(d.provincias, 0xb0c4d6, 0.5, 1.0005);
+    capa(d.costa, 0x96c4eb, 0.85, 1.0006);
+    capa(d.paises, 0xe8eef4, 0.9, 1.0007);
+    capa(d.departamentos_chaco, 0xf2a541, 0.75, 1.0008);
+    detalle = grupo;
+    escena.add(detalle);
+  }
+
+  // --- Imagen satelital (NASA Blue Marble), se descarga solo si se pide
+  let satObjetivo = 0, satCargando = false;
+  async function alternarSatelite() {
+    if (satCargando) return;
+    if (!uGlobo.uSatTex.value) {
+      satCargando = true;
+      $("ctl-satelite").classList.add("cargando");
+      try {
+        const t = await new THREE.TextureLoader().loadAsync(`data/imagen/tierra-${POCOS ? 2048 : 4096}.jpg`);
+        t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        uGlobo.uSatTex.value = t;
+      } catch (e) {
+        aviso(T("g.sat-no"));
+        return;
+      } finally {
+        satCargando = false;
+        $("ctl-satelite").classList.remove("cargando");
+      }
+      cargarDetalle();
+    }
+    satObjetivo = satObjetivo ? 0 : 1;
+    botonSatelite();
+  }
+  function botonSatelite() {
+    const b = $("ctl-satelite");
+    b.setAttribute("aria-pressed", String(!!satObjetivo));
+    b.textContent = T("g.sat");
+    b.title = T(satObjetivo ? "g.mapa-titulo" : "g.sat-titulo");
+  }
+  let temporizadorAviso;
+  function aviso(texto) {
+    const a = $("aviso");
+    a.textContent = texto; a.hidden = false;
+    clearTimeout(temporizadorAviso);
+    temporizadorAviso = setTimeout(() => { a.hidden = true; }, 4000);
+  }
+
+  // --- Cámara y navegación (arrastrar, zoom, girar, inclinar)
+  const nav = new Navegacion({ camara, elemento: canvas, reducir: REDUCIR });
+  if (location.search.includes("depurar")) window.__globo = { escena, camara, renderer, nav };
+  let interactuado = false, explorando = false;
+  nav.alInteractuar = () => { interactuado = true; };
   // En pantallas angostas (celular vertical) la cámara se aleja para que entre el globo de lado a lado
   const factorDist = () => lim(0.95 / (canvas.clientWidth / canvas.clientHeight), 1, 1.9);
-  const cam = { dir: xyz(ESCENAS.inicio.lat, ESCENAS.inicio.lon), dist: ESCENAS.inicio.dist * factorDist() };
+  const vistaDe = (nombre) => { const e = ESCENAS[nombre]; return { lat: e.lat, lon: e.lon, alt: e.dist * factorDist() - 1, rumbo: 0, incl: 0 }; };
+  nav.saltar(vistaDe("inicio"));
+
   function irA(nombre) {
     const e = ESCENAS[nombre];
     if (!e) return;
     Object.keys(objetivo).forEach((k) => { objetivo[k] = e.capas[k] || 0; });
     if (nombre === "pacifico" && !REDUCIR && cuadros.length && cuadroActual === cuadros.length - 1) { cuadroActual = 0; reproduciendo = true; mostrarCuadro(); }
     if (nombre !== "pacifico" && cuadros.length && cuadroActual !== cuadros.length - 1) { cuadroActual = cuadros.length - 1; mostrarCuadro(); }
-    const destino = { dir: xyz(e.lat, e.lon), dist: e.dist * factorDist() };
-    if (REDUCIR) { cam.dir.copy(destino.dir); cam.dist = destino.dist; viaje = null; return; }
-    viaje = { desde: { dir: cam.dir.clone(), dist: cam.dist }, hasta: destino, t: 0, dur: 1.9 };
+    interactuado = false;
+    nav.irA(vistaDe(nombre));
   }
 
   function encuadre() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     renderer.setSize(w, h, false);
     camara.aspect = w / h;
-    // El globo se corre para no quedar debajo de la tarjeta: a la derecha en compu, arriba en celular
-    if (MOVIL) camara.setViewOffset(w, h, 0, h * 0.06, w, h);
+    // En el relato el globo se corre para no quedar debajo de la tarjeta: a la derecha en compu, apenas arriba en celular
+    if (explorando) camara.clearViewOffset();
+    else if (MOVIL) camara.setViewOffset(w, h, 0, h * 0.06, w, h);
     else camara.setViewOffset(w, h, -w * 0.15, 0, w, h);
     camara.updateProjectionMatrix();
-    if (!viaje && ESCENAS[estado.escena]) cam.dist = ESCENAS[estado.escena].dist * factorDist();
   }
   addEventListener("resize", encuadre);
   encuadre();
 
-  const tmp = new THREE.Vector3(), q = new THREE.Quaternion(), arriba = new THREE.Vector3(0, 1, 0);
+  // --- Modo explorar
+  const CAPAS_PANEL = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco"];
+  let nombresVisibles = true;
+  function panelCapas() {
+    $("lista-capas").innerHTML = CAPAS_PANEL.map((c) =>
+      `<label class="g-capa"><input type="checkbox" data-capa="${c}" ${capasEncendidas?.[c] ? "checked" : ""}><span>${T("g.capa." + c)}</span></label>`).join("") +
+      `<label class="g-capa"><input type="checkbox" data-capa="nombres" ${nombresVisibles ? "checked" : ""}><span>${T("g.capa.nombres")}</span></label>`;
+  }
+  $("lista-capas").addEventListener("change", (ev) => {
+    const c = ev.target.dataset.capa;
+    if (!c) return;
+    if (c === "nombres") nombresVisibles = ev.target.checked;
+    else { capasEncendidas[c] = ev.target.checked; objetivo[c] = ev.target.checked ? 1 : 0; }
+    leyenda();
+  });
+  function explorar(si) {
+    if (si === explorando) return;
+    explorando = si;
+    document.body.classList.toggle("explorando", si);
+    nav.modo = si ? "explorar" : "relato";
+    $("panel-explorar").hidden = !si;
+    $("escena").setAttribute("aria-hidden", String(!si));
+    canvas.tabIndex = si ? 0 : -1;
+    document.documentElement.style.overflow = si ? "hidden" : "";
+    if (si) {
+      capasEncendidas = Object.fromEntries(CAPAS_PANEL.map((c) => [c, objetivo[c] > 0.3]));
+      if (!Object.values(capasEncendidas).some(Boolean)) capasEncendidas.sst = true;
+      CAPAS_PANEL.forEach((c) => { objetivo[c] = capasEncendidas[c] ? 1 : 0; });
+      panelCapas();
+      cargarDetalle();
+      canvas.focus({ preventScroll: true });
+    } else {
+      capasEncendidas = null;
+      irA(estado.escena);
+      $("explorar").focus({ preventScroll: true });
+    }
+    leyenda();
+    encuadre();
+  }
+  document.querySelectorAll("[data-explorar]").forEach((b) => b.addEventListener("click", () => explorar(true)));
+  $("salir-explorar").addEventListener("click", () => explorar(false));
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && explorando) explorar(false); });
+  $("ctl-capas").addEventListener("click", () => {
+    const abierto = $("panel-explorar").classList.toggle("abierto");
+    $("ctl-capas").setAttribute("aria-expanded", String(abierto));
+  });
+
+  // --- Botones de control
+  $("ctl-acercar").addEventListener("click", () => { interactuado = true; nav.irA({ alt: Math.max(0.06, nav.vista.alt * 0.55) }, 0.5); });
+  $("ctl-alejar").addEventListener("click", () => { interactuado = true; nav.irA({ alt: Math.min(7, nav.vista.alt / 0.55) }, 0.5); });
+  $("ctl-norte").addEventListener("click", () => { interactuado = true; nav.norte(); });
+  $("ctl-inclinar").addEventListener("click", () => {
+    interactuado = true;
+    const v = nav.vista;
+    if (v.incl > 5) nav.irA({ incl: 0 }, 0.8);
+    else nav.irA({ incl: 55, alt: Math.min(v.alt, 0.45) }, 1.1);
+  });
+  $("ctl-inicio").addEventListener("click", () => {
+    if (explorando) { interactuado = true; nav.irA({ lat: -20, lon: -60, alt: 2.6, rumbo: 0, incl: 0 }); }
+    else irA(estado.escena);
+  });
+  $("ctl-satelite").addEventListener("click", alternarSatelite);
+  idiomaControles = () => { botonSatelite(); if (explorando) panelCapas(); };
+  botonSatelite();
+
+  const tmp = new THREE.Vector3(), brujula = $("brujula");
+  let satOpac = 0;
   function cuadroDeAnimacion() {
     const dt = Math.min(reloj.getDelta(), 0.1);
     const t = reloj.elapsedTime;
 
-    // cámara: interpolación esférica del punto de vista
-    if (viaje) {
-      viaje.t = Math.min(1, viaje.t + dt / viaje.dur);
-      const k = suave(viaje.t);
-      q.setFromUnitVectors(viaje.desde.dir, viaje.hasta.dir);
-      cam.dir.copy(viaje.desde.dir).applyQuaternion(new THREE.Quaternion().slerp(q, k));
-      cam.dist = viaje.desde.dist + (viaje.hasta.dist - viaje.desde.dist) * k;
-      if (viaje.t >= 1) viaje = null;
-    } else if (estado.escena === "inicio" && !REDUCIR) {
-      cam.dir.applyAxisAngle(arriba, dt * 0.03); // giro lento al empezar
-    }
-    camara.position.copy(cam.dir).multiplyScalar(cam.dist);
-    camara.lookAt(0, 0, 0);
+    // cámara
+    if (estado.escena === "inicio" && !interactuado && !explorando && !REDUCIR && !nav.viaje) nav.vista.lon += dt * 1.6; // giro lento al empezar
+    nav.actualizar(dt);
+    const alt = nav.vista.alt;
+    brujula.style.transform = `rotate(${-nav.vista.rumbo}deg)`;
+    $("ctl-inclinar").setAttribute("aria-pressed", String(nav.vista.incl > 5));
+    if (alt < 2.2) cargarDetalle();
 
-    // capas: fundido hacia la opacidad del paso
+    // capas: fundido hacia la opacidad del paso o de lo elegido en el panel
     CAPAS.forEach((c) => { opac[c] += (objetivo[c] - opac[c]) * Math.min(1, dt * (REDUCIR ? 60 : 2.6)); });
+    satOpac += (satObjetivo - satOpac) * Math.min(1, dt * (REDUCIR ? 60 : 3));
+    uGlobo.uSat.value = satOpac;
     uGlobo.uSst.value = opac.sst;
     if (onda) onda.material.opacity = opac.onda;
     if (lluvia) lluvia.material.opacity = opac.lluvia;
+    if (detalle) {
+      const o = Math.max(satOpac * 0.85, lim((2.1 - alt) / 0.6, 0, 1));
+      detalle.visible = o > 0.01;
+      detalle.children.forEach((l) => { l.material.opacity = o * l.material.userData.max; });
+    }
     matRio.opacity = 0.75 * opac.rios;
     matChaco.opacity = opac.chaco;
+    const escalaPuntos = lim(alt / 1.1, 0.12, 1);
     matPulso.opacity = opac.chaco * (REDUCIR ? 1 : 0.6 + 0.4 * Math.sin(t * 3));
-    matPulso.size = 0.035 + (REDUCIR ? 0 : 0.015 * Math.sin(t * 3));
+    matPulso.size = (0.035 + (REDUCIR ? 0 : 0.015 * Math.sin(t * 3))) * escalaPuntos;
+    flujo.mat.size = flujo.tam * lim(alt / 1.1, 0.3, 1);
 
     // temperatura del mar: animación semanal
-    if (cuadros.length > 1 && reproduciendo && estado.escena === "pacifico") {
+    if (cuadros.length > 1 && reproduciendo && estado.escena === "pacifico" && !explorando) {
       tCuadro += dt / 0.45;
       if (tCuadro >= 1) {
         tCuadro = 0;
@@ -543,15 +696,17 @@ function crearVista() {
     if (humedad) humedad.actualizar(opac.humedad, mover ? dt : 0);
     flujo.actualizar(opac.rios, mover ? dt : 0);
 
-    // etiquetas: solo las del paso y del lado visible
-    const vis = tmp.copy(camara.position).normalize();
+    // etiquetas: del paso (relato) o de las capas encendidas (explorar), solo del lado visible del globo
+    const cam = camara.position;
     const w = canvas.clientWidth, h = canvas.clientHeight;
     etiquetas.forEach((e) => {
-      const frente = e.pos.clone().normalize().dot(vis) > 0.25;
-      const activa = e.en.includes(estado.escena) && frente;
+      const frente = tmp.copy(e.pos).normalize().dot(cam) > 1.02;
+      const activa = frente && (explorando
+        ? nombresVisibles && (!e.capa || capasEncendidas[e.capa])
+        : e.en.includes(estado.escena));
       e.el.classList.toggle("visible", activa);
       if (!frente) return;
-      const p = e.pos.clone().project(camara);
+      const p = tmp.copy(e.pos).project(camara);
       e.el.style.transform = `translate(${((p.x + 1) / 2) * w}px, ${((1 - p.y) / 2) * h}px) translate(-50%, -50%)`;
     });
 
@@ -575,6 +730,7 @@ function crearVista() {
       bucle();
     },
     irA,
+    explorando: () => explorando,
   };
 }
 
@@ -759,7 +915,7 @@ function crearFlujo(tramos, n) {
     geo.attributes.position.needsUpdate = true;
   }
   return {
-    puntos,
+    puntos, mat, tam: mat.size,
     actualizar(opacidad, dt) {
       mat.opacity = opacidad;
       puntos.visible = opacidad > 0.01;

@@ -2,6 +2,7 @@
 
 Fuente: Natural Earth (dominio público), https://github.com/nvkelso/natural-earth-vector
 Uso:  python scripts/preparar_globo.py <carpeta con los geojson de Natural Earth>
+      python scripts/preparar_globo.py <carpeta> detalle   (costas, provincias y departamentos de Sudamérica)
 Necesita: ne_110m_land, ne_50m_land, ne_50m_admin_0_countries, ne_10m_rivers_lake_centerlines.
 Escribe docs/data/globo.json.
 """
@@ -105,5 +106,39 @@ def main(carpeta):
     print(f"{destino}: {destino.stat().st_size / 1024:.0f} KB, {len(rios)} tramos de río")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and len(sys.argv) == 2:
     main(sys.argv[1])
+
+
+# ---------------------------------------------------------------- detalle de Sudamérica
+DETALLE = box(-82, -56, -34, 13)
+PAISES_SA = {"ARG", "BRA", "PRY", "BOL", "URY", "CHL", "PER", "ECU", "COL", "VEN", "GUY", "SUR"}
+
+
+def detalle(carpeta):
+    """Costas, fronteras, provincias/estados y departamentos de Chaco con más resolución,
+    para dibujar nítido al acercarse con el zoom. Escribe docs/data/detalle_sa.json."""
+    def recortar_lineas(features, tol, filtro=lambda p: True):
+        geoms = [shape(f["geometry"]) for f in features if filtro(f["properties"])]
+        g = unary_union([x.intersection(DETALLE) for x in geoms if x.intersects(DETALLE)])
+        return lineas(linemerge(g) if g.geom_type == "MultiLineString" else g, tol, 3)
+
+    costa = recortar_lineas(leer(carpeta, "ne_10m_coastline"), 0.01)
+    paises = recortar_lineas(leer(carpeta, "ne_10m_admin_0_boundary_lines_land"), 0.01)
+    provincias = recortar_lineas(leer(carpeta, "ne_10m_admin_1_states_provinces_lines"), 0.015,
+                                 lambda p: p.get("ADM0_A3") in PAISES_SA)
+    deptos = json.loads((RAIZ / "docs/data/departamentos.geojson").read_text(encoding="utf-8"))["features"]
+    bordes_deptos = unary_union([shape(f["geometry"]).boundary for f in deptos])
+    departamentos = lineas(linemerge(bordes_deptos), 0.003, 3)
+    salida = {
+        "fuente": "Natural Earth 1:10m (dominio público); departamentos de Chaco: IGN",
+        "caja": {"oeste": -82, "este": -34, "sur": -56, "norte": 13},
+        "costa": costa, "paises": paises, "provincias": provincias, "departamentos_chaco": departamentos,
+    }
+    destino = RAIZ / "docs/data/detalle_sa.json"
+    destino.write_text(json.dumps(salida, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"{destino}: {destino.stat().st_size / 1024:.0f} KB")
+
+
+if __name__ == "__main__" and len(sys.argv) > 2 and sys.argv[2] == "detalle":
+    detalle(sys.argv[1])

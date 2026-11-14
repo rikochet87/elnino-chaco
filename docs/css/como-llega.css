@@ -14,7 +14,10 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 
 /* Globo: fijo detrás del relato */
 .g-escena { position: fixed; inset: 0; z-index: 0; }
-.g-escena canvas { display: block; width: 100%; height: 100%; }
+.g-escena canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; outline: none; }
+.g-escena canvas.arrastrando { cursor: grabbing; }
+.explorando .g-escena canvas { touch-action: none; }
+.explorando .g-escena canvas:focus-visible { box-shadow: inset 0 0 0 3px #4A90D9; }
 .g-etiquetas { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .g-etiqueta {
   position: absolute; left: 0; top: 0; white-space: nowrap;
@@ -95,6 +98,51 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 .g-sin-3d { position: fixed; inset: 0; z-index: 0; display: flex; align-items: center; justify-content: flex-end; padding: 24px 5vw; color: var(--g-texto-2); }
 .g-sin-3d p { max-width: 360px; }
 
+/* Controles del globo */
+.g-controles { position: fixed; right: 20px; top: 50%; transform: translateY(-62%); z-index: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.g-controles button {
+  min-width: 44px; min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center;
+  color: var(--g-texto); background: var(--g-tarjeta); border: 1px solid var(--g-borde); border-radius: 4px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.g-controles button:hover { background: rgba(30, 52, 74, .92); }
+.g-controles button[aria-pressed="true"] { border-color: var(--g-ambar); color: var(--g-ambar); }
+.g-controles button.cargando { opacity: .6; cursor: progress; }
+.g-controles .ctl-explorar { background: var(--g-ambar); color: #0B1A2A; border-color: var(--g-ambar); margin-top: 6px; }
+.g-controles .ctl-explorar:hover { background: #F7BC69; }
+.explorando .ctl-explorar { display: none; }
+#brujula { transition: transform .1s linear; }
+
+.g-aviso { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 5; margin: 0; padding: 10px 16px; background: var(--g-tarjeta); border: 1px solid var(--g-borde); border-radius: 4px; color: var(--g-texto); font-size: 14px; }
+
+.g-boton-sec {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 3px; cursor: pointer;
+  background: transparent; border: 1px solid #7F93A8; color: var(--g-texto); font-size: 14px; font-weight: 600;
+}
+.g-boton-sec:hover { background: rgba(255,255,255,.08); }
+.g-explorar-enlace { margin: 14px 0 0 !important; }
+.g-acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.g-acciones .g-boton { margin-top: 0; }
+
+/* Modo explorar: pantalla completa; el relato y la cabecera se ocultan y aparece el panel de capas */
+.explorando .g-relato { visibility: hidden; }
+.explorando .cabecera { display: none; }
+.g-panel {
+  position: fixed; left: 20px; top: 20px; z-index: 4; width: 300px; max-height: calc(100vh - 40px); overflow: auto;
+  padding: 16px 18px; background: var(--g-tarjeta); border: 1px solid var(--g-borde); border-radius: 4px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.g-panel-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
+.g-panel-cab h2 { margin: 0; font-size: 18px; }
+.g-panel-capas { display: none; }
+.g-capas { border: 0; margin: 14px 0 0; padding: 0; }
+.g-capas legend { font-size: 13px; font-weight: 600; color: var(--g-texto-2); margin-bottom: 6px; padding: 0; }
+.g-capa { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 15px; cursor: pointer; }
+.g-capa input { width: 18px; height: 18px; accent-color: var(--g-ambar); }
+.g-ayuda { font-size: 13px; color: var(--g-texto-2); margin: 12px 0 0; line-height: 1.55; }
+.g-ayuda strong { color: var(--g-texto); }
+
 @media (max-width: 760px) {
   /* Entre una tarjeta y la siguiente queda una pantalla libre para ver el globo */
   .g-paso { min-height: 175vh; align-items: center; padding: 0; }
@@ -111,6 +159,21 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
   .g-cuerpo .g-leyenda { position: fixed; }
   .g-etiqueta { font-size: 12px; }
   .g-sin-3d { justify-content: center; align-items: flex-start; padding-top: 140px; }
+}
+
+@media (max-width: 760px) {
+  /* En el relato del celular solo se usan los gestos; los botones aparecen al explorar */
+  .g-controles { top: 12px; right: 8px; transform: none; gap: 4px; }
+  body:not(.explorando) .g-controles { display: none; }
+  .g-controles button { min-width: 42px; min-height: 42px; }
+  .g-panel { left: 0; right: 0; top: auto; bottom: 0; width: auto; max-height: 60vh; border-radius: 6px 6px 0 0; padding: 12px 14px; }
+  .g-panel-cab h2 { font-size: 16px; }
+  .g-panel-capas { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 3px; background: transparent; border: 1px solid #7F93A8; color: var(--g-texto); font-weight: 600; }
+  .g-panel-cuerpo { display: none; }
+  .g-panel.abierto .g-panel-cuerpo { display: block; }
+  .explorando .g-leyenda { top: 8px; bottom: auto; left: 8px; right: 62px; }
+  .g-panel-cab h2 { display: none; }
+  .g-panel-cab .g-boton-sec, .g-panel-capas { min-height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

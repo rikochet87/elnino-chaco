@@ -33,9 +33,35 @@
   </div>
 </header>
 
-<div class="g-escena" aria-hidden="true"><canvas id="globo"></canvas></div>
+<div class="g-escena" id="escena" aria-hidden="true"><canvas id="globo" role="application" aria-label="Globo 3D: arrastrá para mover, usá la rueda o pellizcá para acercar, Shift y las flechas para girar e inclinar" data-i18n-attr="aria-label:g.globo-aria"></canvas></div>
 <div class="g-etiquetas" id="etiquetas" aria-hidden="true"></div>
 <div class="g-sin-3d" id="sin-3d" hidden><p data-i18n="g.sin-3d">Tu navegador no puede mostrar el globo en 3D. El recorrido se puede leer igual: cada tarjeta explica un paso.</p></div>
+<div class="g-controles" role="group" aria-label="Controles del globo" data-i18n-attr="aria-label:g.ctl">
+  <button type="button" id="ctl-acercar" aria-label="Acercar" title="Acercar" data-i18n-attr="aria-label:g.acercar,title:g.acercar"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <button type="button" id="ctl-alejar" aria-label="Alejar" title="Alejar" data-i18n-attr="aria-label:g.alejar,title:g.alejar"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <button type="button" id="ctl-norte" aria-label="Norte arriba" title="Norte arriba" data-i18n-attr="aria-label:g.norte,title:g.norte"><svg id="brujula" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2l3.2 9H7.8z" fill="#E2674A"/><path d="M11 20l-3.2-9h6.4z" fill="currentColor" opacity=".7"/><text x="11" y="8.6" text-anchor="middle" font-size="5.5" font-weight="700" fill="#fff">N</text></svg></button>
+  <button type="button" id="ctl-inclinar" aria-pressed="false" aria-label="Inclinar la vista" title="Inclinar la vista" data-i18n-attr="aria-label:g.inclinar,title:g.inclinar">3D</button>
+  <button type="button" id="ctl-satelite" class="ctl-texto" aria-pressed="false">Satélite</button>
+  <button type="button" id="ctl-inicio" aria-label="Volver a la vista inicial" title="Volver a la vista inicial" data-i18n-attr="aria-label:g.inicio-vista,title:g.inicio-vista"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 8.5L9 3l6 5.5M5 7.5V15h8V7.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg></button>
+  <button type="button" id="explorar" class="ctl-texto ctl-explorar" data-explorar data-i18n="g.explorar-btn">Explorar el globo</button>
+</div>
+<p class="g-aviso" id="aviso" role="status" hidden></p>
+
+<section class="g-panel" id="panel-explorar" aria-labelledby="titulo-panel" hidden>
+  <div class="g-panel-cab">
+    <h2 id="titulo-panel" data-i18n="g.panel-titulo">Explorar el globo</h2>
+    <button type="button" class="g-panel-capas" id="ctl-capas" aria-expanded="false" aria-controls="panel-cuerpo" data-i18n="g.capas">Capas</button>
+    <button type="button" class="g-boton-sec" id="salir-explorar" data-i18n="g.volver-relato">Volver al recorrido</button>
+  </div>
+  <div class="g-panel-cuerpo" id="panel-cuerpo">
+    <fieldset class="g-capas">
+      <legend data-i18n="g.capas">Capas</legend>
+      <div id="lista-capas"></div>
+    </fieldset>
+    <p class="g-ayuda" data-i18n-html="g.ayuda"><strong>Mouse:</strong> arrastrá para mover, usá la rueda para acercar, clic derecho o Shift + arrastrar para girar e inclinar, doble clic para acercarte a un punto. <strong>Celular:</strong> un dedo mueve, dos dedos acercan, giran e inclinan. <strong>Teclado:</strong> flechas, + y −, Shift + flechas.</p>
+  </div>
+</section>
+
 <aside class="g-leyenda" id="leyenda" aria-label="Leyenda" data-i18n-attr="aria-label:g.leyenda"></aside>
 
 <main class="g-relato" id="relato">
@@ -44,6 +70,7 @@
       <h1 data-i18n="g.h1">Cómo llega El Niño a Chaco</h1>
       <p data-i18n="g.inicio-1">El Niño empieza a más de 10.000 km de acá, en el océano Pacífico. Este recorrido muestra con datos reales cómo ese calor termina en más lluvia en Chaco y en ríos más crecidos.</p>
       <p class="g-dato" id="dato-nino34"></p>
+      <p class="g-explorar-enlace"><button type="button" class="g-boton-sec" data-explorar data-i18n="g.inicio-explorar">O explorá el globo libremente</button></p>
       <p class="g-bajar"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v11M3 8l5 5 5-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg><span data-i18n="g.bajar">Bajá para seguir el recorrido</span></p>
     </div>
   </section>
@@ -107,10 +134,14 @@
     <div class="g-tarjeta">
       <h2 data-i18n="g.fin-titulo">Qué significa para tu zona</h2>
       <p class="g-dato" id="dato-pronostico"></p>
-      <a class="g-boton" href="./#resumen" data-i18n="g.fin-boton">Ver qué se espera en mi zona</a>
+      <div class="g-acciones">
+        <a class="g-boton" href="./#resumen" data-i18n="g.fin-boton">Ver qué se espera en mi zona</a>
+        <button type="button" class="g-boton-sec" data-explorar data-i18n="g.fin-explorar">Explorar el globo libremente</button>
+      </div>
       <ul class="g-fuentes">
         <li data-i18n="g.fuente-1">Temperatura del mar: NOAA OISST v2.1.</li>
         <li data-i18n="g.fuente-2">Vientos, humedad y lluvia de los veranos con El Niño: reanálisis NCEP/NCAR R1 y GPCP v2.3 (NOAA PSL). Las alturas de las capas están exageradas para que se vean.</li>
+        <li data-i18n="g.fuente-4">Imagen satelital: NASA Blue Marble Next Generation (diciembre de 2004). Costas, países, provincias y ríos: Natural Earth.</li>
         <li data-i18n="g.fuente-3">Veranos con El Niño: índice ONI de NOAA CPC. Mapa: Natural Earth. Pronóstico: ECMWF SEAS5 vía Open-Meteo.</li>
       </ul>
     </div>
@@ -118,6 +149,7 @@
 </main>
 
 <script src="js/i18n.js"></script>
+<link rel="modulepreload" href="js/navegacion.js">
 <script type="module" src="js/como-llega.js"></script>
 </body>
 </html>

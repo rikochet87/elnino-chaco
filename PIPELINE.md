@@ -128,10 +128,12 @@ La página "Cómo llega El Niño a Chaco" usa datos que se generan solos en GitH
 | **Temperatura del Pacífico (diaria)** | Todos los días a las 11:17 (hora argentina) | Descarga la anomalía diaria de temperatura del mar de NOAA OISST v2.1 (CoastWatch ERDDAP; si no responde, NOAA PSL) y guarda un cuadro por semana de los últimos seis meses | `docs/data/pacifico.json` y `docs/data/pacifico/*.png` |
 | **Vientos y lluvia de los veranos Niño** | A mano | Promedia los años con El Niño (según el ONI) del reanálisis NCEP/NCAR y de la lluvia GPCP: viento y altura a 200 hPa, humedad y viento a 850 hPa, lluvia de diciembre a febrero y de septiembre a febrero | `docs/data/atmosfera.json` |
 
-Para correr a mano cualquiera de los dos: en GitHub, pestaña **Actions** → elegir el proceso → **Run workflow**. El de vientos conviene correrlo de nuevo después de cada verano con El Niño (por ejemplo, en marzo de 2027).
+| **Imagen satelital del globo** | A mano, una sola vez (ya está hecha) | Descarga NASA Blue Marble desde NASA GIBS y la guarda en 4096 × 2048 y 2048 × 1024 | `docs/data/imagen/` |
+
+Para correr a mano cualquiera de ellos: en GitHub, pestaña **Actions** → elegir el proceso → **Run workflow**. El de vientos conviene correrlo de nuevo después de cada verano con El Niño (por ejemplo, en marzo de 2027).
 
 Los mismos comandos se pueden correr en la PC: `python -m pipeline pacifico` y `python -m pipeline atmosfera`. No necesitan cuenta.
 
 Como GitHub sube estos datos al repositorio todos los días, antes de trabajar en la PC hay que hacer `git pull` (el script `emision.ps1` ya lo hace).
 
-La geometría del globo (costas, fronteras, ríos de la cuenca del Plata y contorno de Chaco) sale de Natural Earth y se arma una sola vez con `python scripts/preparar_globo.py <carpeta con los geojson>`.
+La geometría del globo (costas, fronteras, ríos de la cuenca del Plata y contorno de Chaco) sale de Natural Earth y se arma una sola vez con `python scripts/preparar_globo.py <carpeta con los geojson>`. El detalle de Sudamérica que aparece al acercarse (costas, países y provincias a escala 1:10m, departamentos de Chaco) se arma con `python scripts/preparar_globo.py <carpeta> detalle`.
