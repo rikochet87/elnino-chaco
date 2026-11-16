@@ -93,11 +93,11 @@ const ESCENAS = {
   tormentas: { lat: 10,  lon: -140, dist: 3.2, capas: { sst: 1, tormentas: 1, chaco: 0.5 } },
   onda:      { lat: -35, lon: -105, dist: 3.7, capas: { sst: 0.35, tormentas: 0.25, onda: 1, chorro: 1, chaco: 1, relieve: 1 } },
   // la humedad se ve desde el noreste e inclinada, para que la cordillera se vea como un muro
-  humedad:   { lat: -21, lon: -63,  dist: 2.35, incl: 38, rumbo: -20, capas: { sst: 0.2, chorro: 0.3, humedad: 1, chaco: 1, relieve: 1 } },
+  humedad:   { lat: -21, lon: -63,  dist: 2.35, incl: 38, rumbo: -20, capas: { sst: 0.2, chorro: 0.95, humedad: 1, chaco: 1, relieve: 1, nubes: 1 } },
   rios:      { lat: -24, lon: -56,  dist: 2.25, capas: { sst: 0.15, lluvia: 1, rios: 1, chaco: 1, humedad: 0.15, relieve: 1 } },
   final:     { lat: -26, lon: -60,  dist: 2.1, capas: { sst: 0.15, lluvia: 0.45, rios: 0.8, chaco: 1, relieve: 1 } },
 };
-const CAPAS = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco", "relieve"];
+const CAPAS = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco", "relieve", "nubes"];
 // Exageración vertical del relieve y de las alturas de las capas de viento (30 veces):
 // 1.500 m (850 hPa) → radio 1,007 · Andes ~6.000 m → 1,028 · chorro a 12 km → 1,057
 const EXAG = 30;
@@ -113,6 +113,8 @@ const ETIQUETAS = [
   { k: "g.et.chorro", lat: -31, lon: -66, en: ["onda"], clase: "destacada", capa: "chorro" },
   { k: "g.et.amazonia", lat: -4, lon: -62, en: ["humedad"], clase: "humedad" },
   { k: "g.et.capas-bajas", lat: -16, lon: -61.5, en: ["humedad"], clase: "humedad", capa: "humedad" },
+  { k: "g.et.zona-tormentas", lat: -26, lon: -56, en: ["humedad"], capa: "nubes" },
+  { k: "g.et.chorro-alto", lat: -36, lon: -58, en: ["humedad"], clase: "destacada", capa: "chorro", r: 1.06 },
   { k: "g.et.chaco", lat: -26, lon: -60.6, en: ["onda", "humedad", "rios", "final"], clase: "destacada", capa: "chaco" },
   { k: "g.et.pantanal", lat: -18.5, lon: -56.5, en: ["rios"], capa: "rios" },
   { k: "g.et.cuenca-alta", lat: -21, lon: -49.5, en: ["rios"], capa: "rios" },
@@ -230,9 +232,10 @@ function leyenda() {
     `<div class="g-item"><i style="background:#7C9CC0"></i>${T("g.ley.chorro-menos")}</div></div>` +
     `<div class="g-grupo"><h3>${T("g.ley.onda")}</h3><div class="g-item"><i class="punto" style="background:#E0614A"></i>${T("g.ley.alta")}</div>` +
     `<div class="g-item"><i class="punto" style="background:#4C8DD6"></i>${T("g.ley.baja")}</div></div>`;
-  else if (e === "humedad") html = `<div class="g-grupo"><h3>${T("g.ley.humedad")}</h3>` +
-    `<div class="g-item"><i style="background:#5FD3C6"></i>${T("g.ley.humedad-flujo")}</div>` +
-    `<div class="g-item"><i style="background:#F2A541;opacity:.6"></i>${T("g.ley.chorro-alto")}</div>${chaco}</div>`;
+  else if (e === "humedad") html = `<div class="g-grupo">` +
+    `<div class="g-item"><i style="background:#F2A541"></i>${T("g.ley.chorro-alto")}</div>` +
+    `<div class="g-item"><i class="punto" style="background:#EEF2F7"></i>${T("g.ley.nubes")}</div>` +
+    `<div class="g-item"><i style="background:#5FD3C6"></i>${T("g.ley.humedad-flujo")}</div>${chaco}</div>`;
   else if (e === "rios" || e === "final") html = `<div class="g-grupo"><h3>${T("g.ley.lluvia")}</h3><div class="g-barra" style="background:${BARRA_LLUVIA}"></div>` +
     `<div class="g-barra-rotulos"><span>−50${I.idioma === "en" ? "%" : " %"}</span><span>0</span><span>+50${I.idioma === "en" ? "%" : " %"}</span></div></div>` +
     `<div class="g-grupo"><div class="g-item"><i style="background:#9FD3FF"></i>${T("g.ley.rios")}</div>${chaco}</div>`;
@@ -253,6 +256,25 @@ function leyendaExplorar() {
   if (c.rios) items.push(`<div class="g-item"><i style="background:#9FD3FF"></i>${T("g.ley.rios")}</div>`);
   if (items.length) html += `<div class="g-grupo">${items.join("")}</div>`;
   $("leyenda").innerHTML = html;
+}
+
+// Convergencia del flujo de humedad a 850 hPa (g/kg · m/s por 1.000 km): donde el aire húmedo se acumula
+// y se ve obligado a subir. −div(q·V) en coordenadas esféricas, con diferencias centradas en la grilla.
+function convergencia(g, qu, qv) {
+  const R = 6371, d = g.dlon * D2R, dl = g.dlat * D2R, out = new Float32Array(g.nlat * g.nlon).fill(NaN);
+  const val = (a, i, j) => a[i * g.nlon + ((j + g.nlon) % g.nlon)];
+  for (let i = 1; i < g.nlat - 1; i++) {
+    const cl = Math.cos((g.lat0 + i * g.dlat) * D2R);
+    const cN = Math.cos((g.lat0 + (i - 1) * g.dlat) * D2R), cS = Math.cos((g.lat0 + (i + 1) * g.dlat) * D2R);
+    for (let j = 0; j < g.nlon; j++) {
+      const ue = val(qu, i, j + 1), uo = val(qu, i, j - 1), vn = val(qv, i - 1, j), vs = val(qv, i + 1, j);
+      if ([ue, uo, vn, vs].includes(null)) continue;
+      const dudx = (ue - uo) / (2 * d * R * cl);
+      const dvdy = (vs * cS - vn * cN) / (2 * dl * R * cl); // dl es negativo: la grilla va de norte a sur
+      out[i * g.nlon + j] = -(dudx + dvdy) * 1000;
+    }
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------- relieve
@@ -389,7 +411,7 @@ function crearVista() {
     return m;
   }
 
-  let onda = null, lluvia = null, chorro = null, humedad = null, tormentas = null, relieve = null;
+  let onda = null, lluvia = null, chorro = null, humedad = null, tormentas = null, relieve = null, nubes = null;
   if (atm) {
     const g = atm.grilla;
     const z = muestreador(g, atm.z200_anom);
@@ -532,6 +554,30 @@ function crearVista() {
   etiquetasTexto = () => { etiquetas.forEach((e) => { e.el.textContent = T(e.k); }); medir(); };
   etiquetasTexto();
   document.fonts?.ready.then(medir);
+
+  // --- Tormentas de la región: donde converge la humedad del chorro de capas bajas (datos de los veranos Niño)
+  function crearNubesRegion() {
+    if (!atm) return;
+    const g = atm.grilla, conv = convergencia(g, atm.qu850, atm.qv850);
+    const c = muestreador(g, Array.from(conv, (x) => (Number.isNaN(x) ? null : x)));
+    const lugares = [];
+    let sx = 0, sy = 0, sw = 0;
+    for (let lat = -36; lat <= -16; lat += 0.5) {
+      for (let lon = -70; lon <= -44; lon += 0.5) {
+        const v = c(lat, lon);
+        if (v === null || v < 12 || elevacion(lat, lon) > 1200) continue; // sobre la cordillera, el dato de 850 hPa no vale
+        lugares.push([lat, lon, v - 12]);
+        if (lon > -64) { sx += lon * v; sy += lat * v; sw += v; } // centro de la zona de llanura, para la etiqueta
+      }
+    }
+    if (!lugares.length) return;
+    nubes = crearNubes(lugares, POCOS ? 500 : 1100, { desde: 1 + altura(1800), sube: altura(10500), salto: 0.5, tamano: 0.55, opacidad: 0.5 });
+    escena.add(nubes.puntos);
+    if (sw) {
+      const e = etiquetas.find((x) => x.k === "g.et.zona-tormentas");
+      e.pos.copy(xyz(sy / sw, sx / sw, 1 + altura(9000)));
+    }
+  }
 
   // --- Relieve de Sudamérica (NOAA ETOPO), con la altura exagerada
   async function cargarRelieve() {
@@ -706,7 +752,7 @@ function crearVista() {
   encuadre();
 
   // --- Modo explorar
-  const CAPAS_PANEL = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco", "relieve"];
+  const CAPAS_PANEL = ["sst", "tormentas", "onda", "chorro", "humedad", "nubes", "lluvia", "rios", "chaco", "relieve"];
   let nombresVisibles = true;
   function panelCapas() {
     $("lista-capas").innerHTML = CAPAS_PANEL.map((c) =>
@@ -832,6 +878,7 @@ function crearVista() {
 
     const mover = !enPausa;
     if (tormentas) { tormentas.mat.uniforms.uOpac.value = opac.tormentas; if (mover) tormentas.mat.uniforms.uT.value = t; }
+    if (nubes) { nubes.mat.uniforms.uOpac.value = opac.nubes; nubes.puntos.visible = opac.nubes > 0.01; if (mover) nubes.mat.uniforms.uT.value = t * 0.8; }
     if (chorro) chorro.actualizar(opac.chorro, mover ? dt : 0);
     if (humedad) humedad.actualizar(opac.humedad, mover ? dt : 0);
     flujo.actualizar(opac.rios, mover ? dt : 0);
@@ -876,6 +923,7 @@ function crearVista() {
   return {
     async cargar() {
       await Promise.all([cargarSst(), cargarRelieve()]);
+      crearNubesRegion();
       irA(estado.escena);
       if (REDUCIR) { chorro?.precalentar(); humedad?.precalentar(); flujo.precalentar(); }
       bucle();
@@ -995,15 +1043,20 @@ function crearTormentas(imagen, n) {
       if (anom > 1 && lon > 150 && lon < 285) lugares.push([lat, lon > 180 ? lon - 360 : lon, anom]);
     }
   }
+  return crearNubes(lugares, n, { desde: 1.004, sube: 0.16, salto: 1 });
+}
+
+// Nubes que suben desde `desde` hasta `desde + sube` (radios), repartidas según el peso de cada lugar
+function crearNubes(lugares, n, { desde, sube, salto, tamano = 1, opacidad = 0.35 }) {
   const dir = new Float32Array(n * 3), fase = new Float32Array(n), vel = new Float32Array(n), tam = new Float32Array(n);
   const v = new THREE.Vector3();
   const total = lugares.reduce((s, l) => s + l[2], 0);
   for (let i = 0; i < n; i++) {
     let r = Math.random() * total, l = lugares[0] || [0, -140, 1];
     for (const cand of lugares) { r -= cand[2]; if (r <= 0) { l = cand; break; } }
-    xyz(l[0] + (Math.random() - 0.5), l[1] + (Math.random() - 0.5), 1, v);
+    xyz(l[0] + (Math.random() - 0.5) * salto, l[1] + (Math.random() - 0.5) * salto, 1, v);
     dir.set([v.x, v.y, v.z], i * 3);
-    fase[i] = Math.random(); vel[i] = 0.12 + Math.random() * 0.12; tam[i] = 0.6 + Math.random() * 0.8;
+    fase[i] = Math.random(); vel[i] = 0.12 + Math.random() * 0.12; tam[i] = (0.6 + Math.random() * 0.8) * tamano;
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(dir, 3));
@@ -1012,20 +1065,24 @@ function crearTormentas(imagen, n) {
   geo.setAttribute("aTam", new THREE.BufferAttribute(tam, 1));
   const mat = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
-    uniforms: { uT: { value: 0 }, uOpac: { value: 0 }, uPunto: { value: puntoRedondo() }, uEscala: { value: (POCOS ? 22 : 30) * Math.min(devicePixelRatio, 2) } },
+    uniforms: {
+      uT: { value: 0 }, uOpac: { value: 0 }, uPunto: { value: puntoRedondo() },
+      uEscala: { value: (POCOS ? 22 : 30) * Math.min(devicePixelRatio, 2) },
+      uDesde: { value: desde }, uSube: { value: sube }, uMax: { value: opacidad },
+    },
     vertexShader: `
-      attribute float aFase, aVel, aTam; uniform float uT, uEscala; varying float vA;
+      attribute float aFase, aVel, aTam; uniform float uT, uEscala, uDesde, uSube; varying float vA;
       void main() {
         float h = fract(aFase + uT * aVel);
-        vec3 p = normalize(position) * (1.004 + h * 0.16);
+        vec3 p = normalize(position) * (uDesde + h * uSube);
         vA = sin(3.14159 * h) * (1.0 - h * 0.4);
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_PointSize = aTam * (0.6 + h * 1.6) * uEscala / -mv.z;
         gl_Position = projectionMatrix * mv;
       }`,
     fragmentShader: `
-      uniform sampler2D uPunto; uniform float uOpac; varying float vA;
-      void main() { float a = texture2D(uPunto, gl_PointCoord).a; gl_FragColor = vec4(vec3(0.93, 0.95, 0.98), a * vA * uOpac * 0.35); }`,
+      uniform sampler2D uPunto; uniform float uOpac, uMax; varying float vA;
+      void main() { float a = texture2D(uPunto, gl_PointCoord).a; gl_FragColor = vec4(vec3(0.93, 0.95, 0.98), a * vA * uOpac * uMax); }`,
   });
   const puntos = new THREE.Points(geo, mat);
   puntos.frustumCulled = false;
