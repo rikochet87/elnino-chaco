@@ -264,3 +264,70 @@ select.campo-chico, .campo-chico { height: 40px; padding: 0 10px; font-size: 14p
 
 .oceano-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 14px; padding: 0 18px; font-size: 15px; font-weight: 600; color: #0B1A2A; background: #F2A541; border-radius: 3px; text-decoration: none; }
 .oceano-link:hover { color: #0B1A2A; background: #F7BC69; }
+
+/* ---------- Vista ciudadana: el mapa es lo principal ---------- */
+.explorador { display: grid; grid-template-columns: minmax(320px, 380px) 1fr; height: calc(100vh - 76px); min-height: 600px; max-height: 980px; background: var(--panel); border-bottom: 1px solid var(--borde); }
+.explorador-panel { padding: 28px 28px 24px; overflow-y: auto; border-right: 1px solid var(--borde); display: flex; flex-direction: column; gap: 14px; }
+.explorador-panel h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: 600; }
+.explorador-intro { margin: 0; font-size: 16px; color: var(--texto-3); }
+.explorador .buscador { flex-direction: column; align-items: stretch; margin: 0; max-width: none; }
+.explorador .buscador .envoltura { width: 100%; flex: none; }
+.explorador .buscador .boton { width: 100%; justify-content: center; }
+.explorador .mensaje { margin: 0; }
+.explorador .mensaje:empty { display: none; }
+.explorador-sub { margin: 8px 0 0; font-size: 13px; font-weight: 600; color: var(--texto-4); letter-spacing: .02em; }
+.temas { display: flex; flex-wrap: wrap; gap: 6px; }
+.temas .tab { height: 38px; padding: 0 14px; border: 1px solid var(--borde); border-radius: 19px; font-size: 14px; color: var(--texto-2); background: var(--panel); }
+.temas .tab[aria-selected="true"] { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 600; }
+.temas .tab:hover { border-color: var(--azul); color: var(--azul); }
+.temas .tab[aria-selected="true"]:hover { color: #fff; }
+.explorador .leyenda { flex: none; gap: 6px; }
+.explorador .leyenda h3 { font-size: 15px; }
+.explorador .leyenda-item { font-size: 14px; }
+.explorador-mapa { position: relative; min-width: 0; }
+.explorador .mapa { position: absolute; inset: 0; height: auto; border: 0; }
+
+/* Popup del departamento */
+.maplibregl-popup.pop-depto { z-index: 3; } /* por encima de la atribución del mapa */
+.maplibregl-popup.pop-depto .maplibregl-popup-content { padding: 0; border-radius: 6px; box-shadow: 0 8px 28px rgba(11, 26, 42, .22); overflow: hidden; }
+.pop { width: 290px; font-size: 14px; color: var(--texto); }
+.pop-cab { padding: 10px 40px 8px 14px; background: var(--navy); color: #fff; }
+.pop-cab strong { display: block; font-size: 17px; line-height: 1.25; }
+.pop-cab span { font-size: 13px; color: #C9D3DD; }
+.pop-lista { list-style: none; margin: 0; padding: 4px 0; }
+.pop-lista li { display: grid; grid-template-columns: 12px 1fr; gap: 10px; align-items: start; padding: 5px 14px; line-height: 1.35; }
+.pop-lista li.activo { background: #EEF3F8; }
+.pop-lista i { width: 12px; height: 12px; margin-top: 4px; border-radius: 2px; border: 1px solid rgba(27,35,44,.15); }
+.pop-lista small { display: block; font-size: 12px; color: var(--texto-4); }
+.pop-lista b { font-weight: 600; }
+.pop-lista em { display: block; font-style: normal; font-size: 13px; color: var(--texto-3); }
+.pop-pie { padding: 6px 14px 12px; }
+.pop-pie button { width: 100%; min-height: 38px; font: inherit; font-weight: 600; color: #fff; background: var(--azul); border: 0; border-radius: 3px; cursor: pointer; }
+.pop-pie button:hover { background: var(--azul-hover); }
+.maplibregl-popup.pop-depto .maplibregl-popup-close-button { color: #fff; font-size: 22px; width: 36px; height: 36px; right: 2px; top: 2px; }
+.maplibregl-popup.pop-depto .maplibregl-popup-close-button:hover { background: rgba(255,255,255,.12); }
+.maplibregl-popup.pop-depto.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--navy); }
+
+@media (max-width: 900px) {
+  /* en el celular: texto y buscador, temas, mapa y, debajo del mapa, la leyenda */
+  .explorador { display: flex; flex-direction: column; gap: 10px; height: auto; max-height: none; min-height: 0; padding-bottom: 14px; }
+  .explorador-panel { display: contents; }
+  .explorador-panel > * { margin-left: 16px; margin-right: 16px; }
+  .explorador-panel h1 { margin-top: 20px; }
+  .explorador-mapa { order: 5; }
+  .explorador .leyenda { order: 6; }
+  .explorador-panel h1 { font-size: 22px; }
+  .explorador-intro { font-size: 15px; }
+  .explorador .buscador { flex-direction: row; flex-wrap: wrap; }
+  .explorador .buscador .envoltura { flex: 1 1 100%; }
+  .explorador .buscador .boton { width: auto; flex: 1 1 auto; }
+  .temas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0; padding: 0 16px 2px; }
+  .temas .tab { flex: none; }
+  .explorador .leyenda { order: 10; }
+  .explorador-mapa { height: 70vh; height: 70svh; min-height: 400px; border-top: 1px solid var(--borde); border-bottom: 1px solid var(--borde); }
+  .explorador .leyenda { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; }
+  .explorador .leyenda h3 { width: 100%; font-size: 14px; margin: 0; }
+  .explorador .leyenda-item { font-size: 13px; }
+  .explorador .leyenda p { display: none; }
+  .pop { width: 260px; }
+}

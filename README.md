@@ -32,7 +32,11 @@ Los Niños de 1997-98 y 2015-16 fueron de los más fuertes registrados y dejaron
 
 ## Cómo usar el sitio
 
-### 1. Buscá tu zona
+### 1. Tocá tu departamento en el mapa
+
+Lo primero que aparece es el mapa de Chaco. Al tocar un departamento se abre una ficha emergente con lo esencial: lluvia esperada, posibilidad de cortes de caminos, condiciones para el dengue, calor húmedo y agua fuera de lo habitual. Con los botones **Lluvia, Caminos, Dengue, Calor y Agua observada** cambiás qué colorea el mapa. El botón **"Ver la ficha completa"** baja a la explicación detallada.
+
+### 1b. O buscá tu zona
 
 En la parte de arriba hay un buscador. Podés:
 

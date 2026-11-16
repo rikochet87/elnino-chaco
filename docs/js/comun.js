@@ -117,7 +117,7 @@
       },
       bounds: caja,
       fitBoundsOptions: { padding: 24 },
-      maxBounds: [[caja[0][0] - 4, caja[0][1] - 3], [caja[1][0] + 4, caja[1][1] + 3]],
+      maxBounds: [[caja[0][0] - 7, caja[0][1] - 6], [caja[1][0] + 7, caja[1][1] + 6]], // margen para que entre la ficha emergente
       dragRotate: false,
       pitchWithRotate: false,
       attributionControl: false,
@@ -133,14 +133,17 @@
       mapa.addControl(atribucion);
     });
 
+    // Nombre al pasar el mouse (se oculta mientras está abierta la ficha emergente de un departamento)
     const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
+    let sinTooltip = false;
     mapa.on("mousemove", "deptos-relleno", (e) => {
       mapa.getCanvas().style.cursor = "pointer";
+      if (sinTooltip) { popup.remove(); return; }
       const p = e.features[0].properties;
       popup.setLngLat(e.lngLat).setHTML(`<strong>${p.nombre}</strong>${p.cabecera}`).addTo(mapa);
     });
     mapa.on("mouseleave", "deptos-relleno", () => { mapa.getCanvas().style.cursor = ""; popup.remove(); });
-    mapa.on("click", "deptos-relleno", (e) => alSeleccionar(e.features[0].id));
+    mapa.on("click", "deptos-relleno", (e) => { popup.remove(); alSeleccionar(e.features[0].id, e.lngLat); });
 
     let seleccionado = null;
     return {
@@ -155,6 +158,7 @@
         if (id) mapa.setFeatureState({ source: "deptos", id }, { sel: true });
       },
       ajustar() { mapa.resize(); mapa.fitBounds(caja, { padding: 24, animate: false }); },
+      tooltip(si) { sinTooltip = !si; if (!si) popup.remove(); },
     };
   }
 

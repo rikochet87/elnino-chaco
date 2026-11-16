@@ -83,7 +83,65 @@
     const url = new URL(location.href);
     url.searchParams.set("d", id);
     history.replaceState(null, "", url);
-    if (desplazar) $("resumen").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (desplazar) {
+      // desde el buscador o la ubicación: se muestra en el mapa, con su ficha emergente
+      abrirEmergente(id);
+      $("mapa-contenedor").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  // Ficha emergente del departamento, sobre el mapa
+  let emergente = null;
+  function htmlEmergente(id) {
+    const p = datos.porId[id], d = datos.emision.departamentos[id];
+    const M = S.MODULOS;
+    const fila = (modulo, rotulo, valor, extra) => {
+      const m = M[modulo], c = m.clases[m.clase(d)];
+      return `<li class="${modulo === tabActiva ? "activo" : ""}"><i style="background:${c.color}"></i>` +
+        `<span><small>${rotulo}</small><b>${valor || c.texto}</b>${extra ? `<em>${extra}</em>` : ""}</span></li>`;
+    };
+    const l = d.lluvia;
+    const anom = typeof l.anom_pronostico_pct === "number" ? T("pop.lluvia-anom", T("lluvia.masmenos", l.anom_pronostico_pct)) : "";
+    const a = d.agua_obs;
+    return `<div class="pop"><div class="pop-cab"><strong>${p.nombre}</strong><span>${T("pop.alrededores", p.cabecera)}</span></div>` +
+      `<ul class="pop-lista">` +
+      fila("lluvia", T("pop.lluvia"), null, anom) +
+      fila("anegamiento", T("pop.caminos")) +
+      fila("dengue", T("pop.dengue")) +
+      fila("calor", T("pop.calor")) +
+      fila("agua", T("pop.agua"), `${S.num(a.km2)} km²`) +
+      `</ul><div class="pop-pie"><button type="button" data-ficha>${T("pop.ficha")}</button></div></div>`;
+  }
+  function abrirEmergente(id, lngLat) {
+    const m = mapa.mapa;
+    const lugar = lngLat || datos.porId[id].centro;
+    if (emergente) emergente.remove();
+    emergente = new maplibregl.Popup({ className: "pop-depto", maxWidth: "320px", offset: 10, focusAfterOpen: false })
+      .setLngLat(lugar).setHTML(htmlEmergente(id)).addTo(m);
+    mapa.tooltip(false);
+    emergente.on("close", () => { mapa.tooltip(true); emergente = null; });
+    emergente.getElement().querySelector("[data-ficha]").addEventListener("click", () => $("resumen").scrollIntoView({ behavior: "smooth", block: "start" }));
+    emergente.idDepto = id;
+    requestAnimationFrame(() => ajustarEmergente());
+  }
+  // si la ficha emergente no entra en el mapa, se corre el mapa lo justo para que se vea entera
+  function ajustarEmergente() {
+    if (!emergente) return;
+    const r = emergente.getElement().getBoundingClientRect(), c = $("mapa-contenedor").getBoundingClientRect();
+    let dx = 0, dy = 0;
+    if (r.bottom > c.bottom - 10) dy = r.bottom - c.bottom + 14;
+    if (r.top - dy < c.top + 10) dy = r.top - c.top - 14;
+    if (r.right > c.right - 10) dx = r.right - c.right + 14;
+    if (r.left - dx < c.left + 10) dx = r.left - c.left - 14;
+    if (dx || dy) mapa.mapa.panBy([dx, dy], { duration: 350 });
+  }
+  // tocar un departamento: actualiza la ficha y abre la ficha emergente
+  function reengancharEmergente() {
+    emergente.getElement().querySelector("[data-ficha]").addEventListener("click", () => $("resumen").scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+  function alTocar(id, lngLat) {
+    mostrarZona(id);
+    abrirEmergente(id, lngLat);
   }
 
   function pintarMapa() {
@@ -109,7 +167,7 @@
     $("tabs").innerHTML = ORDEN_TABS.map((k) => `<button class="tab" role="tab" type="button" data-tab="${k}" aria-controls="mapa-contenedor">${S.MODULOS[k].nombre}</button>`).join("");
     $("tabs").addEventListener("click", (e) => {
       const b = e.target.closest(".tab");
-      if (b) { tabActiva = b.dataset.tab; pintarMapa(); }
+      if (b) { tabActiva = b.dataset.tab; pintarMapa(); if (emergente) emergente.setHTML(htmlEmergente(emergente.idDepto)), reengancharEmergente(); }
     });
     $("tabs").addEventListener("keydown", (e) => {
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
@@ -194,7 +252,7 @@
     const e = datos.emision;
     textosGenerales();
     indice = S.indiceBusqueda(datos);
-    mapa = S.crearMapa("mapa-contenedor", datos, (id) => mostrarZona(id, { desplazar: true }));
+    mapa = S.crearMapa("mapa-contenedor", datos, alTocar);
     armarTabs();
     armarBuscador();
     armarCompartir();
@@ -211,6 +269,7 @@
       rotularTabs();
       pintarMapa();
       if (actual) mostrarZona(actual);
+      if (emergente) { emergente.setHTML(htmlEmergente(emergente.idDepto)); reengancharEmergente(); }
     });
   }
 
