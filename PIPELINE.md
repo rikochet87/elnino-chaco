@@ -129,6 +129,7 @@ La página "Cómo llega El Niño a Chaco" usa datos que se generan solos en GitH
 | **Vientos y lluvia de los veranos Niño** | A mano | Promedia los años con El Niño (según el ONI) del reanálisis NCEP/NCAR y de la lluvia GPCP: viento y altura a 200 hPa, humedad y viento a 850 hPa, lluvia de diciembre a febrero y de septiembre a febrero | `docs/data/atmosfera.json` |
 
 | **Imagen satelital del globo** | A mano, una sola vez (ya está hecha) | Descarga NASA Blue Marble desde NASA GIBS y la guarda en 4096 × 2048 y 2048 × 1024 | `docs/data/imagen/` |
+| **Relieve de Sudamérica** | A mano, una sola vez (ya está hecho) | Descarga el modelo de elevación NOAA ETOPO1 (ERDDAP; si no responde, NOAA NCEI) en una grilla de 0,1° | `docs/data/relieve_sa.png` y `.json` |
 
 Para correr a mano cualquiera de ellos: en GitHub, pestaña **Actions** → elegir el proceso → **Run workflow**. El de vientos conviene correrlo de nuevo después de cada verano con El Niño (por ejemplo, en marzo de 2027).
 

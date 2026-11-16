@@ -73,7 +73,7 @@ Desde el gráfico del océano, el botón **"Ver en 3D cómo llega El Niño hasta
 1. El Pacífico se calienta: la temperatura del mar de los últimos seis meses, semana por semana, actualizada todos los días.
 2. Sobre el agua caliente hay más evaporación y más tormentas.
 3. Esas tormentas generan una onda en la atmósfera que refuerza la corriente en chorro subtropical sobre el centro de Argentina.
-4. La humedad que llueve en Chaco llega desde la Amazonía, por el chorro de capas bajas que baja pegado a los Andes.
+4. La humedad que llueve en Chaco llega desde la Amazonía: la cordillera de los Andes, que se ve en 3D, funciona como un muro que la desvía hacia el sur por el chorro de capas bajas.
 5. La lluvia carga los ríos de la cuenca del Plata, y la crecida baja por el Paraná y el Paraguay hasta Corrientes y Barranqueras.
 
 Los vientos, la humedad y la lluvia que se muestran son el promedio real de los años con El Niño desde 1983. Las alturas de las capas están exageradas para que se distingan. En celulares viejos o navegadores sin 3D se puede leer el recorrido igual.
@@ -155,6 +155,7 @@ Todos los datos son **públicos y gratuitos**. El sitio no inventa números: los
 | Lluvia en Sudamérica (página 3D) | **GPCP v2.3** (NOAA PSL), satélite y pluviómetros | Cuánto más llueve en la cuenca del Plata en los años con El Niño |
 | Costas, países, provincias y ríos (página 3D) | **Natural Earth** (dominio público) | Mapa del globo, límites al acercarse y ríos de la cuenca del Plata |
 | Imagen satelital (página 3D) | **NASA Blue Marble Next Generation**, a través de NASA GIBS (dominio público) | Vista satelital del globo |
+| Relieve de Sudamérica (página 3D) | **NOAA ETOPO1** (dominio público), grilla de 0,1° | Cordillera de los Andes en 3D, con la altura exagerada 30 veces |
 | Límites de los departamentos | **Instituto Geográfico Nacional** | Mapa y cálculos por departamento |
 
 Las capas satelitales e históricas se procesan en **Google Earth Engine**, una plataforma gratuita para uso no comercial que permite calcular sobre imágenes de satélite sin descargarlas.

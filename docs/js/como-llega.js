@@ -11,7 +11,7 @@
  * Las alturas de las capas están exageradas para que se distingan.
  */
 import * as THREE from "../vendor/three/three.module.min.js";
-import { Navegacion, xyz } from "./navegacion.js";
+import { Navegacion, xyz, latlon } from "./navegacion.js";
 
 const I = window.I18N, T = I.T;
 const $ = (id) => document.getElementById(id);
@@ -91,19 +91,24 @@ const ESCENAS = {
   inicio:    { lat: 4,   lon: -145, dist: 4.4, capas: { sst: 1, chaco: 0.7 } },
   pacifico:  { lat: 0,   lon: -150, dist: 3.9, capas: { sst: 1, chaco: 0.5 } },
   tormentas: { lat: 10,  lon: -140, dist: 3.2, capas: { sst: 1, tormentas: 1, chaco: 0.5 } },
-  onda:      { lat: -35, lon: -105, dist: 3.7, capas: { sst: 0.35, tormentas: 0.25, onda: 1, chorro: 1, chaco: 1 } },
-  humedad:   { lat: -18, lon: -62,  dist: 2.5, capas: { sst: 0.2, chorro: 0.3, humedad: 1, chaco: 1 } },
-  rios:      { lat: -24, lon: -56,  dist: 2.25, capas: { sst: 0.15, lluvia: 1, rios: 1, chaco: 1, humedad: 0.15 } },
-  final:     { lat: -26, lon: -60,  dist: 2.1, capas: { sst: 0.15, lluvia: 0.45, rios: 0.8, chaco: 1 } },
+  onda:      { lat: -35, lon: -105, dist: 3.7, capas: { sst: 0.35, tormentas: 0.25, onda: 1, chorro: 1, chaco: 1, relieve: 1 } },
+  // la humedad se ve desde el noreste e inclinada, para que la cordillera se vea como un muro
+  humedad:   { lat: -21, lon: -63,  dist: 2.35, incl: 38, rumbo: -20, capas: { sst: 0.2, chorro: 0.3, humedad: 1, chaco: 1, relieve: 1 } },
+  rios:      { lat: -24, lon: -56,  dist: 2.25, capas: { sst: 0.15, lluvia: 1, rios: 1, chaco: 1, humedad: 0.15, relieve: 1 } },
+  final:     { lat: -26, lon: -60,  dist: 2.1, capas: { sst: 0.15, lluvia: 0.45, rios: 0.8, chaco: 1, relieve: 1 } },
 };
-const CAPAS = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco"];
+const CAPAS = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco", "relieve"];
+// Exageración vertical del relieve y de las alturas de las capas de viento (30 veces):
+// 1.500 m (850 hPa) → radio 1,007 · Andes ~6.000 m → 1,028 · chorro a 12 km → 1,057
+const EXAG = 30;
+const altura = (metros) => (metros / 6371000) * EXAG;
 
 const ETIQUETAS = [
   { k: "g.et.pacifico", lat: 0, lon: -140, en: ["inicio", "pacifico", "tormentas"], capa: "sst" },
   { k: "g.et.peru", lat: -6, lon: -86, en: ["pacifico"], capa: "sst" },
   { k: "g.et.indonesia", lat: -4, lon: 128, en: ["pacifico"], capa: "sst" },
   { k: "g.et.tormentas", lat: 9, lon: -130, en: ["tormentas"], capa: "tormentas" },
-  { k: "g.et.andes", lat: -17, lon: -70, en: ["tormentas", "humedad"] },
+  { k: "g.et.andes", lat: -17, lon: -69.5, en: ["tormentas", "humedad"], r: 1.04 },
   { k: "g.et.onda", lat: -52, lon: -150, en: ["onda"], capa: "onda" },
   { k: "g.et.chorro", lat: -31, lon: -66, en: ["onda"], clase: "destacada", capa: "chorro" },
   { k: "g.et.amazonia", lat: -4, lon: -62, en: ["humedad"], clase: "humedad" },
@@ -250,6 +255,33 @@ function leyendaExplorar() {
   $("leyenda").innerHTML = html;
 }
 
+// ---------------------------------------------------------------- relieve
+const uRelieve = { value: 0 }; // 0 = plano, 1 = relieve completo (se anima al cambiar de paso)
+let elevacion = () => 0;       // metros sobre el nivel del mar; se reemplaza al cargar el relieve
+const geometriasSobreTerreno = [];
+
+// Líneas que se apoyan sobre el relieve: cada vértice sube según su elevación (atributo aElev)
+function materialLinea(color) {
+  return new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { uColor: { value: new THREE.Color(color) }, uOpac: { value: 0 }, uRelieve },
+    vertexShader: `attribute float aElev; uniform float uRelieve;
+      void main() { vec3 p = position + normalize(position) * aElev * uRelieve; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`,
+    fragmentShader: `uniform vec3 uColor; uniform float uOpac; void main() { gl_FragColor = vec4(uColor, uOpac); }`,
+  });
+}
+function elevarGeometria(geo) {
+  const pos = geo.attributes.position, el = new Float32Array(pos.count);
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const [la, lo] = latlon(v);
+    el[i] = altura(elevacion(la, lo));
+  }
+  geo.setAttribute("aElev", new THREE.BufferAttribute(el, 1));
+}
+function sobreTerreno(geo) { elevarGeometria(geo); geometriasSobreTerreno.push(geo); return geo; }
+
 // ---------------------------------------------------------------- vista 3D
 let etiquetasTexto = () => {};
 let actualizarFecha = () => {};
@@ -357,7 +389,7 @@ function crearVista() {
     return m;
   }
 
-  let onda = null, lluvia = null, chorro = null, humedad = null, tormentas = null;
+  let onda = null, lluvia = null, chorro = null, humedad = null, tormentas = null, relieve = null;
   if (atm) {
     const g = atm.grilla;
     const z = muestreador(g, atm.z200_anom);
@@ -381,10 +413,12 @@ function crearVista() {
       if (a <= 0) return null;
       return v > 0 ? [70, 140, 225, Math.round(a * 200)] : [176, 120, 46, Math.round(a * 190)];
     }));
+    lluvia.material.depthTest = false; // se ve por encima del relieve
+    lluvia.renderOrder = 5;
 
     const vel = muestreador(g, atm.vel200_anom);
     chorro = new Estelas({
-      u: muestreador(g, atm.u200), v: muestreador(g, atm.v200), n: POCOS ? 1400 : 3200, radio: 1.07, largo: 12,
+      u: muestreador(g, atm.u200), v: muestreador(g, atm.v200), n: POCOS ? 1400 : 3200, radio: 1 + altura(12000), largo: 12,
       escala: 0.42, dominio: { latN: 28, latS: -68, lonO: -180, lonE: 180 }, vida: [2.5, 5],
       color: (lat, lon) => {
         const a = vel(lat, lon) ?? 0;
@@ -397,7 +431,9 @@ function crearVista() {
 
     const qu = muestreador(g, atm.qu850), qv = muestreador(g, atm.qv850);
     humedad = new Estelas({
-      u: qu, v: qv, n: POCOS ? 1100 : 2600, radio: 1.014, largo: 14, escala: 0.11,
+      // a 1.800 m: por encima de la llanura y por debajo de la cordillera, que no puede cruzar
+      u: qu, v: qv, n: POCOS ? 1100 : 2600, radio: 1 + altura(1800), largo: 14, escala: 0.11,
+      bloqueo: (lat, lon) => uRelieve.value > 0.5 && elevacion(lat, lon) > 1500,
       dominio: { latN: 12, latS: -42, lonO: -82, lonE: -34 }, vida: [2.5, 5],
       peso: (lat, lon) => { const a = qu(lat, lon), b = qv(lat, lon); return a === null ? 0 : Math.hypot(a, b); },
       color: (lat, lon) => {
@@ -410,10 +446,10 @@ function crearVista() {
 
   // Ríos de la cuenca del Plata y flujo aguas abajo
   const grupoRios = new THREE.Group();
-  const matRio = new THREE.LineBasicMaterial({ color: 0x6fb6e8, transparent: true, opacity: 0 });
+  const matRio = materialLinea(0x6fb6e8);
   const tramos = globo.rios.map((r) => {
     const pts = r.c.map(([lo, la]) => xyz(la, lo, 1.0011));
-    grupoRios.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), matRio));
+    grupoRios.add(new THREE.Line(sobreTerreno(new THREE.BufferGeometry().setFromPoints(pts)), matRio));
     const largos = [0];
     for (let i = 1; i < pts.length; i++) largos.push(largos[i - 1] + pts[i].distanceTo(pts[i - 1]));
     return { pts, largos, total: largos[largos.length - 1], peso: (r.rango <= 4 ? 3 : 1) };
@@ -423,9 +459,9 @@ function crearVista() {
   escena.add(grupoRios);
 
   // Chaco: contorno y punto en Resistencia
-  const matChaco = new THREE.LineBasicMaterial({ color: 0xf2a541, transparent: true, opacity: 0 });
+  const matChaco = materialLinea(0xf2a541);
   globo.chaco.forEach((anillo) => {
-    escena.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(anillo.map(([lo, la]) => xyz(la, lo, 1.001))), matChaco));
+    escena.add(new THREE.LineLoop(sobreTerreno(new THREE.BufferGeometry().setFromPoints(anillo.map(([lo, la]) => xyz(la, lo, 1.001)))), matChaco));
   });
   const matPulso = new THREE.PointsMaterial({ color: 0xf2a541, size: 0.05, map: puntoRedondo(), transparent: true, depthWrite: false, opacity: 0 });
   const pulso = new THREE.Points(new THREE.BufferGeometry().setFromPoints([xyz(-27.45, -58.99, 1.0015)]), matPulso);
@@ -488,7 +524,7 @@ function crearVista() {
     const el = document.createElement("span");
     el.className = "g-etiqueta" + (e.clase ? " " + e.clase : "");
     capaEt.appendChild(el);
-    return { ...e, el, pos: xyz(e.lat, e.lon, 1.01) };
+    return { ...e, el, pos: xyz(e.lat, e.lon, e.r || 1.01) };
   });
   // Prioridad al dibujar: primero las destacadas (Chaco, chorro), después el resto en orden
   const porPrioridad = [...etiquetas].sort((a, b) => (b.clase === "destacada") - (a.clase === "destacada"));
@@ -496,6 +532,73 @@ function crearVista() {
   etiquetasTexto = () => { etiquetas.forEach((e) => { e.el.textContent = T(e.k); }); medir(); };
   etiquetasTexto();
   document.fonts?.ready.then(medir);
+
+  // --- Relieve de Sudamérica (NOAA ETOPO), con la altura exagerada
+  async function cargarRelieve() {
+    const info = await json("data/relieve_sa.json").catch(() => null);
+    if (!info) return;
+    const tex = await new THREE.TextureLoader().loadAsync("data/relieve_sa.png").catch(() => null);
+    if (!tex) return;
+    tex.minFilter = tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+    // muestreo en JS para ubicar líneas, ríos y la humedad
+    const img = tex.image, c = document.createElement("canvas");
+    c.width = img.width; c.height = img.height;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    g.drawImage(img, 0, 0);
+    const px = g.getImageData(0, 0, c.width, c.height).data;
+    const { oeste, este, sur, norte } = info.caja, W = c.width, H = c.height, m = info.metros_por_nivel;
+    elevacion = (lat, lon) => {
+      const fx = ((lon - oeste) / (este - oeste)) * (W - 1), fy = ((norte - lat) / (norte - sur)) * (H - 1);
+      if (fx < 0 || fy < 0 || fx > W - 1 || fy > H - 1) return 0;
+      const x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(x0 + 1, W - 1), y1 = Math.min(y0 + 1, H - 1);
+      const k = (x, y) => px[(y * W + x) * 4];
+      const tx = fx - x0, ty = fy - y0;
+      return ((k(x0, y0) * (1 - tx) + k(x1, y0) * tx) * (1 - ty) + (k(x0, y1) * (1 - tx) + k(x1, y1) * tx) * ty) * m;
+    };
+    geometriasSobreTerreno.forEach(elevarGeometria);
+    flujo.elevar(elevacion);
+
+    const geo = new THREE.SphereGeometry(1, POCOS ? 180 : 360, POCOS ? 260 : 520,
+      (oeste + 180) * D2R, (este - oeste) * D2R, (90 - norte) * D2R, (norte - sur) * D2R);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uAlt: { value: tex }, uRelieve, uExag: { value: EXAG }, uMetros: { value: m },
+        uBase: uGlobo.uBase, uSatTex: uGlobo.uSatTex, uSat: uGlobo.uSat,
+        uCaja: { value: new THREE.Vector4(oeste, este, sur, norte) }, uTexel: { value: new THREE.Vector2(1 / W, 1 / H) },
+      },
+      vertexShader: `
+        uniform sampler2D uAlt; uniform float uRelieve, uExag, uMetros;
+        varying vec2 vUv; varying vec3 vN;
+        void main() {
+          vUv = uv;
+          float h = texture2D(uAlt, uv).r * 255.0 * uMetros;
+          vec3 p = normalize(position) * (1.0004 + h / 6371000.0 * uExag * uRelieve);
+          vN = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        }`,
+      fragmentShader: `
+        uniform sampler2D uAlt, uBase, uSatTex; uniform float uSat, uRelieve, uMetros; uniform vec4 uCaja; uniform vec2 uTexel;
+        varying vec2 vUv; varying vec3 vN;
+        float alt(vec2 uv) { return texture2D(uAlt, uv).r * 255.0 * uMetros; }
+        void main() {
+          float h = alt(vUv);
+          if (texture2D(uAlt, vUv).r < 0.5 / 255.0) discard; // el mar queda en el globo de abajo
+          vec2 uvG = vec2((mix(uCaja.x, uCaja.y, vUv.x) + 180.0) / 360.0, (mix(uCaja.z, uCaja.w, vUv.y) + 90.0) / 180.0);
+          vec3 base = texture2D(uBase, uvG).rgb;
+          if (uSat > 0.001) base = mix(base, texture2D(uSatTex, uvG).rgb * 0.92, uSat);
+          base = mix(base, vec3(0.47, 0.52, 0.57), smoothstep(1500.0, 5000.0, h) * 0.55 * (1.0 - uSat) * uRelieve);
+          // sombreado del relieve con luz desde el noroeste
+          float dx = alt(vUv + vec2(uTexel.x, 0.0)) - alt(vUv - vec2(uTexel.x, 0.0));
+          float dy = alt(vUv + vec2(0.0, uTexel.y)) - alt(vUv - vec2(0.0, uTexel.y));
+          float sombra = clamp(1.0 + (dx * 0.7 - dy * 0.7) * -0.00035 * uRelieve, 0.45, 1.4);
+          float luz = 0.62 + 0.38 * max(dot(normalize(vN), vec3(0.0, 0.25, 1.0)), 0.0);
+          gl_FragColor = vec4(base * luz * sombra, 1.0);
+        }`,
+    });
+    relieve = new THREE.Mesh(geo, mat);
+    relieve.visible = false;
+    escena.add(relieve);
+  }
 
   // --- Detalle de Sudamérica (costas, países, provincias y departamentos de Chaco), nítido al acercarse
   let detalle = null, cargandoDetalle = false;
@@ -513,9 +616,9 @@ function crearVista() {
           pts.push(xyz(ln[i - 1][1], ln[i - 1][0], radio), xyz(ln[i][1], ln[i][0], radio));
         }
       });
-      const mat = new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, opacity: 0 });
+      const mat = materialLinea(color);
       mat.userData.max = opacidad;
-      grupo.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), mat));
+      grupo.add(new THREE.LineSegments(sobreTerreno(new THREE.BufferGeometry().setFromPoints(pts)), mat));
     };
     capa(d.provincias, 0xb0c4d6, 0.5, 1.0005);
     capa(d.costa, 0x96c4eb, 0.85, 1.0006);
@@ -574,7 +677,7 @@ function crearVista() {
   const vistaDe = (nombre) => {
     const e = ESCENAS[nombre];
     const f = 1 + (factorDist() - 1) * lim((e.dist - 1.6) / 2, 0.35, 1);
-    return { lat: e.lat, lon: e.lon, alt: e.dist * f - 1, rumbo: 0, incl: 0 };
+    return { lat: e.lat, lon: e.lon, alt: e.dist * f - 1, rumbo: e.rumbo || 0, incl: e.incl || 0 };
   };
   nav.saltar(vistaDe("inicio"));
 
@@ -603,7 +706,7 @@ function crearVista() {
   encuadre();
 
   // --- Modo explorar
-  const CAPAS_PANEL = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco"];
+  const CAPAS_PANEL = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco", "relieve"];
   let nombresVisibles = true;
   function panelCapas() {
     $("lista-capas").innerHTML = CAPAS_PANEL.map((c) =>
@@ -704,10 +807,12 @@ function crearVista() {
     if (detalle) {
       const o = Math.max(satOpac * 0.85, lim((2.1 - alt) / 0.6, 0, 1));
       detalle.visible = o > 0.01;
-      detalle.children.forEach((l) => { l.material.opacity = o * l.material.userData.max; });
+      detalle.children.forEach((l) => { l.material.uniforms.uOpac.value = o * l.material.userData.max; });
     }
-    matRio.opacity = 0.75 * opac.rios;
-    matChaco.opacity = opac.chaco;
+    matRio.uniforms.uOpac.value = 0.75 * opac.rios;
+    matChaco.uniforms.uOpac.value = opac.chaco;
+    uRelieve.value = opac.relieve;
+    if (relieve) relieve.visible = opac.relieve > 0.005;
     const escalaPuntos = lim(alt / 1.1, 0.12, 1);
     matPulso.opacity = opac.chaco * (REDUCIR ? 1 : 0.6 + 0.4 * Math.sin(t * 3));
     matPulso.size = (0.035 + (REDUCIR ? 0 : 0.015 * Math.sin(t * 3))) * escalaPuntos;
@@ -770,7 +875,7 @@ function crearVista() {
 
   return {
     async cargar() {
-      await cargarSst();
+      await Promise.all([cargarSst(), cargarRelieve()]);
       irA(estado.escena);
       if (REDUCIR) { chorro?.precalentar(); humedad?.precalentar(); flujo.precalentar(); }
       bucle();
@@ -782,8 +887,8 @@ function crearVista() {
 
 // ---------------------------------------------------------------- partículas con estela (vientos)
 class Estelas {
-  constructor({ u, v, n, radio, largo, escala, dominio, vida, color, peso }) {
-    Object.assign(this, { u, v, n, radio, largo, escala, dominio, vida, color, peso });
+  constructor({ u, v, n, radio, largo, escala, dominio, vida, color, peso, bloqueo = () => false }) {
+    Object.assign(this, { u, v, n, radio, largo, escala, dominio, vida, color, peso, bloqueo });
     this.lat = new Float32Array(n); this.lon = new Float32Array(n);
     this.edad = new Float32Array(n); this.dur = new Float32Array(n);
     this.rgba = new Float32Array(n * 4);
@@ -811,7 +916,7 @@ class Estelas {
     let la, lo;
     for (let k = 0; k < 30; k++) {
       [la, lo] = this.azar();
-      if (this.u(la, lo) === null) continue;
+      if (this.u(la, lo) === null || this.bloqueo(la, lo)) continue;
       if (!this.peso || Math.random() * this.pesoMax < this.peso(la, lo)) break;
     }
     this.lat[i] = la; this.lon[i] = lo; this.edad[i] = 0;
@@ -830,7 +935,7 @@ class Estelas {
       const nla = la + v * this.escala * dt;
       let nlo = lo + (u * this.escala * dt) / Math.max(Math.cos(la * D2R), 0.25);
       if (nlo > 180) nlo -= 360; else if (nlo < -180) nlo += 360;
-      if (nla > d.latN || nla < d.latS || (d.lonE - d.lonO < 360 && (nlo < d.lonO || nlo > d.lonE))) { this.sembrar(i); continue; }
+      if (nla > d.latN || nla < d.latS || (d.lonE - d.lonO < 360 && (nlo < d.lonO || nlo > d.lonE)) || this.bloqueo(nla, nlo)) { this.sembrar(i); continue; }
       this.lat[i] = nla; this.lon[i] = nlo;
       const b = i * this.largo * 3;
       this.hist.copyWithin(b + 3, b, b + (this.largo - 1) * 3);
@@ -949,7 +1054,9 @@ function crearFlujo(tramos, n) {
     let j = 1;
     while (j < t.largos.length - 1 && t.largos[j] < d) j++;
     const a = t.largos[j - 1], b = t.largos[j];
-    v.lerpVectors(t.pts[j - 1], t.pts[j], b > a ? (d - a) / (b - a) : 0);
+    const f = b > a ? (d - a) / (b - a) : 0;
+    v.lerpVectors(t.pts[j - 1], t.pts[j], f);
+    if (t.elev) v.multiplyScalar(1 + (t.elev[j - 1] * (1 - f) + t.elev[j] * f) * uRelieve.value);
     pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
   }
   function paso(dt) {
@@ -962,6 +1069,7 @@ function crearFlujo(tramos, n) {
   }
   return {
     puntos, mat, tam: mat.size,
+    elevar(fn) { tramos.forEach((t) => { t.elev = t.pts.map((p) => { const [la, lo] = latlon(p); return altura(fn(la, lo)); }); }); },
     actualizar(opacidad, dt) {
       mat.opacity = opacidad;
       puntos.visible = opacidad > 0.01;
