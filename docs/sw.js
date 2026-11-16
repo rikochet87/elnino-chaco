@@ -1,5 +1,5 @@
 /* Service worker: la app funciona sin conexión con la última emisión descargada. */
-const VERSION = "v0.7.4";
+const VERSION = "v0.7.5";
 const CACHE_APP = `app-${VERSION}`;
 const CACHE_DATOS = "datos";
 
