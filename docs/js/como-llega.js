@@ -234,7 +234,7 @@ function leyenda() {
     `<div class="g-grupo"><h3>${T("g.ley.onda")}</h3><div class="g-item"><i class="punto" style="background:#E0614A"></i>${T("g.ley.alta")}</div>` +
     `<div class="g-item"><i class="punto" style="background:#4C8DD6"></i>${T("g.ley.baja")}</div></div>`;
   else if (e === "humedad") html = `<div class="g-grupo">` +
-    `<div class="g-item"><i style="background:#6FB8FF"></i>${T("g.ley.frente")}</div>` +
+    `<div class="g-item"><i style="background:#A8D6FF"></i>${T("g.ley.frente")}</div>` +
     `<div class="g-item"><i style="background:#F2A541"></i>${T("g.ley.chorro-alto")}</div>` +
     `<div class="g-item"><i class="punto" style="background:#EEF2F7"></i>${T("g.ley.nubes")}</div>` +
     `<div class="g-item"><i style="background:#5FD3C6"></i>${T("g.ley.humedad-flujo")}</div>${chaco}</div>`;
@@ -1102,30 +1102,60 @@ function crearNubes(lugares, n, { desde, sube, salto, tamano = 1, opacidad = 0.3
 // (mucho flujo de humedad a 850 hPa, sin cordillera debajo) levanta nubes que suben hasta el chorro de altura.
 function crearFrente(qu, qv) {
   const grupo = new THREE.Group();
-  const PERIODO = 11, N = 60; // segundos por pasada · puntos de la línea
-  const R0 = 1 + altura(900);
-  // la línea va de noroeste a sudeste y se mueve hacia el norte-noreste
+  const PERIODO = 11, N = 64; // segundos por pasada · puntos del borde
+  const R0 = 1 + altura(700);
+  let fase = 0, tiempo = 0;
+  // Borde delantero del aire frío: va de noroeste a sudeste, algo curvado y ondulado, y avanza hacia el norte
   const punto = (f, t) => {
-    const lat = -42 + 22 * f + (0.5 - t) * 7, lon = -67 + t * 24 + f * 3;
+    const lat = -42 + 22 * f + (0.5 - t) * 7 + 2.2 * Math.sin(Math.PI * t) + 0.5 * Math.sin(t * 11 + tiempo * 0.9);
+    const lon = -67 + t * 24 + f * 3;
     return [lat, lon];
   };
-  const matLinea = new THREE.LineBasicMaterial({ color: 0x6fb8ff, transparent: true, opacity: 0, depthWrite: false });
-  const lineas = [0, 0.18, -0.18].map(() => {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(N * 3), 3).setUsage(THREE.DynamicDrawUsage));
-    const l = new THREE.Line(g, matLinea);
-    l.frustumCulled = false;
-    grupo.add(l);
-    return l;
+  const latBorde = (lon) => {
+    const t = (lon + 67 - 3 * fase) / 24;
+    return t < 0 || t > 1 ? null : punto(fase, t)[0];
+  };
+
+  // Aire frío: estelas celestes que soplan del sur-sudoeste por detrás del borde, como el resto de los vientos
+  const aire = new Estelas({
+    u: () => 4, v: () => 14, n: POCOS ? 300 : 650, radio: R0, largo: 14, escala: 0.5,
+    dominio: { latN: -14, latS: -56, lonO: -70, lonE: -40 }, vida: [1.2, 2.6],
+    bloqueo: (la, lo) => {
+      const b = latBorde(lo);
+      // borde irregular: cada estela se corta un poco antes o después
+      return b === null || la > b - Math.random() * 1.8 || la < b - 8 || elevacion(la, lo) > 1500;
+    },
+    color: () => [0.70, 0.86, 1.0, 0.42],
   });
-  // triángulos del símbolo meteorológico del frente frío, apuntando hacia donde avanza
-  const DIENTES = 11;
-  const geoD = new THREE.BufferGeometry();
-  geoD.setAttribute("position", new THREE.BufferAttribute(new Float32Array(DIENTES * 9), 3).setUsage(THREE.DynamicDrawUsage));
-  const matD = new THREE.MeshBasicMaterial({ color: 0x6fb8ff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
-  const dientes = new THREE.Mesh(geoD, matD);
-  dientes.frustumCulled = false;
-  grupo.add(dientes);
+  grupo.add(aire.lineas);
+
+  // Borde: una franja luminosa y difusa (más intensa en el frente, se desvanece hacia el sur)
+  const geoB = new THREE.BufferGeometry();
+  const posB = new Float32Array(N * 2 * 3), ladoB = new Float32Array(N * 2), largoB = new Float32Array(N * 2);
+  const idx = [];
+  for (let i = 0; i < N; i++) {
+    ladoB[i * 2] = 0; ladoB[i * 2 + 1] = 1;
+    largoB[i * 2] = largoB[i * 2 + 1] = i / (N - 1);
+    if (i < N - 1) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  geoB.setIndex(idx);
+  geoB.setAttribute("position", new THREE.BufferAttribute(posB, 3).setUsage(THREE.DynamicDrawUsage));
+  geoB.setAttribute("aLado", new THREE.BufferAttribute(ladoB, 1));
+  geoB.setAttribute("aLargo", new THREE.BufferAttribute(largoB, 1));
+  const matB = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+    uniforms: { uOpac: { value: 0 } },
+    vertexShader: `attribute float aLado, aLargo; varying float vLado, vLargo;
+      void main() { vLado = aLado; vLargo = aLargo; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform float uOpac; varying float vLado, vLargo;
+      void main() {
+        float a = pow(1.0 - vLado, 2.2) * smoothstep(0.0, 0.12, vLargo) * smoothstep(1.0, 0.88, vLargo);
+        gl_FragColor = vec4(0.55, 0.78, 1.0, a * uOpac * 0.22);
+      }`,
+  });
+  const borde = new THREE.Mesh(geoB, matB);
+  borde.frustumCulled = false;
+  grupo.add(borde);
 
   // nubes que se levantan al paso del frente
   const M = POCOS ? 450 : 900;
@@ -1148,7 +1178,7 @@ function crearFrente(qu, qv) {
   grupo.add(nubesF);
 
   const humedadEn = (la, lo) => Math.hypot(qu(la, lo) ?? 0, qv(la, lo) ?? 0);
-  let fase = 0, siguiente = 0;
+  let siguiente = 0;
   const v = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), n = new THREE.Vector3();
   const obj = { grupo, centro: new THREE.Vector3() };
 
@@ -1156,31 +1186,19 @@ function crearFrente(qu, qv) {
     grupo.visible = opacidad > 0.01;
     if (!grupo.visible) return;
     fase = (fase + dt / PERIODO) % 1;
-    const aparece = Math.min(1, fase * 8, (1 - fase) * 8); // entra y sale con un fundido
-    matLinea.opacity = 0.95 * opacidad * aparece;
-    matD.opacity = 0.9 * opacidad * aparece;
+    tiempo += dt;
+    const aparece = Math.min(1, fase * 6, (1 - fase) * 6); // entra y sale con un fundido
+    aire.actualizar(0.9 * opacidad * aparece, dt);
+    matB.uniforms.uOpac.value = opacidad * aparece;
     matN.uniforms.uOpac.value = opacidad;
-    // línea (tres trazos paralelos para que se vea más gruesa)
-    lineas.forEach((l, k) => {
-      const off = [0, 0.18, -0.18][k];
-      const arr = l.geometry.attributes.position.array;
-      for (let i = 0; i < N; i++) {
-        const [la, lo] = punto(fase, i / (N - 1));
-        xyz(la + off, lo, R0, v);
-        arr[i * 3] = v.x; arr[i * 3 + 1] = v.y; arr[i * 3 + 2] = v.z;
-      }
-      l.geometry.attributes.position.needsUpdate = true;
-    });
-    // dientes: triángulos sobre la línea apuntando al norte-noreste
-    const arrD = geoD.attributes.position.array;
-    for (let k = 0; k < DIENTES; k++) {
-      const t0 = (k + 0.25) / DIENTES, t1 = (k + 0.65) / DIENTES, tm = (t0 + t1) / 2;
-      const [la0, lo0] = punto(fase, t0), [la1, lo1] = punto(fase, t1), [lam, lom] = punto(fase, tm);
-      xyz(la0, lo0, R0, a); xyz(la1, lo1, R0, b); xyz(lam + 1.1, lom + 0.25, R0, n);
-      arrD.set([a.x, a.y, a.z, b.x, b.y, b.z, n.x, n.y, n.z], k * 9);
+    for (let i = 0; i < N; i++) {
+      const [la, lo] = punto(fase, i / (N - 1));
+      xyz(la, lo, R0, v); posB.set([v.x, v.y, v.z], i * 6);
+      xyz(la - 2.2, lo - 0.4, R0, v); posB.set([v.x, v.y, v.z], i * 6 + 3);
     }
-    geoD.attributes.position.needsUpdate = true;
-    xyz(...punto(fase, 0.62).map((x, i) => x - (i === 0 ? 1.6 : 0)), 1 + altura(2500), obj.centro);
+    geoB.attributes.position.needsUpdate = true;
+    const [lc, oc] = punto(fase, 0.62);
+    xyz(lc - 1.6, oc, 1 + altura(2500), obj.centro);
 
     // nuevas nubes donde el frente cruza aire húmedo
     siguiente -= dt;

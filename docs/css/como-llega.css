@@ -29,7 +29,7 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 .g-etiqueta.visible { opacity: 1; }
 .g-etiqueta.destacada { color: var(--g-ambar); font-weight: 600; font-size: 14px; }
 .g-etiqueta.humedad { color: var(--g-humedad); }
-.g-etiqueta.frio { color: #8CC8FF; font-weight: 600; }
+.g-etiqueta.frio { color: #B5DCFF; font-weight: 600; }
 
 /* Relato */
 .g-relato { position: relative; z-index: 2; pointer-events: none; }
