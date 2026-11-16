@@ -172,7 +172,7 @@
         S.MODULOS.anegamiento.clases[d.anegamiento.categoria - 1].texto.toLowerCase()) + " " +
         T(datos.emision.demo ? "compartir.demo" : "compartir.real");
       if (navigator.share) {
-        try { await navigator.share({ title: "SIG El Niño Argentina", text: texto, url }); } catch (e) { /* cancelado */ }
+        try { await navigator.share({ title: "El Niño Argentina", text: texto, url }); } catch (e) { /* cancelado */ }
       } else {
         window.open("https://wa.me/?text=" + encodeURIComponent(texto + " " + url), "_blank", "noopener");
       }

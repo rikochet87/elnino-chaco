@@ -1,4 +1,4 @@
-# SIG El Niño Argentina
+# El Niño Argentina
 
 **Sitio web:** https://rikochet87.github.io/elnino-chaco/
 

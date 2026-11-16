@@ -26,7 +26,7 @@
     "saltar": "Skip to content",
     "idioma.grupo": "Language",
     // Vista ciudadana
-    "c.titulo": "SIG El Niño Argentina · What could happen in your area",
+    "c.titulo": "El Niño Argentina · What could happen in your area",
     "c.descripcion": "What could happen with rain, rural roads, dengue and heat in your department of Chaco if El Niño arrives. Plain-language information, updated every month.",
     "c.demo": "<strong>Demo version.</strong> Values are illustrative and do not come from real forecasts or observations. Do not use them to make decisions.",
     "c.franja-proyecto": "Independent project · Does not replace official alerts",
@@ -98,7 +98,7 @@
     "c.pie-proyecto": "Independent project",
     "c.pie-links": "<a href=\"como-llega.html\">How El Niño reaches Chaco</a> · <a href=\"tecnica.html\">Technical view and data</a> · <a href=\"https://github.com/rikochet87/elnino-chaco\" rel=\"noopener\">Code</a>",
     // Cómo llega El Niño a Chaco (página 3D)
-    "g.titulo": "How El Niño reaches Chaco · SIG El Niño Argentina",
+    "g.titulo": "How El Niño reaches Chaco · El Niño Argentina",
     "g.descripcion": "A 3D journey with real data: Pacific warming, storms, jet streams, Amazon moisture and the river floods that reach Chaco.",
     "g.marca-sub": "How El Niño reaches Chaco",
     "g.volver": "Back to my area",
@@ -152,8 +152,8 @@
     "g.fuente-2": "Winds, moisture and rain in El Niño summers: NCEP/NCAR R1 reanalysis and GPCP v2.3 (NOAA PSL). Layer heights are exaggerated so they can be seen.",
     "g.fuente-3": "El Niño summers: NOAA CPC ONI index. Map: Natural Earth. Forecast: ECMWF SEAS5 via Open-Meteo.",
     // Vista técnica
-    "t.titulo": "SIG El Niño Argentina · Technical view",
-    "t.descripcion": "Indices, components, observed water and downloads from SIG El Niño Argentina, Chaco pilot.",
+    "t.titulo": "El Niño Argentina · Technical view",
+    "t.descripcion": "Indices, components, observed water and downloads from El Niño Argentina, Chaco pilot.",
     "t.demo": "<strong>Demo issue.</strong> Values follow a simple geographic gradient to test the system; they do not come from ERA5, CHIRPS, ECMWF SEAS5 or Sentinel-1. The data schema is final.",
     "t.marca-sub": "Technical view · Chaco pilot",
     "t.vista-ciudadana": "Citizen view",

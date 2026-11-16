@@ -179,7 +179,7 @@ def cmd_atmosfera(cfg, args):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="python -m pipeline", description="Pipeline del SIG El Niño Argentina")
+    p = argparse.ArgumentParser(prog="python -m pipeline", description="Pipeline del El Niño Argentina")
     p.add_argument("--config", help="ruta a otro config.yaml")
     sub = p.add_subparsers(dest="comando", required=True)
     sub.add_parser("historico", help="series históricas y compuestos Niño (Earth Engine + ONI)")

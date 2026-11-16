@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  Publica la emisión mensual del SIG El Niño Argentina.
+  Publica la emisión mensual del El Niño Argentina.
 
 .DESCRIPTION
   Hace en orden: git pull, pipeline mensual (pronóstico, agua observada, índices y

@@ -1,4 +1,4 @@
-# Configuración del pipeline SIG El Niño Argentina (piloto Chaco).
+# Configuración del pipeline El Niño Argentina (piloto Chaco).
 # Lo único que hay que completar antes de la primera corrida es gee.proyecto.
 
 area:
