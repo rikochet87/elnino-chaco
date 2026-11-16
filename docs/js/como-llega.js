@@ -16,7 +16,10 @@ import { Navegacion, xyz } from "./navegacion.js";
 const I = window.I18N, T = I.T;
 const $ = (id) => document.getElementById(id);
 const D2R = Math.PI / 180;
-const REDUCIR = matchMedia("(prefers-reduced-motion: reduce)").matches;
+// El globo se anima siempre, aunque el sistema pida "menos movimiento" (por ejemplo, en escritorio remoto
+// o en equipos de trabajo con las animaciones de Windows apagadas). Para detenerlo está el botón de pausa.
+const REDUCIR = false;
+let enPausa = false;
 const MOVIL = matchMedia("(max-width: 760px)").matches;
 const POCOS = MOVIL || matchMedia("(pointer: coarse)").matches;
 THREE.ColorManagement.enabled = false; // colores tal cual (sRGB) en toda la escena
@@ -563,7 +566,8 @@ function crearVista() {
   const nav = new Navegacion({ camara, elemento: canvas, reducir: REDUCIR });
   if (location.search.includes("depurar")) window.__globo = { escena, camara, renderer, nav };
   let interactuado = false, explorando = false;
-  nav.alInteractuar = () => { interactuado = true; };
+  let ultimoToque = performance.now();
+  nav.alInteractuar = () => { interactuado = true; ultimoToque = performance.now(); };
   // En pantallas angostas (celular vertical) la cámara se aleja para que entre el globo de lado a lado
   const factorDist = () => lim(1.3 / (canvas.clientWidth / canvas.clientHeight), 1, 2.6);
   // Las vistas de todo el globo se alejan del todo; las regionales (Sudamérica), menos
@@ -660,7 +664,18 @@ function crearVista() {
     else irA(estado.escena);
   });
   $("ctl-satelite").addEventListener("click", alternarSatelite);
-  idiomaControles = () => { botonSatelite(); if (explorando) panelCapas(); };
+  const botonPausa = () => {
+    const b = $("ctl-pausa");
+    b.setAttribute("aria-pressed", String(enPausa));
+    b.setAttribute("aria-label", T(enPausa ? "g.animar" : "g.pausar-globo"));
+    b.title = T(enPausa ? "g.animar" : "g.pausar-globo");
+    b.innerHTML = enPausa
+      ? '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg>';
+  };
+  $("ctl-pausa").addEventListener("click", () => { enPausa = !enPausa; botonPausa(); });
+  botonPausa();
+  idiomaControles = () => { botonSatelite(); botonPausa(); if (explorando) panelCapas(); };
   botonSatelite();
 
   const tmp = new THREE.Vector3(), brujula = $("brujula");
@@ -670,7 +685,9 @@ function crearVista() {
     const t = reloj.elapsedTime;
 
     // cámara
-    if (estado.escena === "inicio" && !interactuado && !explorando && !REDUCIR && !nav.viaje) nav.vista.lon += dt * 1.6; // giro lento al empezar
+    // giro lento: al empezar el relato y, al explorar, después de 12 segundos sin tocar el globo
+    const quieto = performance.now() - ultimoToque > 12000;
+    if (!enPausa && !nav.viaje && ((estado.escena === "inicio" && !interactuado && !explorando) || (explorando && quieto))) nav.vista.lon += dt * 1.6;
     nav.actualizar(dt);
     const alt = nav.vista.alt;
     brujula.style.transform = `rotate(${-nav.vista.rumbo}deg)`;
@@ -697,7 +714,7 @@ function crearVista() {
     flujo.mat.size = flujo.tam * lim(alt / 1.1, 0.3, 1);
 
     // temperatura del mar: animación semanal
-    if (cuadros.length > 1 && reproduciendo && estado.escena === "pacifico" && !explorando) {
+    if (cuadros.length > 1 && reproduciendo && !enPausa && estado.escena === "pacifico" && !explorando) {
       tCuadro += dt / 0.45;
       if (tCuadro >= 1) {
         tCuadro = 0;
@@ -708,7 +725,7 @@ function crearVista() {
       uGlobo.uMezcla.value = cuadroActual < cuadros.length - 1 ? suave(tCuadro) : 0;
     } else uGlobo.uMezcla.value = 0;
 
-    const mover = !REDUCIR;
+    const mover = !enPausa;
     if (tormentas) { tormentas.mat.uniforms.uOpac.value = opac.tormentas; if (mover) tormentas.mat.uniforms.uT.value = t; }
     if (chorro) chorro.actualizar(opac.chorro, mover ? dt : 0);
     if (humedad) humedad.actualizar(opac.humedad, mover ? dt : 0);
