@@ -1,0 +1,14 @@
+{
+ "fuente": "NOAA ETOPO1 (1 minuto de arco), vía NOAA CoastWatch ERDDAP. Dominio público.",
+ "caja": {
+  "oeste": -82.0,
+  "este": -34.0,
+  "sur": -56.0,
+  "norte": 13.0
+ },
+ "paso_grados": 0.1,
+ "ancho": 481,
+ "alto": 691,
+ "metros_por_nivel": 25,
+ "maximo_m": 6026.0
+}
