@@ -29,6 +29,7 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 .g-etiqueta.visible { opacity: 1; }
 .g-etiqueta.destacada { color: var(--g-ambar); font-weight: 600; font-size: 14px; }
 .g-etiqueta.humedad { color: var(--g-humedad); }
+.g-etiqueta.frio { color: #8CC8FF; font-weight: 600; }
 
 /* Relato */
 .g-relato { position: relative; z-index: 2; pointer-events: none; }
@@ -99,7 +100,7 @@ body.g-cuerpo { background: var(--g-fondo); color: var(--g-texto); }
 .g-sin-3d p { max-width: 360px; }
 
 /* Controles del globo */
-.g-controles { position: fixed; right: 20px; top: 50%; transform: translateY(-62%); z-index: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.g-controles { position: fixed; right: 20px; top: 20px; z-index: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .g-controles button {
   min-width: 44px; min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center;
   color: var(--g-texto); background: var(--g-tarjeta); border: 1px solid var(--g-borde); border-radius: 4px;

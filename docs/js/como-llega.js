@@ -93,11 +93,11 @@ const ESCENAS = {
   tormentas: { lat: 10,  lon: -140, dist: 3.2, capas: { sst: 1, tormentas: 1, chaco: 0.5 } },
   onda:      { lat: -35, lon: -105, dist: 3.7, capas: { sst: 0.35, tormentas: 0.25, onda: 1, chorro: 1, chaco: 1, relieve: 1 } },
   // la humedad se ve desde el noreste e inclinada, para que la cordillera se vea como un muro
-  humedad:   { lat: -21, lon: -63,  dist: 2.35, incl: 38, rumbo: -20, capas: { sst: 0.2, chorro: 0.95, humedad: 1, chaco: 1, relieve: 1, nubes: 1 } },
+  humedad:   { lat: -21, lon: -63,  dist: 2.35, incl: 38, rumbo: -20, capas: { sst: 0.2, chorro: 0.95, humedad: 1, chaco: 1, relieve: 1, nubes: 0.55, frente: 1 } },
   rios:      { lat: -24, lon: -56,  dist: 2.25, capas: { sst: 0.15, lluvia: 1, rios: 1, chaco: 1, humedad: 0.15, relieve: 1 } },
   final:     { lat: -26, lon: -60,  dist: 2.1, capas: { sst: 0.15, lluvia: 0.45, rios: 0.8, chaco: 1, relieve: 1 } },
 };
-const CAPAS = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco", "relieve", "nubes"];
+const CAPAS = ["sst", "tormentas", "onda", "chorro", "humedad", "lluvia", "rios", "chaco", "relieve", "nubes", "frente"];
 // Exageración vertical del relieve y de las alturas de las capas de viento (30 veces):
 // 1.500 m (850 hPa) → radio 1,007 · Andes ~6.000 m → 1,028 · chorro a 12 km → 1,057
 const EXAG = 30;
@@ -114,6 +114,7 @@ const ETIQUETAS = [
   { k: "g.et.amazonia", lat: -4, lon: -62, en: ["humedad"], clase: "humedad" },
   { k: "g.et.capas-bajas", lat: -16, lon: -61.5, en: ["humedad"], clase: "humedad", capa: "humedad" },
   { k: "g.et.zona-tormentas", lat: -26, lon: -56, en: ["humedad"], capa: "nubes" },
+  { k: "g.et.frente", lat: -35, lon: -55, en: ["humedad"], clase: "frio", capa: "frente" },
   { k: "g.et.chorro-alto", lat: -36, lon: -58, en: ["humedad"], clase: "destacada", capa: "chorro", r: 1.06 },
   { k: "g.et.chaco", lat: -26, lon: -60.6, en: ["onda", "humedad", "rios", "final"], clase: "destacada", capa: "chaco" },
   { k: "g.et.pantanal", lat: -18.5, lon: -56.5, en: ["rios"], capa: "rios" },
@@ -233,6 +234,7 @@ function leyenda() {
     `<div class="g-grupo"><h3>${T("g.ley.onda")}</h3><div class="g-item"><i class="punto" style="background:#E0614A"></i>${T("g.ley.alta")}</div>` +
     `<div class="g-item"><i class="punto" style="background:#4C8DD6"></i>${T("g.ley.baja")}</div></div>`;
   else if (e === "humedad") html = `<div class="g-grupo">` +
+    `<div class="g-item"><i style="background:#6FB8FF"></i>${T("g.ley.frente")}</div>` +
     `<div class="g-item"><i style="background:#F2A541"></i>${T("g.ley.chorro-alto")}</div>` +
     `<div class="g-item"><i class="punto" style="background:#EEF2F7"></i>${T("g.ley.nubes")}</div>` +
     `<div class="g-item"><i style="background:#5FD3C6"></i>${T("g.ley.humedad-flujo")}</div>${chaco}</div>`;
@@ -411,7 +413,7 @@ function crearVista() {
     return m;
   }
 
-  let onda = null, lluvia = null, chorro = null, humedad = null, tormentas = null, relieve = null, nubes = null;
+  let onda = null, lluvia = null, chorro = null, humedad = null, tormentas = null, relieve = null, nubes = null, frente = null;
   if (atm) {
     const g = atm.grilla;
     const z = muestreador(g, atm.z200_anom);
@@ -752,7 +754,7 @@ function crearVista() {
   encuadre();
 
   // --- Modo explorar
-  const CAPAS_PANEL = ["sst", "tormentas", "onda", "chorro", "humedad", "nubes", "lluvia", "rios", "chaco", "relieve"];
+  const CAPAS_PANEL = ["sst", "tormentas", "onda", "chorro", "humedad", "nubes", "frente", "lluvia", "rios", "chaco", "relieve"];
   let nombresVisibles = true;
   function panelCapas() {
     $("lista-capas").innerHTML = CAPAS_PANEL.map((c) =>
@@ -878,6 +880,11 @@ function crearVista() {
 
     const mover = !enPausa;
     if (tormentas) { tormentas.mat.uniforms.uOpac.value = opac.tormentas; if (mover) tormentas.mat.uniforms.uT.value = t; }
+    if (frente) {
+      frente.actualizar(opac.frente, mover ? dt : 0);
+      const et = etiquetas.find((x) => x.k === "g.et.frente");
+      if (et && frente.centro) et.pos.copy(frente.centro);
+    }
     if (nubes) { nubes.mat.uniforms.uOpac.value = opac.nubes; nubes.puntos.visible = opac.nubes > 0.01; if (mover) nubes.mat.uniforms.uT.value = t * 0.8; }
     if (chorro) chorro.actualizar(opac.chorro, mover ? dt : 0);
     if (humedad) humedad.actualizar(opac.humedad, mover ? dt : 0);
@@ -924,6 +931,7 @@ function crearVista() {
     async cargar() {
       await Promise.all([cargarSst(), cargarRelieve()]);
       crearNubesRegion();
+      if (atm) { frente = crearFrente(muestreador(atm.grilla, atm.qu850), muestreador(atm.grilla, atm.qv850)); escena.add(frente.grupo); }
       irA(estado.escena);
       if (REDUCIR) { chorro?.precalentar(); humedad?.precalentar(); flujo.precalentar(); }
       bucle();
@@ -1087,6 +1095,120 @@ function crearNubes(lugares, n, { desde, sube, salto, tamano = 1, opacidad = 0.3
   const puntos = new THREE.Points(geo, mat);
   puntos.frustumCulled = false;
   return { puntos, mat };
+}
+
+// ---------------------------------------------------------------- frente frío (ilustración)
+// Una línea que avanza desde el sur sobre la llanura, al este de la cordillera. Donde cruza aire húmedo
+// (mucho flujo de humedad a 850 hPa, sin cordillera debajo) levanta nubes que suben hasta el chorro de altura.
+function crearFrente(qu, qv) {
+  const grupo = new THREE.Group();
+  const PERIODO = 11, N = 60; // segundos por pasada · puntos de la línea
+  const R0 = 1 + altura(900);
+  // la línea va de noroeste a sudeste y se mueve hacia el norte-noreste
+  const punto = (f, t) => {
+    const lat = -42 + 22 * f + (0.5 - t) * 7, lon = -67 + t * 24 + f * 3;
+    return [lat, lon];
+  };
+  const matLinea = new THREE.LineBasicMaterial({ color: 0x6fb8ff, transparent: true, opacity: 0, depthWrite: false });
+  const lineas = [0, 0.18, -0.18].map(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(N * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    const l = new THREE.Line(g, matLinea);
+    l.frustumCulled = false;
+    grupo.add(l);
+    return l;
+  });
+  // triángulos del símbolo meteorológico del frente frío, apuntando hacia donde avanza
+  const DIENTES = 11;
+  const geoD = new THREE.BufferGeometry();
+  geoD.setAttribute("position", new THREE.BufferAttribute(new Float32Array(DIENTES * 9), 3).setUsage(THREE.DynamicDrawUsage));
+  const matD = new THREE.MeshBasicMaterial({ color: 0x6fb8ff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
+  const dientes = new THREE.Mesh(geoD, matD);
+  dientes.frustumCulled = false;
+  grupo.add(dientes);
+
+  // nubes que se levantan al paso del frente
+  const M = POCOS ? 450 : 900;
+  const lat = new Float32Array(M), lon = new Float32Array(M), edad = new Float32Array(M).fill(1), vida = new Float32Array(M).fill(1);
+  const pos = new Float32Array(M * 3), alfa = new Float32Array(M), tam = new Float32Array(M);
+  const geoN = new THREE.BufferGeometry();
+  geoN.setAttribute("position", new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+  geoN.setAttribute("aAlfa", new THREE.BufferAttribute(alfa, 1).setUsage(THREE.DynamicDrawUsage));
+  geoN.setAttribute("aTam", new THREE.BufferAttribute(tam, 1));
+  const matN = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { uPunto: { value: puntoRedondo() }, uOpac: { value: 0 }, uEscala: { value: (POCOS ? 22 : 30) * Math.min(devicePixelRatio, 2) } },
+    vertexShader: `attribute float aAlfa, aTam; uniform float uEscala; varying float vA;
+      void main() { vA = aAlfa; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = aTam * uEscala / -mv.z; gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform sampler2D uPunto; uniform float uOpac; varying float vA;
+      void main() { float a = texture2D(uPunto, gl_PointCoord).a; gl_FragColor = vec4(0.97, 0.98, 1.0, a * vA * uOpac * 0.8); }`,
+  });
+  const nubesF = new THREE.Points(geoN, matN);
+  nubesF.frustumCulled = false;
+  grupo.add(nubesF);
+
+  const humedadEn = (la, lo) => Math.hypot(qu(la, lo) ?? 0, qv(la, lo) ?? 0);
+  let fase = 0, siguiente = 0;
+  const v = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), n = new THREE.Vector3();
+  const obj = { grupo, centro: new THREE.Vector3() };
+
+  obj.actualizar = (opacidad, dt) => {
+    grupo.visible = opacidad > 0.01;
+    if (!grupo.visible) return;
+    fase = (fase + dt / PERIODO) % 1;
+    const aparece = Math.min(1, fase * 8, (1 - fase) * 8); // entra y sale con un fundido
+    matLinea.opacity = 0.95 * opacidad * aparece;
+    matD.opacity = 0.9 * opacidad * aparece;
+    matN.uniforms.uOpac.value = opacidad;
+    // línea (tres trazos paralelos para que se vea más gruesa)
+    lineas.forEach((l, k) => {
+      const off = [0, 0.18, -0.18][k];
+      const arr = l.geometry.attributes.position.array;
+      for (let i = 0; i < N; i++) {
+        const [la, lo] = punto(fase, i / (N - 1));
+        xyz(la + off, lo, R0, v);
+        arr[i * 3] = v.x; arr[i * 3 + 1] = v.y; arr[i * 3 + 2] = v.z;
+      }
+      l.geometry.attributes.position.needsUpdate = true;
+    });
+    // dientes: triángulos sobre la línea apuntando al norte-noreste
+    const arrD = geoD.attributes.position.array;
+    for (let k = 0; k < DIENTES; k++) {
+      const t0 = (k + 0.25) / DIENTES, t1 = (k + 0.65) / DIENTES, tm = (t0 + t1) / 2;
+      const [la0, lo0] = punto(fase, t0), [la1, lo1] = punto(fase, t1), [lam, lom] = punto(fase, tm);
+      xyz(la0, lo0, R0, a); xyz(la1, lo1, R0, b); xyz(lam + 1.1, lom + 0.25, R0, n);
+      arrD.set([a.x, a.y, a.z, b.x, b.y, b.z, n.x, n.y, n.z], k * 9);
+    }
+    geoD.attributes.position.needsUpdate = true;
+    xyz(...punto(fase, 0.62).map((x, i) => x - (i === 0 ? 1.6 : 0)), 1 + altura(2500), obj.centro);
+
+    // nuevas nubes donde el frente cruza aire húmedo
+    siguiente -= dt;
+    let intentos = 0;
+    while (siguiente <= 0 && intentos++ < 40) {
+      siguiente += 0.008;
+      const t = Math.random();
+      const [la, lo] = punto(fase, t);
+      const h = humedadEn(la, lo);
+      if (elevacion(la, lo) > 1200 || Math.random() * 90 > h) continue;
+      const i = edad.findIndex((x, j) => x >= vida[j]);
+      if (i < 0) break;
+      lat[i] = la + (Math.random() - 0.5) * 0.8; lon[i] = lo + (Math.random() - 0.5) * 0.8;
+      edad[i] = 0; vida[i] = 2.4 + Math.random() * 1.6; tam[i] = 0.8 + Math.random() * 0.9;
+    }
+    geoN.attributes.aTam.needsUpdate = true;
+    for (let i = 0; i < M; i++) {
+      edad[i] = Math.min(vida[i], edad[i] + dt);
+      const h = edad[i] / vida[i];
+      const vivo = h < 1;
+      xyz(lat[i], lon[i], 1 + altura(1800) + h * altura(10500), v);
+      pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
+      alfa[i] = vivo ? Math.sin(Math.PI * h) : 0;
+    }
+    geoN.attributes.position.needsUpdate = true;
+    geoN.attributes.aAlfa.needsUpdate = true;
+  };
+  return obj;
 }
 
 // ---------------------------------------------------------------- flujo de los ríos
