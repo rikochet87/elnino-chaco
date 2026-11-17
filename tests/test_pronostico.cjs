@@ -47,10 +47,38 @@ test('late responses cannot replace the selected department', async () => {
 });
 test('offline copies are explicitly marked and missing forecasts show an error', async () => {
   const {api, elements, storage} = fixture(async () => {throw Error('offline');});
-  storage.set('pronostico-7-v1-a', JSON.stringify({ consultado: Date.now()-7200000, datos: datos() }));
+  storage.set('pronostico-7-v2--59.0000,-27.0000', JSON.stringify({ consultado: Date.now()-7200000, datos: datos() }));
   await api.mostrar('a', p);
   assert.match(elements.get('pronostico-estado').textContent, /Copia guardada/);
-  await api.mostrar('b', p);
+  await api.mostrar('b', {...p, centro: [-60, -27]});
   assert.equal(elements.get('pronostico-tabla').hidden, true);
   assert.match(elements.get('pronostico-estado').textContent, /No se pudo/);
+});
+
+test('towns in the same department have independent coordinate forecasts', async () => {
+  const requests = [];
+  const {api} = fixture(async url => { requests.push(new URL(url).searchParams.get('longitude')); return {ok:true, json: async () => datos()}; });
+  await api.mostrar('same-department', p);
+  await api.mostrar('same-department', {...p, centro: [-60, -27]});
+  assert.deepEqual(requests, ['-59', '-60']);
+});
+test('device coordinates are used without persisting their forecast', async () => {
+  const {api, storage, elements} = fixture(async url => {
+    assert.equal(new URL(url).searchParams.get('longitude'), '-60.123456');
+    return {ok:true, json: async () => datos()};
+  });
+  await api.mostrar('device', {...p, centro: [-60.123456, -27.456], dispositivo: true});
+  assert.equal(storage.size, 0);
+  assert.match(elements.get('pronostico-zona').textContent, /Tu ubicación actual/);
+});
+test('official locality coordinates cover every department', () => {
+  const towns = JSON.parse(fs.readFileSync('docs/data/localidades.json', 'utf8'));
+  const departments = JSON.parse(fs.readFileSync('docs/data/departamentos.geojson', 'utf8')).features;
+  assert.equal(towns.length, 91);
+  for (const town of towns) {
+    assert.ok(departments.some(d => d.id === town.depto));
+    assert.ok(town.centro.length === 2 && town.centro.every(Number.isFinite));
+    assert.ok(town.centro[0] < -58 && town.centro[0] > -64 && town.centro[1] < -24 && town.centro[1] > -29);
+  }
+  for (const d of departments) assert.ok(towns.some(t => t.depto === d.id));
 });

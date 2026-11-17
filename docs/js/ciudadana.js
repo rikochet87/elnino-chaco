@@ -7,6 +7,7 @@
   const ORDEN_TABS = ["lluvia", "anegamiento", "dengue", "calor", "agua"];
   const POR_DEFECTO = "san-fernando";
 
+  let lugarPronostico = null, interaccion = 0;
   let datos, indice, mapa, actual, tabActiva = "lluvia";
 
   function nivelHTML(modulo, d, rotulo) {
@@ -21,13 +22,18 @@
     return T(cat >= 4 ? "caminos.alta" : cat === 3 ? "caminos.media" : "caminos.baja");
   }
 
-  function mostrarZona(id, { desplazar = false } = {}) {
+  function mostrarZona(id, { desplazar = false, localidad = null, conservarLugar = false } = {}) {
     if (!datos.emision.departamentos[id]) return;
     actual = id;
     const p = datos.porId[id];
     const d = datos.emision.departamentos[id];
     const e = datos.emision;
-    window.Pronostico.mostrar(id, p);
+    if (!conservarLugar) {
+      interaccion++;
+      const lugar = localidad || datos.localidades.find((l) => l.depto === id && l.nombre === p.cabecera) || datos.localidades.find((l) => l.depto === id);
+      lugarPronostico = { centro: lugar.centro, cabecera: lugar.nombre, nombre: p.nombre, localidadId: lugar.id };
+    }
+    window.Pronostico.mostrar(id, lugarPronostico);
 
     $("titulo-zona").textContent = T("zona.titulo", p.cabecera, p.nombre);
     $("linea-nino").innerHTML = T("zona.nino", S.pct(e.prob_nino), ` <span class="etiqueta-demo">${T("demo.dato")}</span>`);
@@ -83,6 +89,8 @@
     S.guardarPreferido(id);
     const url = new URL(location.href);
     url.searchParams.set("d", id);
+    if (lugarPronostico.localidadId) url.searchParams.set("localidad", lugarPronostico.localidadId);
+    else url.searchParams.delete("localidad");
     history.replaceState(null, "", url);
     if (desplazar) {
       // desde el buscador o la ubicación: se muestra en el mapa, con su ficha emergente
@@ -185,7 +193,7 @@
     let resultados = [], marcado = -1;
 
     const cerrar = () => { lista.hidden = true; input.setAttribute("aria-expanded", "false"); marcado = -1; };
-    const elegir = (r) => { input.value = r.valor; cerrar(); $("mensaje").textContent = ""; mostrarZona(r.depto, { desplazar: true }); };
+    const elegir = (r) => { input.value = r.valor; cerrar(); $("mensaje").textContent = ""; mostrarZona(r.depto, { desplazar: true, localidad: r.localidad }); };
     const dibujar = () => {
       lista.innerHTML = resultados.map((r, i) => `<li role="option" id="op-${i}" aria-selected="${i === marcado}"><span>${r.texto}</span><small>${r.sub}</small></li>`).join("");
       lista.hidden = !resultados.length;
@@ -211,15 +219,39 @@
       else $("mensaje").textContent = T(input.value.trim() ? "buscar.no-encontrado" : "buscar.vacio");
     });
 
-    $("ubicacion").addEventListener("click", () => {
-      if (!navigator.geolocation) { $("mensaje").textContent = T("ubic.no-soportada"); return; }
-      $("mensaje").textContent = T("ubic.buscando");
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const id = S.deptoEnPunto(datos, pos.coords.longitude, pos.coords.latitude);
-        if (id) { $("mensaje").textContent = T("ubic.encontrada", datos.porId[id].nombre); mostrarZona(id, { desplazar: true }); }
-        else $("mensaje").textContent = T("ubic.fuera");
-      }, () => { $("mensaje").textContent = T("ubic.error"); }, { timeout: 10000, maximumAge: 600000 });
-    });
+    $("ubicacion").addEventListener("click", () => usarUbicacion(true));
+  }
+
+  function usarUbicacion(desplazar = false) {
+    if (!navigator.geolocation) { $("mensaje").textContent = T("ubic.no-soportada"); return; }
+    const turno = ++interaccion;
+    $("mensaje").textContent = T("ubic.buscando");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      if (turno !== interaccion) return;
+      const centro = [pos.coords.longitude, pos.coords.latitude];
+      const id = S.deptoEnPunto(datos, ...centro);
+      lugarPronostico = { centro, cabecera: "", nombre: id ? datos.porId[id].nombre : "", dispositivo: true };
+      if (id) {
+        mostrarZona(id, { desplazar, conservarLugar: true });
+        $("mensaje").textContent = T("ubic.encontrada", datos.porId[id].nombre);
+      } else {
+        window.Pronostico.mostrar("dispositivo", lugarPronostico);
+        const url = new URL(location.href);
+        url.searchParams.delete("localidad");
+        history.replaceState(null, "", url);
+        $("mensaje").textContent = I.idioma === "es" ? "Pronóstico para tu ubicación. El mapa estacional cubre Chaco." : "Forecast for your location. The seasonal map covers Chaco.";
+      }
+    }, () => {
+      if (turno === interaccion) $("mensaje").textContent = T("ubic.error");
+    }, { timeout: 10000, maximumAge: 600000, enableHighAccuracy: true });
+  }
+
+  async function ubicacionAutorizada() {
+    const turno = interaccion;
+    try {
+      const permiso = await navigator.permissions.query({ name: "geolocation" });
+      if (permiso.state === "granted" && turno === interaccion) usarUbicacion();
+    } catch (_) { /* Navegadores sin Permissions API: usar el botón. */ }
   }
 
   function armarCompartir() {
@@ -258,13 +290,15 @@
     armarBuscador();
     armarCompartir();
     $("pronostico-reintentar").addEventListener("click", () => {
-      if (actual) window.Pronostico.mostrar(actual, datos.porId[actual], { forzar: true });
+      if (actual) window.Pronostico.mostrar(actual, lugarPronostico, { forzar: true });
     });
     await mapa.listo;
     pintarMapa();
     const pedido = new URLSearchParams(location.search).get("d");
     const inicial = [pedido, S.leerPreferido(), POR_DEFECTO].find((x) => x && e.departamentos[x]);
-    mostrarZona(inicial);
+    const localidad = datos.localidades.find((l) => l.id === new URLSearchParams(location.search).get("localidad"));
+    mostrarZona(localidad ? localidad.depto : inicial, { localidad });
+    ubicacionAutorizada();
 
     document.addEventListener("idioma", () => {
       textosGenerales();
@@ -272,7 +306,7 @@
       $("mensaje").textContent = "";
       rotularTabs();
       pintarMapa();
-      if (actual) mostrarZona(actual);
+      if (actual) mostrarZona(actual, { conservarLugar: true });
       if (emergente) { emergente.setHTML(htmlEmergente(emergente.idDepto)); reengancharEmergente(); }
     });
   }

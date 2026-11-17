@@ -41,17 +41,17 @@ Lo primero que aparece es el mapa de Chaco. Al tocar un departamento se abre una
 En la parte de arriba hay un buscador. Podés:
 
 - **Escribir el nombre de tu localidad o departamento**, por ejemplo *Resistencia*, *Charata* o *Castelli*, y elegirlo de la lista.
-- **Tocar "Usar mi ubicación"**: el sitio detecta en qué departamento estás. Tu ubicación no se guarda ni se envía a ningún lado; se usa solo en tu teléfono o computadora.
+- **Tocar "Usar mi ubicación"**: el sitio detecta en qué departamento estás. También consulta el pronóstico para las coordenadas del dispositivo, enviándolas a Open-Meteo. Estas coordenadas no se guardan ni se incluyen en enlaces compartidos. Si el navegador ya tiene permiso, se usa la ubicación automáticamente al abrir; si no, el botón permite solicitarlo.
 
 Arriba a la derecha está el botón **ES / EN** para ver el sitio en español o en inglés. El idioma elegido queda guardado y se incluye en el enlace cuando compartís la ficha.
 
 ### Pronóstico de lluvia y tormentas para los próximos 7 días
 
-La ficha del departamento seleccionado muestra el pronóstico diario de Open-Meteo: precipitación acumulada (mm), probabilidad máxima diaria de precipitación (%) y estado del tiempo. Los códigos WMO 95, 96 y 99 indican tormentas (96 y 99, con granizo); no representan una probabilidad de tormenta ni una alerta oficial.
+La ficha muestra el pronóstico diario de Open-Meteo para la localidad elegida o la ubicación del dispositivo: precipitación acumulada (mm), probabilidad máxima diaria de precipitación (%) y estado del tiempo. Los códigos WMO 95, 96 y 99 indican tormentas (96 y 99, con granizo); no representan una probabilidad de tormenta ni una alerta oficial.
 
-Se consulta el punto representativo de cada departamento (`centro` en `departamentos.geojson`), por lo que las condiciones pueden variar dentro de su territorio. Los días se calculan en hora argentina. Esta información es de corto plazo y tiene su propia fecha de consulta, independiente de la emisión estacional mensual.
+El buscador incluye 91 localidades con coordenadas oficiales de [Georef Argentina](https://apis.datos.gob.ar/georef/api/localidades?provincia=chaco&max=1000), guardadas en `docs/data/localidades.json`. Al elegir un departamento en el mapa, se muestra el pronóstico de su cabecera. Al buscar una localidad se usan sus propias coordenadas; al usar el dispositivo, las coordenadas obtenidas por geolocalización. La ubicación del dispositivo funciona también fuera de Chaco, mientras que el mapa y los indicadores estacionales siguen limitados a la provincia. Los días se calculan en hora argentina. Esta información es de corto plazo y tiene su propia fecha de consulta, independiente de la emisión estacional mensual.
 
-La consulta se realiza al elegir el departamento, sin clave de API. Se reutiliza durante una hora y el botón **Volver a consultar** permite actualizarla antes. Si no hay conexión, se muestra la última copia guardada con una advertencia de posible desactualización; si no existe copia, se informa que no hay datos disponibles. Fuente: [Open-Meteo](https://open-meteo.com/), CC BY 4.0. El servicio gratuito tiene límites y está destinado a uso no comercial.
+La consulta se realiza al elegir la localidad o usar la ubicación, sin clave de API. Se reutiliza durante una hora y el botón **Volver a consultar** permite actualizarla antes. Para localidades, si no hay conexión, se muestra la última copia guardada con una advertencia de posible desactualización; si no existe copia, se informa que no hay datos disponibles. El pronóstico del dispositivo sólo se conserva en memoria durante la sesión. Fuente: [Open-Meteo](https://open-meteo.com/), CC BY 4.0. El servicio gratuito tiene límites y está destinado a uso no comercial.
 
 Pruebas de la integración: `node --test tests/test_pronostico.cjs` (Node.js 18 o superior).
 

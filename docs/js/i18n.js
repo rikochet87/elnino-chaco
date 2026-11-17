@@ -44,6 +44,7 @@
     "c.buscar-ph": "E.g.: Resistencia, Charata, Castelli",
     "c.ver-zona": "See my area",
     "c.ubicacion": "Use my location",
+    "c.ubicacion-privacidad": "When using your location, its coordinates are sent to Open-Meteo to retrieve the forecast. They are not saved or included in shared links.",
     "c.oceano-titulo": "The Pacific is <span id=\"oni-valor\"></span> warmer than normal",
     "c.oceano-link": "See in 3D how El Niño reaches Chaco",
     "c.oceano-fuente": "Temperature of the equatorial Pacific Ocean (NOAA ONI index), three-month average. Above +0.5 °C sustained means El Niño.",

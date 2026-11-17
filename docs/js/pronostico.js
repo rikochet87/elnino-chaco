@@ -6,7 +6,7 @@
   let seleccion = 0;
   const es = () => window.I18N.idioma === "es";
   const texto = (a, b) => es() ? a : b;
-  const clave = (id) => `pronostico-7-v1-${id}`;
+  const clave = (id) => `pronostico-7-v2-${id}`;
 
   function validar(datos) {
     const d = datos && datos.daily;
@@ -36,7 +36,7 @@
     return null;
   }
 
-  async function descargar(id, centro) {
+  async function descargar(id, centro, privada = false) {
     if (pendientes.has(id)) return pendientes.get(id);
     const tarea = (async () => {
       const params = new URLSearchParams({ latitude: centro[1], longitude: centro[0],
@@ -48,7 +48,7 @@
       if (!respuesta.ok) throw new Error(`Open-Meteo: ${respuesta.status}`);
       const copia = { consultado: Date.now(), datos: validar(await respuesta.json()) };
       memoria.set(id, copia);
-      try { localStorage.setItem(clave(id), JSON.stringify(copia)); } catch (_) { /* almacenamiento no disponible */ }
+      try { if (!privada) localStorage.setItem(clave(id), JSON.stringify(copia)); } catch (_) { /* almacenamiento no disponible */ }
       return copia;
     })();
     pendientes.set(id, tarea);
@@ -96,18 +96,20 @@
 
   async function mostrar(id, propiedades, { forzar = false } = {}) {
     const turno = ++seleccion;
+    id = `${propiedades.centro[0].toFixed(4)},${propiedades.centro[1].toFixed(4)}`;
+    if (propiedades.dispositivo) id = "dispositivo:" + id;
     document.getElementById("pronostico-titulo").textContent = texto("Lluvia y tormentas · próximos 7 días", "Rain and thunderstorms · next 7 days");
-    document.getElementById("pronostico-zona").textContent = texto("Punto de referencia: ", "Reference point: ") + propiedades.cabecera + " · " + propiedades.nombre;
+    document.getElementById("pronostico-zona").textContent = (propiedades.dispositivo ? texto("Tu ubicación actual", "Your current location") : texto("Localidad: ", "Town: ") + propiedades.cabecera) + (propiedades.nombre ? " · " + propiedades.nombre : "");
     document.getElementById("pronostico-nota").textContent = texto(
-      "Estimación para el punto representativo del departamento; puede variar dentro de la zona. La probabilidad corresponde a precipitación, no a tormentas. Las tormentas se indican según el código meteorológico del modelo. No es una alerta oficial; consultá al SMN.",
-      "Estimate for the department’s representative point; conditions may vary across the area. Probability refers to precipitation, not thunderstorms. Thunderstorms follow the model’s weather code. This is not an official warning; consult SMN.");
+      "Estimación para las coordenadas de la localidad o del dispositivo; puede variar en los alrededores. La probabilidad corresponde a precipitación, no a tormentas. Las tormentas se indican según el código meteorológico del modelo. No es una alerta oficial; consultá al SMN.",
+      "Estimate for the town or device coordinates; conditions may vary nearby. Probability refers to precipitation, not thunderstorms. Thunderstorms follow the model’s weather code. This is not an official warning; consult SMN.");
     document.querySelectorAll("[data-pron-es]").forEach((n) => { n.textContent = es() ? n.dataset.pronEs : n.dataset.pronEn; });
     document.getElementById("pronostico-tabla").hidden = true;
     document.getElementById("pronostico-estado").textContent = texto("Consultando Open-Meteo…", "Loading Open-Meteo…");
-    const copia = leer(id);
+    const copia = propiedades.dispositivo ? memoria.get(id) : leer(id);
     if (!forzar && copia && Date.now() - copia.consultado >= 0 && Date.now() - copia.consultado < TTL) { dibujar(copia, false); return; }
     try {
-      const nueva = await descargar(id, propiedades.centro);
+      const nueva = await descargar(id, propiedades.centro, propiedades.dispositivo);
       if (turno === seleccion) dibujar(nueva, false);
     } catch (_) {
       if (turno !== seleccion) return;

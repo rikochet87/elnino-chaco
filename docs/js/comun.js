@@ -168,9 +168,9 @@
 
   // Lista de búsqueda: localidades y departamentos.
   function indiceBusqueda(datos) {
-    const items = datos.localidades.map((l) => ({ texto: l.nombre, valor: l.nombre, sub: datos.porId[l.depto].nombre, depto: l.depto }));
+    const items = datos.localidades.map((l) => ({ texto: l.nombre, valor: l.nombre, sub: datos.porId[l.depto].nombre, depto: l.depto, localidad: l, alias: l.alias || [] }));
     datos.deptos.features.forEach((f) => items.push({ texto: I.T("depto", f.properties.nombre), valor: f.properties.nombre, sub: "Chaco", depto: f.id }));
-    items.forEach((i) => { i.clave = normalizar(i.texto); i.base = normalizar(i.valor); });
+    items.forEach((i) => { i.clave = normalizar(i.texto); i.base = normalizar(i.valor); i.alias = (i.alias || []).map(normalizar); });
     return items;
   }
 
@@ -178,7 +178,7 @@
     const q = normalizar(consulta);
     if (!q) return [];
     const empiezan = indice.filter((i) => i.clave.startsWith(q) || i.base.startsWith(q));
-    const contienen = indice.filter((i) => !empiezan.includes(i) && i.clave.includes(q));
+    const contienen = indice.filter((i) => !empiezan.includes(i) && i.clave.includes(q) || (!empiezan.includes(i) && i.alias.some((a) => a.includes(q))));
     return empiezan.concat(contienen).slice(0, max);
   }
 
