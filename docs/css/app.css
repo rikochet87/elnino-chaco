@@ -331,3 +331,17 @@ select.campo-chico, .campo-chico { height: 40px; padding: 0 10px; font-size: 14p
   .explorador .leyenda p { display: none; }
   .pop { width: 260px; }
 }
+
+/* Pronóstico diario por departamento */
+.pronostico { padding: 24px; margin-bottom: 28px; }
+.pronostico h3 { margin-top: 0; }
+.pronostico-scroll { overflow-x: auto; }
+.pronostico table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.pronostico th, .pronostico td { padding: 12px; text-align: left; border-bottom: 1px solid #DDE3E9; }
+.pronostico thead { background: #EEF1F4; }
+.pronostico .dia-tormenta { background: #FFF3DC; }
+.pronostico .nota { margin-top: 14px; }
+@media (max-width: 600px) {
+  .pronostico { padding: 16px; }
+  .pronostico th, .pronostico td { padding: 8px; font-size: 0.85rem; }
+}

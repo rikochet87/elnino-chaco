@@ -86,6 +86,26 @@
         <h2 id="titulo-zona">Cargando…</h2>
         <span data-i18n-html="c.verano">Verano: <span class="js-trimestre">diciembre a febrero</span></span>
       </div>
+      <article class="panel pronostico" aria-labelledby="pronostico-titulo">
+        <h3 id="pronostico-titulo">Lluvia y tormentas · próximos 7 días</h3>
+        <p id="pronostico-zona"></p>
+        <p id="pronostico-estado" role="status" aria-live="polite"></p>
+        <div class="pronostico-scroll">
+          <table id="pronostico-tabla" hidden>
+            <caption class="sr-only" data-pron-es="Pronóstico diario de lluvia y tormentas" data-pron-en="Daily rain and thunderstorm forecast">Pronóstico diario de lluvia y tormentas</caption>
+            <thead><tr>
+              <th scope="col" data-pron-es="Día" data-pron-en="Day">Día</th>
+              <th scope="col" data-pron-es="Tiempo previsto" data-pron-en="Expected weather">Tiempo previsto</th>
+              <th scope="col" data-pron-es="Precipitación" data-pron-en="Precipitation">Precipitación</th>
+              <th scope="col" data-pron-es="Probabilidad de precipitación" data-pron-en="Precipitation probability">Probabilidad de precipitación</th>
+            </tr></thead>
+            <tbody id="pronostico-dias"></tbody>
+          </table>
+        </div>
+        <p class="nota" id="pronostico-nota"></p>
+        <p class="nota"><a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> · <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a> · <a href="https://www.smn.gob.ar/" rel="noopener">Servicio Meteorológico Nacional</a></p>
+        <button class="boton boton-sec" type="button" id="pronostico-reintentar" data-pron-es="Volver a consultar" data-pron-en="Check again">Volver a consultar</button>
+      </article>
       <p class="linea-nino" id="linea-nino"></p>
 
       <div class="tarjetas">
@@ -243,6 +263,7 @@
 <script src="vendor/maplibre-gl.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/comun.js"></script>
+<script src="js/pronostico.js"></script>
 <script src="js/ciudadana.js"></script>
 <script src="js/oceano.js"></script>
 </body>

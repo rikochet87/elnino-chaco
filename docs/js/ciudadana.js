@@ -27,6 +27,7 @@
     const p = datos.porId[id];
     const d = datos.emision.departamentos[id];
     const e = datos.emision;
+    window.Pronostico.mostrar(id, p);
 
     $("titulo-zona").textContent = T("zona.titulo", p.cabecera, p.nombre);
     $("linea-nino").innerHTML = T("zona.nino", S.pct(e.prob_nino), ` <span class="etiqueta-demo">${T("demo.dato")}</span>`);
@@ -256,6 +257,9 @@
     armarTabs();
     armarBuscador();
     armarCompartir();
+    $("pronostico-reintentar").addEventListener("click", () => {
+      if (actual) window.Pronostico.mostrar(actual, datos.porId[actual], { forzar: true });
+    });
     await mapa.listo;
     pintarMapa();
     const pedido = new URLSearchParams(location.search).get("d");
