@@ -4,11 +4,11 @@
   const S = window.SIG;
   const I = window.I18N, T = I.T;
   const $ = (id) => document.getElementById(id);
-  const ORDEN_TABS = ["lluvia", "anegamiento", "dengue", "calor", "agua"];
+  const ORDEN_TABS = ["precipitacion", "lluvia", "anegamiento", "dengue", "calor", "agua"];
   const POR_DEFECTO = "san-fernando";
 
   let lugarPronostico = null, interaccion = 0;
-  let datos, indice, mapa, actual, tabActiva = "lluvia";
+  let datos, indice, mapa, actual, tabActiva = "precipitacion";
 
   function nivelHTML(modulo, d, rotulo) {
     const m = S.MODULOS[modulo];
@@ -34,6 +34,7 @@
       lugarPronostico = { centro: lugar.centro, cabecera: lugar.nombre, nombre: p.nombre, localidadId: lugar.id };
     }
     window.Pronostico.mostrar(id, lugarPronostico);
+    if (mapa.mapa.getSource("punto-pronostico")) mapa.mapa.getSource("punto-pronostico").setData({type:"Feature",properties:{},geometry:{type:"Point",coordinates:lugarPronostico.centro}});
 
     $("titulo-zona").textContent = T("zona.titulo", p.cabecera, p.nombre);
     $("linea-nino").innerHTML = T("zona.nino", S.pct(e.prob_nino), ` <span class="etiqueta-demo">${T("demo.dato")}</span>`);
@@ -103,6 +104,7 @@
   let emergente = null;
   function htmlEmergente(id) {
     const p = datos.porId[id], d = datos.emision.departamentos[id];
+    if (tabActiva === "precipitacion") return `<div class="pop"><div class="pop-cab"><strong>${p.nombre}</strong></div><p>${window.PrecipitacionMapa.descripcion(lugarPronostico.centro)}</p><p>${I.idioma === "es" ? "Estimación regional; la ficha consulta las coordenadas elegidas." : "Regional estimate; the detail queries the selected coordinates."}</p><div class="pop-pie"><button type="button" data-ficha>${T("pop.ficha")}</button></div></div>`;
     const M = S.MODULOS;
     const fila = (modulo, rotulo, valor, extra) => {
       const m = M[modulo], c = m.clases[m.clase(d)];
@@ -149,11 +151,19 @@
     emergente.getElement().querySelector("[data-ficha]").addEventListener("click", () => $("resumen").scrollIntoView({ behavior: "smooth", block: "start" }));
   }
   function alTocar(id, lngLat) {
+    if (tabActiva === "precipitacion") return;
     mostrarZona(id);
     abrirEmergente(id, lngLat);
   }
 
   function pintarMapa() {
+    window.PrecipitacionMapa.activar(tabActiva === "precipitacion");
+    if (tabActiva === "precipitacion") {
+      document.querySelectorAll("#tabs .tab").forEach(b => {
+        const sel = b.dataset.tab === tabActiva; b.setAttribute("aria-selected",sel); b.tabIndex = sel ? 0 : -1;
+      });
+      return;
+    }
     const m = S.MODULOS[tabActiva];
     const colores = {};
     Object.entries(datos.emision.departamentos).forEach(([id, d]) => { colores[id] = m.clases[m.clase(d)].color; });
@@ -293,6 +303,33 @@
       if (actual) window.Pronostico.mostrar(actual, lugarPronostico, { forzar: true });
     });
     await mapa.listo;
+    window.PrecipitacionMapa.iniciar(mapa.mapa);
+    mapa.mapa.on("click", "precipitacion-celdas", (ev) => {
+      const id = S.deptoEnPunto(datos, ev.lngLat.lng, ev.lngLat.lat);
+      if (id) {
+        mostrarZona(id, { localidad: {centro:[ev.lngLat.lng,ev.lngLat.lat], nombre: I.idioma === "es" ? "Punto elegido en el mapa" : "Selected map point"} });
+        abrirEmergente(id,ev.lngLat);
+      }
+    });
+    const etiquetas = [];
+    for (const l of [...datos.localidades].sort((a,b) => Number(b.nombre === datos.porId[b.depto].cabecera) - Number(a.nombre === datos.porId[a.depto].cabecera))) {
+      const el = document.createElement("button"); el.type="button"; el.className="localidad-mapa";el.textContent=l.nombre;el.title=l.nombre;
+      el.addEventListener("click", (ev) => {ev.stopPropagation();mostrarZona(l.depto,{localidad:l}); $("resumen").scrollIntoView({behavior:"smooth"});});
+      new maplibregl.Marker({element:el,anchor:"left"}).setLngLat(l.centro).addTo(mapa.mapa);
+      etiquetas.push({el,l});
+    }
+    const ordenarEtiquetas = () => {
+      const cajas = [];
+      for (const {el,l} of etiquetas) {
+        const p = mapa.mapa.project(l.centro), w = l.nombre.length*5.4+12;
+        const r = {x:p.x,y:p.y,w,h:16};
+        const ocupado = cajas.some(c => r.x < c.x+c.w+4 && r.x+r.w+4 > c.x && r.y < c.y+c.h+3 && r.y+r.h+3 > c.y);
+        el.style.visibility = ocupado ? "hidden" : "visible";
+        if (!ocupado) cajas.push(r);
+      }
+    };
+    mapa.mapa.on("moveend", ordenarEtiquetas);
+    mapa.mapa.on("idle", ordenarEtiquetas);
     pintarMapa();
     const pedido = new URLSearchParams(location.search).get("d");
     const inicial = [pedido, S.leerPreferido(), POR_DEFECTO].find((x) => x && e.departamentos[x]);

@@ -2,12 +2,13 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
-function fixture(fetch) {
+function fixture(fetch, ensembleDisponible = true) {
   const elements = new Map();
   const element = () => ({ textContent: '', hidden: false, children: [], append(n) { this.children.push(n); }, replaceChildren() { this.children = []; } });
   const document = { getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); }, createElement: element, querySelectorAll: () => [] };
   const storage = new Map();
-  const context = { window: { I18N: { idioma: 'es', locale: () => 'es-AR' } }, document, fetch, URLSearchParams, AbortSignal, localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) } };
+  const context = { window: { I18N: { idioma: 'es', locale: () => 'es-AR' } }, document, fetch: (url, options) => url.includes('ensemble-api') ? Promise.resolve({ok:ensembleDisponible,json:async () => ({daily:{time:datos().daily.time, ...Object.fromEntries(Array.from({length:40},(_,i) => [i ? `precipitation_sum_member${String(i).padStart(2,'0')}` : 'precipitation_sum',Array(7).fill(i)]))}})}) : fetch(url, options), URLSearchParams, AbortSignal, localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) } };
+  vm.runInNewContext(fs.readFileSync('docs/js/ensamble.js', 'utf8'), context);
   vm.runInNewContext(fs.readFileSync('docs/js/pronostico.js', 'utf8'), context);
   return { api: context.window.Pronostico, elements, storage };
 }
@@ -47,7 +48,7 @@ test('late responses cannot replace the selected department', async () => {
 });
 test('offline copies are explicitly marked and missing forecasts show an error', async () => {
   const {api, elements, storage} = fixture(async () => {throw Error('offline');});
-  storage.set('pronostico-7-v2--59.0000,-27.0000', JSON.stringify({ consultado: Date.now()-7200000, datos: datos() }));
+  storage.set('pronostico-7-v3--59.0000,-27.0000', JSON.stringify({ consultado: Date.now()-7200000, datos: datos() }));
   await api.mostrar('a', p);
   assert.match(elements.get('pronostico-estado').textContent, /Copia guardada/);
   await api.mostrar('b', {...p, centro: [-60, -27]});
@@ -81,4 +82,22 @@ test('official locality coordinates cover every department', () => {
     assert.ok(town.centro[0] < -58 && town.centro[0] > -64 && town.centro[1] < -24 && town.centro[1] > -29);
   }
   for (const d of departments) assert.ok(towns.some(t => t.depto === d.id));
+});
+
+test('threshold probabilities are strictly greater and missing members are rejected', () => {
+  const context={window:{}};
+  vm.runInNewContext(fs.readFileSync('docs/js/ensamble.js','utf8'),context);
+  const r=context.window.Ensamble.resumen([0,10,20,30,50]);
+  assert.equal(r.mediana,20); assert.equal(r.prob[20],40); assert.equal(r.prob[50],0);
+  assert.equal(r.p10,4); assert.equal(r.p90,42);
+  assert.throws(()=>context.window.Ensamble.resumen([1,null,10]));
+  assert.throws(()=>context.window.Ensamble.diario({daily:{time:Array(7).fill('2026-11-17'),precipitation_sum:Array(7).fill(0)}}));
+});
+
+test('an ensemble failure preserves the general forecast without invented probabilities', async () => {
+  const {api,elements} = fixture(async () => ({ok:true,json:async () => datos()}), false);
+  await api.mostrar('a',p);
+  assert.equal(elements.get('pronostico-dias').children.length,7);
+  assert.equal(elements.get('pronostico-dias').children[0].children[5].textContent,'—');
+  assert.match(elements.get('ensamble-estado').textContent,/no disponible/);
 });

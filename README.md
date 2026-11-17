@@ -55,6 +55,20 @@ La consulta se realiza al elegir la localidad o usar la ubicación, sin clave de
 
 Pruebas de la integración: `node --test tests/test_pronostico.cjs` (Node.js 18 o superior).
 
+### Mapa de precipitación y probabilidades por cantidad
+
+El mapa inicia con **Pronóstico de lluvia**: celdas de muestreo regional de 0,25° (~25 km), sin colorear departamentos completos. Elegí un día y mostrá la mediana de precipitación en mm o la probabilidad de superar 1, 10, 20 o 50 mm. Los límites departamentales sirven como referencia. Las demás pestañas conservan los indicadores estacionales.
+
+Las probabilidades salen de **ICON-EPS (DWD), 40 miembros vía Open-Meteo**: proporción de escenarios que dan una cantidad **estrictamente mayor** al umbral en un día de 00 a 24 h de Argentina. No están calibradas localmente. La ficha consulta las coordenadas de la localidad, del dispositivo o del punto tocado dentro de Chaco; muestra mediana, percentiles 10–90 y las cuatro probabilidades. Los percentiles describen la dispersión del conjunto, no garantizan contener la lluvia observada. El pronóstico diario y el detalle de las próximas 72 horas provienen del endpoint general (mejor combinación de modelos) y pueden diferir del conjunto ICON.
+
+El modelo global tiene una resolución aproximada de 26 km; consultar coordenadas precisas no da precisión por calle. El mapa muestrea a una escala comparable (0,25°) y no interpola detalle adicional. **No es radar ni una alerta de tormenta**. El día de hoy incluye las horas ya transcurridas: no es una ventana móvil de próximas 24 horas.
+
+Se muestran localidades seleccionables (con separación de etiquetas para evitar superposición) y el mapa base de **OpenStreetMap**, con caminos y nombres. El mapa base necesita conexión. La grilla y las fichas previamente consultadas pueden reutilizarse sin conexión; se indica la antigüedad de los datos. No se precargan teselas OSM para uso sin conexión.
+
+`python scripts/actualizar_precipitacion.py` genera `docs/data/precipitacion.json` con 396 puntos regionales. La publicación es atómica: si falta un punto, día o miembro, se conserva el archivo anterior. `.github/workflows/precipitacion.yml` actualiza cada seis horas; la interfaz avisa cuando la grilla tiene más de 12 horas. No usa ubicaciones de visitantes. Las consultas por punto se hacen en el dispositivo y respetan la caché de una hora; si falla el conjunto, se informa y se conserva el pronóstico general sin inventar probabilidades.
+
+Pruebas: `node --test tests/test_pronostico.cjs` y `python -m unittest discover -s tests -p 'test_precipitacion.py'`. La prueba de navegador `python -m unittest discover -s tests -p 'test_precipitacion_browser.py'` requiere Playwright para Python y Chromium; cubre controles del mapa, selección de un punto/localidad, idioma, tamaño móvil y geolocalización autorizada con respuestas controladas.
+
 ### 2. Leé la ficha de tu zona
 
 Aparecen cuatro tarjetas (lluvia, caminos rurales, dengue y calor) y un recuadro con el agua que se ve desde el satélite este mes. Cada una explica en una frase qué significa. El detalle está en [Qué significa cada parte de la ficha](#qué-significa-cada-parte-de-la-ficha).
@@ -265,7 +279,7 @@ emision.ps1  publica la emisión del mes en un solo paso (Windows)
 .github/     procesos automáticos de GitHub: temperatura del mar diaria y vientos de los años Niño
 ```
 
-El sitio es una aplicación web instalable (PWA) hecha con HTML, CSS, JavaScript, [MapLibre GL JS](https://maplibre.org/) y, en la página 3D, [three.js](https://threejs.org/). No usa servidores ni mapas de terceros, y por eso funciona sin conexión. El pipeline está en Python.
+El sitio es una aplicación web instalable (PWA) hecha con HTML, CSS, JavaScript, [MapLibre GL JS](https://maplibre.org/) y, en la página 3D, [three.js](https://threejs.org/). No requiere servidor propio. El mapa base de caminos usa teselas de OpenStreetMap con conexión; las capas y los datos guardados permiten uso parcial sin conexión. El pipeline está en Python.
 
 ### Actualizar los datos cada mes
 

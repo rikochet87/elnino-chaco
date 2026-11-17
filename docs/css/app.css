@@ -345,3 +345,13 @@ select.campo-chico, .campo-chico { height: 40px; padding: 0 10px; font-size: 14p
   .pronostico { padding: 16px; }
   .pronostico th, .pronostico td { padding: 8px; font-size: 0.85rem; }
 }
+
+.escala-lluvia { height: 18px; border-radius: 4px; margin: 14px 0 3px; }
+.escala-valores { font: 12px monospace; }
+#leyenda label { display: block; margin: 10px 0; }
+#leyenda select { max-width: 100%; padding: 7px; border: 1px solid #aab7c4; border-radius: 4px; background: white; color: #13293f; }
+.localidad-mapa { border: 0; padding: 1px 3px 1px 8px; border-radius: 3px; background: rgba(255,255,255,.8); color: #13293f; font: 10px sans-serif; white-space: nowrap; cursor: pointer; }
+.localidad-mapa::before { content: ''; position: absolute; left: 0; top: 5px; width: 5px; height: 5px; background: #13293f; border: 1px solid white; border-radius: 50%; }
+.localidad-mapa:focus, .localidad-mapa:hover { z-index: 2; outline: 2px solid #1f4e79; }
+#horas-detalle summary { cursor: pointer; padding: 12px 0; }
+#horas-detalle .pronostico-scroll { max-height: 360px; }

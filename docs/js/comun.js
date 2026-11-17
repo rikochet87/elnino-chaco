@@ -11,8 +11,9 @@
 
   // Cada módulo define cómo se clasifica un departamento para la vista ciudadana.
   const MODULOS = {
+    precipitacion: {get nombre() {return I.idioma === "es" ? "Pronóstico de lluvia" : "Rain forecast";}},
     lluvia: {
-      get nombre() { return I.T("mod.lluvia"); },
+      get nombre() { return I.idioma === "es" ? "Lluvia estacional" : "Seasonal rain"; },
       get leyendaTitulo() { return I.T("ley.lluvia"); },
       clases: clases("cl.lluvia", ["#C9A15E", "#EDEAE3", "#A9C3DA", "#5C8AB5", "#1F4E79"]),
       clase(d) {
@@ -123,13 +124,18 @@
       attributionControl: false,
       cooperativeGestures: matchMedia("(pointer: coarse)").matches,
     });
+    mapa.on("load", async () => {
+      mapa.addSource("punto-pronostico",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
+      mapa.addLayer({id:"punto-pronostico",type:"circle",source:"punto-pronostico",paint:{"circle-radius":7,"circle-color":"#13293F","circle-stroke-color":"#fff","circle-stroke-width":3}});
+
+    });
     mapa.touchZoomRotate.disableRotation();
     mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    let atribucion = new maplibregl.AttributionControl({ compact: true, customAttribution: I.T("mapa.limites") });
+    let atribucion = new maplibregl.AttributionControl({ compact: true, customAttribution: I.T("mapa.limites") + " · © OpenStreetMap contributors (ODbL) · Open-Meteo / DWD" });
     mapa.addControl(atribucion);
     document.addEventListener("idioma", () => {
       mapa.removeControl(atribucion);
-      atribucion = new maplibregl.AttributionControl({ compact: true, customAttribution: I.T("mapa.limites") });
+      atribucion = new maplibregl.AttributionControl({ compact: true, customAttribution: I.T("mapa.limites") + " · © OpenStreetMap contributors (ODbL) · Open-Meteo / DWD" });
       mapa.addControl(atribucion);
     });
 

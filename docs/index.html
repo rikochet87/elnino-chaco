@@ -55,8 +55,8 @@
 <main id="contenido">
   <section class="explorador" id="mapa" aria-labelledby="titulo-explorador">
     <div class="explorador-panel">
-      <h1 id="titulo-explorador" data-i18n="c.h1">¿Cómo puede afectar El Niño a tu zona este verano?</h1>
-      <p class="explorador-intro" data-i18n-html="c.hero">Tocá tu departamento en el mapa o buscá tu localidad para ver qué esperar con la lluvia, los caminos, el dengue y el calor este verano (de <span class="js-trimestre">diciembre a febrero</span>).</p>
+      <h1 id="titulo-explorador" data-i18n="c.h1">¿Cuánta lluvia puede caer en tu localidad?</h1>
+      <p class="explorador-intro" data-i18n-html="c.hero">Explorá la lluvia prevista para los próximos 7 días. Buscá una localidad, usá tu ubicación o tocá un punto del mapa para ver cantidades y probabilidades. También podés consultar las tendencias para el verano.</p>
         <form class="buscador" id="buscador" role="search" autocomplete="off">
             <div class="envoltura">
               <label for="buscar" class="sr-only" data-i18n="c.buscar-label">Buscar tu localidad o departamento</label>
@@ -99,10 +99,20 @@
               <th scope="col" data-pron-es="Tiempo previsto" data-pron-en="Expected weather">Tiempo previsto</th>
               <th scope="col" data-pron-es="Precipitación" data-pron-en="Precipitation">Precipitación</th>
               <th scope="col" data-pron-es="Probabilidad de precipitación" data-pron-en="Precipitation probability">Probabilidad de precipitación</th>
+              <th scope="col" data-pron-es="Mediana (P10–P90)" data-pron-en="Median (P10–P90)">Mediana (P10–P90)</th>
+              <th scope="col">P(&gt;1 mm)</th><th scope="col">P(&gt;10 mm)</th><th scope="col">P(&gt;20 mm)</th><th scope="col">P(&gt;50 mm)</th>
             </tr></thead>
             <tbody id="pronostico-dias"></tbody>
           </table>
         </div>
+        <p class="nota" id="ensamble-estado" role="status"></p>
+        <details id="horas-detalle" hidden><summary data-pron-es="Detalle por hora · próximas 72 horas" data-pron-en="Hourly detail · next 72 hours">Detalle por hora · próximas 72 horas</summary>
+          <div class="pronostico-scroll"><table><thead><tr>
+            <th data-pron-es="Hora argentina" data-pron-en="Argentina time">Hora argentina</th>
+            <th data-pron-es="Tiempo previsto" data-pron-en="Expected weather">Tiempo previsto</th>
+            <th>mm</th><th data-pron-es="Probabilidad de precipitación" data-pron-en="Precipitation probability">Probabilidad de precipitación</th>
+          </tr></thead><tbody id="pronostico-horas"></tbody></table></div>
+        </details>
         <p class="nota" id="pronostico-nota"></p>
         <p class="nota"><a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> · <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a> · <a href="https://www.smn.gob.ar/" rel="noopener">Servicio Meteorológico Nacional</a></p>
         <button class="boton boton-sec" type="button" id="pronostico-reintentar" data-pron-es="Volver a consultar" data-pron-en="Check again">Volver a consultar</button>
@@ -264,6 +274,8 @@
 <script src="vendor/maplibre-gl.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/comun.js"></script>
+<script src="js/ensamble.js"></script>
+<script src="js/precipitacion-mapa.js"></script>
 <script src="js/pronostico.js"></script>
 <script src="js/ciudadana.js"></script>
 <script src="js/oceano.js"></script>

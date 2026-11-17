@@ -1,0 +1,29 @@
+name: Pronóstico regional de precipitación
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: datos-web
+  cancel-in-progress: false
+jobs:
+  precipitacion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/actualizar_precipitacion.py
+      - name: Publicar grilla validada
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/precipitacion.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Actualizar pronóstico regional de precipitación'
+          git pull --rebase
+          git push

@@ -6,7 +6,7 @@
   let seleccion = 0;
   const es = () => window.I18N.idioma === "es";
   const texto = (a, b) => es() ? a : b;
-  const clave = (id) => `pronostico-7-v2-${id}`;
+  const clave = (id) => `pronostico-7-v3-${id}`;
 
   function validar(datos) {
     const d = datos && datos.daily;
@@ -41,12 +41,22 @@
     const tarea = (async () => {
       const params = new URLSearchParams({ latitude: centro[1], longitude: centro[0],
         daily: "precipitation_sum,precipitation_probability_max,weather_code",
+        hourly: "precipitation,precipitation_probability,weather_code",
         timezone: "America/Argentina/Buenos_Aires", forecast_days: DIAS });
       const respuesta = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
         signal: AbortSignal.timeout(15000), cache: "no-store"
       });
       if (!respuesta.ok) throw new Error(`Open-Meteo: ${respuesta.status}`);
-      const copia = { consultado: Date.now(), datos: validar(await respuesta.json()) };
+      const datos = validar(await respuesta.json());
+      let ensamble = null;
+      try {
+        const ep = new URLSearchParams({latitude: centro[1], longitude: centro[0], daily: "precipitation_sum", models: "icon_seamless", forecast_days: DIAS, timezone: "America/Argentina/Buenos_Aires"});
+        const er = await fetch(`https://ensemble-api.open-meteo.com/v1/ensemble?${ep}`, {signal: AbortSignal.timeout(20000), cache: "no-store"});
+        if (!er.ok) throw Error("Ensamble no disponible");
+        ensamble = window.Ensamble.diario(await er.json());
+        if (ensamble.some((d,i) => d.fecha !== datos.daily.time[i])) throw Error("Fechas distintas");
+      } catch (_) { ensamble = null; }
+      const copia = { consultado: Date.now(), datos, ensamble };
       memoria.set(id, copia);
       try { if (!privada) localStorage.setItem(clave(id), JSON.stringify(copia)); } catch (_) { /* almacenamiento no disponible */ }
       return copia;
@@ -86,9 +96,31 @@
         celda.textContent = valor;
         fila.append(celda);
       });
+      const e = copia.ensamble?.[i];
+      for (const valor of [e ? `${e.mediana.toFixed(1)} (${e.p10.toFixed(1)}–${e.p90.toFixed(1)}) mm` : "—", ...[1,10,20,50].map(u => e ? `${e.prob[u]} %` : "—")]) {
+        const celda = document.createElement("td"); celda.textContent = valor; fila.append(celda);
+      }
       tabla.append(fila);
     }
     document.getElementById("pronostico-tabla").hidden = false;
+    document.getElementById("ensamble-estado").textContent = copia.ensamble ? texto(
+      `ICON-EPS · ${copia.ensamble[0].miembros} simulaciones. Mediana y rango P10–P90; proporción que supera cada umbral, sin calibración local. Días de 00 a 24 h (Argentina).`,
+      `ICON-EPS · ${copia.ensamble[0].miembros} simulations. Median and P10–P90 range; fraction exceeding each threshold, without local calibration. Days run 00–24 h (Argentina).`) : texto("Ensamble no disponible; las probabilidades por umbral no se pudieron calcular.", "Ensemble unavailable; threshold probabilities could not be computed.");
+    const horas = document.getElementById("pronostico-horas"); horas.replaceChildren();
+    const h = copia.datos.hourly;
+    if (h && Array.isArray(h.time)) {
+      const inicio = new Date(); inicio.setMinutes(0,0,0);
+      const indices = h.time.map((t,i) => i).filter(i => new Date(h.time[i]+"-03:00") >= inicio).slice(0,72);
+      for (const i of indices) {
+        const fila = document.createElement("tr");
+        const fecha = new Date(h.time[i]+"-03:00").toLocaleString(locale, {day:"numeric",month:"short",hour:"2-digit",timeZone:"America/Argentina/Buenos_Aires"});
+        for (const v of [fecha, condicion(h.weather_code?.[i] ?? null), Number.isFinite(h.precipitation?.[i]) ? `${h.precipitation[i]} mm` : "—", Number.isFinite(h.precipitation_probability?.[i]) ? `${h.precipitation_probability[i]} %` : "—"]) {
+          const td = document.createElement("td"); td.textContent = v; fila.append(td);
+        }
+        horas.append(fila);
+      }
+      document.getElementById("horas-detalle").hidden = !indices.length;
+    } else document.getElementById("horas-detalle").hidden = true;
     document.getElementById("pronostico-estado").textContent =
       (guardado ? texto("Copia guardada; no se pudo actualizar. Puede estar desactualizada. ", "Saved copy; update failed. It may be outdated. ") : "") +
       texto("Consultado: ", "Retrieved: ") + new Date(copia.consultado).toLocaleString(locale, { timeZone: "America/Argentina/Buenos_Aires" }) + texto(" (hora argentina).", " (Argentina time).");
@@ -105,6 +137,8 @@
       "Estimate for the town or device coordinates; conditions may vary nearby. Probability refers to precipitation, not thunderstorms. Thunderstorms follow the model’s weather code. This is not an official warning; consult SMN.");
     document.querySelectorAll("[data-pron-es]").forEach((n) => { n.textContent = es() ? n.dataset.pronEs : n.dataset.pronEn; });
     document.getElementById("pronostico-tabla").hidden = true;
+    document.getElementById("horas-detalle").hidden = true;
+    document.getElementById("ensamble-estado").textContent = "";
     document.getElementById("pronostico-estado").textContent = texto("Consultando Open-Meteo…", "Loading Open-Meteo…");
     const copia = propiedades.dispositivo ? memoria.get(id) : leer(id);
     if (!forzar && copia && Date.now() - copia.consultado >= 0 && Date.now() - copia.consultado < TTL) { dibujar(copia, false); return; }
