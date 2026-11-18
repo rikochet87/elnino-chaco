@@ -65,6 +65,17 @@
   </aside>
 
   <div class="tec-main">
+    <section class="panel guia-tecnica">
+      <h1 data-i18n="tec.guia">Entender los datos</h1>
+      <p data-i18n="tec.intro">Los índices de esta página resumen el verano de diciembre a febrero por departamento. El pronóstico por localidad de los próximos días usa otros modelos y se explica por separado.</p>
+      <nav aria-label="Secciones técnicas"><a href="#metodologia-detalle" data-i18n="tec.formulas">Cómo se calcula</a> · <a href="#trazabilidad" data-i18n="tec.origen">Valores y fuentes</a> · <a href="./?vista=dias" data-i18n="h.dias">Próximos días</a></nav>
+    </section>
+    <section class="panel guia-tecnica" id="metodologia-detalle"></section>
+    <section class="panel guia-tecnica" id="trazabilidad" aria-labelledby="trazabilidad-titulo">
+      <h2 id="trazabilidad-titulo"></h2><p id="trazabilidad-meta"></p>
+      <div id="trazabilidad-global"></div>
+      <details class="explicacion"><summary data-i18n="tec.ver-valores">Ver todas las variables del departamento seleccionado</summary><div class="desplazable"><table class="tabla tabla-origen"><thead><tr><th data-i18n="tec.variable">Variable y significado</th><th data-i18n="des.valor">Valor</th><th data-i18n="des.fuente">Fuente</th></tr></thead><tbody id="trazabilidad-filas"></tbody></table></div></details>
+    </section>
     <section aria-label="Módulos de amenaza" data-i18n-attr="aria-label:t.modulos" class="modulos" id="modulos"></section>
 
     <section class="panel" aria-labelledby="titulo-mapa">
@@ -147,6 +158,7 @@
 <script src="vendor/maplibre-gl.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/comun.js"></script>
+<script src="js/metodologia.js"></script>
 <script src="js/tecnica.js"></script>
 </body>
 </html>

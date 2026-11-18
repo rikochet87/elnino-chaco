@@ -115,6 +115,7 @@
       `<div><small>${T("met.caminos")}</small><strong>${o.km_caminos === null || o.km_caminos === undefined ? T("met.sin-dato") : S.num(o.km_caminos) + " km"}</strong></div>` +
       `<div><small>${T("met.riesgo")}</small><strong style="font-family:inherit;font-size:15px;font-weight:600">${chip("anegamiento", d)}</strong></div>`;
 
+    window.Metodologia.render(datos, depto);
     $("sel-depto").value = depto;
     mapa.seleccionar(depto);
     tabla();

@@ -1,5 +1,5 @@
 /* Service worker: la app funciona sin conexión con la última emisión descargada. */
-const VERSION = "v0.11.1";
+const VERSION = "v0.12.0";
 const CACHE_APP = `app-${VERSION}`;
 const CACHE_DATOS = "datos";
 
@@ -20,6 +20,7 @@ const APP = [
   "js/precipitacion-mapa.js",
   "js/oceano.js",
   "js/tecnica.js",
+  "js/metodologia.js",
   "vendor/maplibre-gl.js",
   "vendor/maplibre-gl.css",
   "manifest.webmanifest",

@@ -90,15 +90,17 @@
         condicion(d.weather_code[i]),
         d.precipitation_sum[i] === null ? "—" : `${d.precipitation_sum[i].toLocaleString(locale, { maximumFractionDigits: 1 })} mm`,
         d.precipitation_probability_max[i] === null ? "—" : `${d.precipitation_probability_max[i]} %`];
+      const etiquetas = ["", texto("Tiempo previsto","Weather"), texto("Cantidad prevista","Expected amount"), texto("Probabilidad de precipitación","Precipitation probability"), texto("Mediana (P10–P90)","Median (P10–P90)"), "P(>1 mm)", "P(>10 mm)", "P(>20 mm)", "P(>50 mm)"];
       valores.forEach((valor, j) => {
         const celda = document.createElement(j ? "td" : "th");
         if (!j) celda.scope = "row";
         celda.textContent = valor;
+        celda.dataset.label = etiquetas[j];
         fila.append(celda);
       });
       const e = copia.ensamble?.[i];
       for (const valor of [e ? `${e.mediana.toFixed(1)} (${e.p10.toFixed(1)}–${e.p90.toFixed(1)}) mm` : "—", ...[1,10,20,50].map(u => e ? `${e.prob[u]} %` : "—")]) {
-        const celda = document.createElement("td"); celda.textContent = valor; fila.append(celda);
+        const celda = document.createElement("td"); celda.textContent = valor; celda.dataset.label = etiquetas[fila.children.length]; fila.append(celda);
       }
       tabla.append(fila);
     }

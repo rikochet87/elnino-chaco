@@ -32,6 +32,10 @@ Los Niños de 1997-98 y 2015-16 fueron de los más fuertes registrados y dejaron
 
 ## Cómo usar el sitio
 
+El selector inicial separa **Próximos días** (7 días por localidad o ubicación) de **Este verano** (diciembre–febrero por departamento). Cada vista tiene su mapa, leyenda y ficha; cambiar de vista conserva la zona elegida. El enlace incluye `vista=dias` o `vista=verano`. El agua observada queda junto a la vista estacional, identificada como medición del pasado.
+
+En celular, la tabla diaria se transforma en tarjetas y las fuentes y fórmulas técnicas se pueden desplegar. La vista técnica permite consultar las variables publicadas del departamento seleccionado, con unidad, explicación y fuente; distingue índices relativos de probabilidades y observaciones de pronósticos. Las fórmulas se contrastaron con `pipeline/indice.py`, `pipeline/gee.py` y la configuración vigente. Los valores guardados están redondeados y no incluyen todos los pasos intermedios originales.
+
 ### 1. Tocá tu departamento en el mapa
 
 Lo primero que aparece es el mapa de Chaco. Al tocar un departamento se abre una ficha emergente con lo esencial: lluvia esperada, posibilidad de cortes de caminos, condiciones para el dengue, calor húmedo y agua fuera de lo habitual. Con los botones **Lluvia, Caminos, Dengue, Calor y Agua observada** cambiás qué colorea el mapa. El botón **"Ver la ficha completa"** baja a la explicación detallada.

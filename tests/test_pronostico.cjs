@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 function fixture(fetch, ensembleDisponible = true) {
   const elements = new Map();
-  const element = () => ({ textContent: '', hidden: false, children: [], append(n) { this.children.push(n); }, replaceChildren() { this.children = []; } });
+  const element = () => ({ textContent: '', dataset: {}, hidden: false, children: [], append(n) { this.children.push(n); }, replaceChildren() { this.children = []; } });
   const document = { getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); }, createElement: element, querySelectorAll: () => [] };
   const storage = new Map();
   const context = { window: { I18N: { idioma: 'es', locale: () => 'es-AR' } }, document, fetch: (url, options) => url.includes('ensemble-api') ? Promise.resolve({ok:ensembleDisponible,json:async () => ({daily:{time:datos().daily.time, ...Object.fromEntries(Array.from({length:40},(_,i) => [i ? `precipitation_sum_member${String(i).padStart(2,'0')}` : 'precipitation_sum',Array(7).fill(i)]))}})}) : fetch(url, options), URLSearchParams, AbortSignal, localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) } };

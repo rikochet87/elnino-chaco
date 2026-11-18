@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
+<body data-horizonte="dias">
 <a class="sr-only" href="#contenido" data-i18n="saltar">Saltar al contenido</a>
 
 <div class="aviso-demo" role="note">
@@ -34,7 +34,7 @@
   <div class="contenedor">
     <a class="marca" href="./">
       <img src="icons/icono-192.png" alt="" width="36" height="36">
-      <span class="marca-texto"><span class="marca-titulo">El Niño Argentina</span><span class="marca-sub" data-i18n="c.marca-sub">Qué puede pasar en tu zona este verano</span></span>
+      <span class="marca-texto"><span class="marca-titulo">El Niño Argentina</span><span class="marca-sub" data-i18n="c.marca-sub">Tiempo y tendencias para Chaco</span></span>
     </a>
     <nav class="nav" aria-label="Principal" data-i18n-attr="aria-label:c.nav">
       <a href="#mapa" aria-current="page" data-i18n="c.nav-mapa">Mapa</a>
@@ -53,10 +53,14 @@
 </header>
 
 <main id="contenido">
+  <div class="contenedor selector-horizonte" role="group" aria-label="Tipo de información" data-i18n-attr="aria-label:h.grupo">
+    <button type="button" data-horizonte-btn="dias" aria-pressed="true"><strong data-i18n="h.dias">Próximos días</strong><span data-i18n="h.dias-sub">7 días · por localidad o tu ubicación</span></button>
+    <button type="button" data-horizonte-btn="verano" aria-pressed="false"><strong data-i18n="h.verano">Este verano</strong><span data-i18n="h.verano-sub">Diciembre a febrero · por departamento</span></button>
+  </div>
   <section class="explorador" id="mapa" aria-labelledby="titulo-explorador">
     <div class="explorador-panel">
-      <h1 id="titulo-explorador" data-i18n="c.h1">¿Cuánta lluvia puede caer en tu localidad?</h1>
-      <p class="explorador-intro" data-i18n-html="c.hero">Explorá la lluvia prevista para los próximos 7 días. Buscá una localidad, usá tu ubicación o tocá un punto del mapa para ver cantidades y probabilidades. También podés consultar las tendencias para el verano.</p>
+      <h1 id="titulo-explorador" >¿Cuánta lluvia puede caer en tu localidad?</h1>
+      <p class="explorador-intro" id="intro-horizonte">Explorá la lluvia prevista para los próximos 7 días. Buscá una localidad, usá tu ubicación o tocá un punto del mapa para ver cantidades y probabilidades. También podés consultar las tendencias para el verano.</p>
         <form class="buscador" id="buscador" role="search" autocomplete="off">
             <div class="envoltura">
               <label for="buscar" class="sr-only" data-i18n="c.buscar-label">Buscar tu localidad o departamento</label>
@@ -71,8 +75,9 @@
           </form>
           <p class="nota" data-i18n="c.ubicacion-privacidad">Al usar tu ubicación, se envían sus coordenadas a Open-Meteo para consultar el pronóstico. No se guardan ni se incluyen al compartir.</p>
           <p class="mensaje" id="mensaje" role="status" aria-live="polite"></p>
-      <h2 class="explorador-sub" id="titulo-temas" data-i18n="c.que-ver">Qué ver en el mapa</h2>
-      <div class="tabs temas" role="tablist" aria-labelledby="titulo-temas" id="tabs"></div>
+      <p id="alcance-horizonte" class="alcance-horizonte" role="status"></p>
+      <h2 class="explorador-sub" data-horizonte="verano" id="titulo-temas" data-i18n="c.que-ver">Qué ver en el mapa</h2>
+      <div class="tabs temas" role="tablist" aria-labelledby="titulo-temas" id="tabs" data-horizonte="verano"></div>
       <div class="leyenda" id="leyenda"></div>
     </div>
     <div class="explorador-mapa">
@@ -81,14 +86,14 @@
   </section>
 
 
-  <section class="seccion" id="resumen" aria-labelledby="titulo-zona">
+  <section class="seccion" id="resumen" aria-label="Información de tu zona">
     <div class="contenedor">
-      <div class="seccion-titulo">
+      <div class="seccion-titulo" data-horizonte="verano">
         <h2 id="titulo-zona">Cargando…</h2>
         <span data-i18n-html="c.verano">Verano: <span class="js-trimestre">diciembre a febrero</span></span>
       </div>
-      <article class="panel pronostico" aria-labelledby="pronostico-titulo">
-        <h3 id="pronostico-titulo">Lluvia y tormentas · próximos 7 días</h3>
+      <article data-horizonte="dias" class="panel pronostico" aria-labelledby="pronostico-titulo">
+        <h2 id="pronostico-titulo">Lluvia y tormentas · próximos 7 días</h2>
         <p id="pronostico-zona"></p>
         <p id="pronostico-estado" role="status" aria-live="polite"></p>
         <div class="pronostico-scroll">
@@ -105,6 +110,7 @@
             <tbody id="pronostico-dias"></tbody>
           </table>
         </div>
+        <p class="nota lectura-pronostico" data-pron-es="Cómo leerlo: mm es la cantidad prevista; % es la probabilidad. P(>20 mm) indica cuántos escenarios superan 20 mm en ese día. El rango P10–P90 muestra la dispersión de las simulaciones." data-pron-en="How to read it: mm is the forecast amount; % is probability. P(>20 mm) is the fraction of scenarios exceeding 20 mm that day. P10–P90 shows the spread of the simulations.">Cómo leerlo: mm es la cantidad prevista; % es la probabilidad.</p>
         <p class="nota" id="ensamble-estado" role="status"></p>
         <details id="horas-detalle" hidden><summary data-pron-es="Detalle por hora · próximas 72 horas" data-pron-en="Hourly detail · next 72 hours">Detalle por hora · próximas 72 horas</summary>
           <div class="pronostico-scroll"><table><thead><tr>
@@ -117,9 +123,9 @@
         <p class="nota"><a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> · <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a> · <a href="https://www.smn.gob.ar/" rel="noopener">Servicio Meteorológico Nacional</a></p>
         <button class="boton boton-sec" type="button" id="pronostico-reintentar" data-pron-es="Volver a consultar" data-pron-en="Check again">Volver a consultar</button>
       </article>
-      <p class="linea-nino" id="linea-nino"></p>
+      <p class="linea-nino" data-horizonte="verano" id="linea-nino"></p>
 
-      <div class="tarjetas">
+      <div class="tarjetas" data-horizonte="verano">
         <article class="panel tarjeta">
           <div class="tarjeta-cab">
             <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.6 1.5A3.5 3.5 0 0 1 17 15H6z" stroke="#1F4E79" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M8 18l-1 2M12 18l-1 2M16 18l-1 2" stroke="#1F4E79" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -172,7 +178,7 @@
     </div>
   </section>
 
-  <section class="seccion" aria-labelledby="titulo-agua">
+  <section data-horizonte="verano" class="seccion" aria-labelledby="titulo-agua">
     <div class="contenedor">
       <div class="panel agua">
         <div class="agua-texto">
@@ -191,7 +197,7 @@
     </div>
   </section>
 
-  <section class="oceano" aria-labelledby="titulo-oceano" hidden id="oceano">
+  <section class="oceano" data-horizonte="verano" aria-labelledby="titulo-oceano" hidden id="oceano">
     <div class="contenedor oceano-grilla">
       <div class="oceano-texto">
         <h2 id="titulo-oceano" data-i18n-html="c.oceano-titulo">El Pacífico está <span id="oni-valor"></span> más caliente que lo normal</h2>
@@ -247,10 +253,10 @@
       <h2 id="titulo-faq" data-i18n="c.faq">Preguntas frecuentes</h2>
       <div class="faq-grilla">
         <div><h3 data-i18n="c.faq-1q">¿Qué es El Niño?</h3><p data-i18n="c.faq-1a">Es un calentamiento del océano Pacífico que cambia el clima en muchas partes del mundo. En el noreste argentino suele traer veranos más lluviosos.</p></div>
-        <div><h3 data-i18n="c.faq-2q">¿Esto es un pronóstico del tiempo?</h3><p data-i18n="c.faq-2a">No. Muestra tendencias para toda la temporada. Para saber si va a llover mañana o si hay alerta, consultá al Servicio Meteorológico Nacional.</p></div>
-        <div><h3 data-i18n="c.faq-3q">¿Qué tan seguro es?</h3><p data-i18n="c.faq-3a">Son probabilidades, no certezas. Ningún Niño es igual a otro. Por eso la información se actualiza todos los meses.</p></div>
+        <div><h3 data-i18n="c.faq-2q">¿Qué diferencia hay entre las dos vistas?</h3><p data-i18n="c.faq-2a">«Próximos días» muestra el pronóstico de 7 días para una localidad o tu ubicación. «Este verano» muestra tendencias para diciembre a febrero por departamento, no el tiempo de un día. Las alertas oficiales las emite el Servicio Meteorológico Nacional.</p></div>
+        <div><h3 data-i18n="c.faq-3q">¿Qué tan seguro es?</h3><p data-i18n="c.faq-3a">Son estimaciones, no certezas. El corto plazo cambia con las corridas de los modelos; la grilla se actualiza cada seis horas. La emisión estacional se actualiza mensualmente. Los índices de caminos, dengue y calor son comparaciones entre departamentos, no porcentajes de riesgo.</p></div>
         <div class="solo-demo"><h3 data-i18n="c.faq-4q">¿Por qué dice “demostración”?</h3><p data-i18n="c.faq-4a">El sitio ya funciona, pero los datos climáticos reales todavía se están procesando. Hasta entonces, los valores son de ejemplo.</p></div>
-        <div><h3 data-i18n="c.faq-5q">¿Funciona sin señal?</h3><p data-i18n="c.faq-5a">Sí. Si ya abriste el sitio una vez, podés instalarlo en el celular y ver la última información aunque no tengas conexión.</p></div>
+        <div><h3 data-i18n="c.faq-5q">¿Funciona sin señal?</h3><p data-i18n="c.faq-5a">Podés ver páginas y datos que ya se guardaron. Sin conexión no se obtienen pronósticos nuevos ni el mapa base de caminos. Revisá siempre la fecha de la copia disponible.</p></div>
       </div>
     </div>
   </section>
@@ -261,7 +267,7 @@
     <div class="col-ancha">
       <p><strong data-i18n="c.pie-aviso">Esta información no reemplaza las alertas oficiales.</strong></p>
       <p data-i18n-html="c.pie-emergencia">Ante una emergencia, seguí las indicaciones del <a href="https://www.smn.gob.ar/" rel="noopener">Servicio Meteorológico Nacional</a> y de Defensa Civil de tu provincia.</p>
-      <p style="margin-top:14px" data-i18n-html="c.pie-fuentes">Pronóstico de lluvia: <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), basado en ECMWF SEAS5. Otras fuentes: CHIRPS, ERA5-Land, Sentinel-1, NOAA, IGN, WorldPop y OpenStreetMap. Límites departamentales: IGN. Datos bajo licencia CC BY 4.0.</p>
+      <p style="margin-top:14px" data-i18n-html="c.pie-fuentes">Pronóstico de lluvia: <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), estacional: ECMWF SEAS5; corto plazo: Forecast API e ICON-EPS de DWD. Otras fuentes: CHIRPS, ERA5-Land, Sentinel-1, NOAA, IGN, WorldPop y OpenStreetMap. Límites departamentales: IGN. Datos bajo licencia CC BY 4.0.</p>
     </div>
     <div class="col">
       <p><strong data-i18n="c.pie-proyecto">Proyecto independiente</strong></p>

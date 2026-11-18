@@ -355,3 +355,66 @@ select.campo-chico, .campo-chico { height: 40px; padding: 0 10px; font-size: 14p
 .localidad-mapa:focus, .localidad-mapa:hover { z-index: 2; outline: 2px solid #1f4e79; }
 #horas-detalle summary { cursor: pointer; padding: 12px 0; }
 #horas-detalle .pronostico-scroll { max-height: 360px; }
+
+/* Dos horizontes con controles y contenidos propios. */
+body[data-horizonte="dias"] [data-horizonte="verano"],
+body[data-horizonte="verano"] [data-horizonte="dias"] { display: none !important; }
+.selector-horizonte { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 18px; padding-bottom: 18px; }
+.selector-horizonte button { display: flex; flex-direction: column; gap: 5px; text-align: left; padding: 16px 20px; min-height: 76px; border: 1px solid #aab7c4; border-radius: 10px; background: #fff; color: var(--navy); cursor: pointer; font: inherit; }
+.selector-horizonte strong { font-size: 19px; }
+.selector-horizonte span { font-size: 14px; }
+.selector-horizonte [aria-pressed="true"] { background: #13293f; border-color: #13293f; color: #fff; box-shadow: 0 3px 10px #13293f22; }
+.selector-horizonte button:focus-visible { outline: 3px solid #4c92cf; outline-offset: 3px; }
+.alcance-horizonte { background: #eef4fa; border-left: 3px solid #4b7ca5; padding: 10px 12px; margin: 0; font-size: 13px; line-height: 1.5; }
+.guia-tecnica { padding: 20px; }
+.guia-tecnica h1 { font-size: 25px; margin-top: 0; }
+.guia-tecnica h2 { font-size: 21px; margin-top: 0; }
+.guia-tecnica p { line-height: 1.65; }
+.explicacion { border-top: 1px solid var(--borde-suave); }
+.explicacion summary { padding: 16px 0; min-height: 48px; font-weight: 600; cursor: pointer; }
+.explicacion > div { padding-bottom: 14px; }
+.explicacion .formula { overflow-wrap: anywhere; white-space: normal; font-size: 14px; line-height: 1.9; }
+.tabla-origen th { text-align: left; }
+.tabla-origen th span { display: block; font-weight: 400; margin-top: 5px; }
+.tabla-origen code { font-size: 11px; overflow-wrap: anywhere; }
+.lectura-pronostico { background: #eef4fa; padding: 12px; border-radius: 6px; }
+@media (max-width: 640px) {
+  .selector-horizonte { gap: 8px; padding: 12px 16px; }
+  .selector-horizonte button { padding: 12px; min-height: 92px; }
+  .selector-horizonte strong { font-size: 17px; }
+  .selector-horizonte span { font-size: 12px; line-height: 1.45; }
+  .explorador-mapa { min-height: 330px; height: 58svh; }
+  .explorador .leyenda p { display: block; width: 100%; }
+  .explorador .leyenda label, .explorador .leyenda .escala-lluvia, .explorador .leyenda a { width: 100%; }
+  .explorador .leyenda select { min-height: 44px; width: 100%; font-size: 16px; }
+  .pronostico h2 { font-size: 21px; }
+  #pronostico-tabla { display: block; margin: 0; }
+  #pronostico-tabla[hidden] { display: none; }
+  #pronostico-tabla thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  #pronostico-tabla tbody { display: grid; gap: 14px; }
+  #pronostico-tabla tr { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); border: 1px solid #d3dfe8; border-radius: 8px; overflow: hidden; background: #fff; }
+  #pronostico-tabla .dia-tormenta { background: #fff8eb; }
+  #pronostico-tabla th { grid-column: 1 / -1; font-size: 17px; padding: 12px; background: #eef4fa; }
+  #pronostico-tabla td { display: block; min-width: 0; padding: 10px; font-size: 15px; overflow-wrap: anywhere; }
+  #pronostico-tabla td::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 500; color: #516474; margin-bottom: 5px; }
+  .guia-tecnica { padding: 16px; }
+  .tec-layout { gap: 12px; }
+  .tec-aside, .tec-main { flex-basis: 100%; width: 100%; min-width: 0; }
+  .tabla-origen, .tabla-origen tbody { display: block; width: 100%; }
+  .tabla-origen thead { display: none; }
+  .tabla-origen tr { display: block; border-bottom: 2px solid var(--borde); padding: 10px 0; }
+  .tabla-origen th, .tabla-origen td { display: block; width: 100%; border: 0; padding: 6px 0; overflow-wrap: anywhere; white-space: normal; }
+  .tabla-origen td::before { content: attr(data-label) ': '; font-weight: 600; }
+  .tabla-origen code { font-size: 12px; }
+  .param select, .campo-chico { min-height: 44px; font-size: 16px; }
+  .guia-tecnica nav a { display: inline-block; padding: 8px 0; }
+}
+.tabla-origen th { text-transform: none; letter-spacing: normal; }
+.tabla-origen th span { font-size: 14px; line-height: 1.5; color: var(--texto-3); }
+@media (max-width: 640px) {
+  .explorador .explorador-panel > * { margin-left: 16px; margin-right: 16px; }
+  .explorador .explorador-panel > .buscador { width: calc(100% - 32px); }
+  .cabecera .nav a { min-height: 44px; display: inline-flex; align-items: center; }
+  .cabecera .idioma button, .cabecera .boton-claro { min-height: 44px; }
+  .tabla-origen td { font-size: 14px; }
+}

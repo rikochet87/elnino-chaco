@@ -7,8 +7,9 @@
   const ORDEN_TABS = ["precipitacion", "lluvia", "anegamiento", "dengue", "calor", "agua"];
   const POR_DEFECTO = "san-fernando";
 
+  let horizonte = new URLSearchParams(location.search).get("vista") === "verano" ? "verano" : "dias";
   let lugarPronostico = null, interaccion = 0;
-  let datos, indice, mapa, actual, tabActiva = "precipitacion";
+  let datos, indice, mapa, actual, tabActiva = horizonte === "dias" ? "precipitacion" : "lluvia";
 
   function nivelHTML(modulo, d, rotulo) {
     const m = S.MODULOS[modulo];
@@ -190,12 +191,13 @@
     });
     $("tabs").addEventListener("keydown", (e) => {
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-      const i = ORDEN_TABS.indexOf(tabActiva) + (e.key === "ArrowRight" ? 1 : -1);
-      tabActiva = ORDEN_TABS[(i + ORDEN_TABS.length) % ORDEN_TABS.length];
+      const orden = ORDEN_TABS.filter(k => horizonte === "dias" ? k === "precipitacion" : k !== "precipitacion");
+      const i = orden.indexOf(tabActiva) + (e.key === "ArrowRight" ? 1 : -1);
+      tabActiva = orden[(i + orden.length) % orden.length];
       pintarMapa();
       document.querySelector(`#tabs [data-tab="${tabActiva}"]`).focus();
     });
-    document.querySelectorAll("a[data-tab]").forEach((a) => a.addEventListener("click", () => { tabActiva = a.dataset.tab; pintarMapa(); }));
+    document.querySelectorAll("a[data-tab]").forEach((a) => a.addEventListener("click", () => { cambiarHorizonte("verano", a.dataset.tab); }));
   }
 
   function armarBuscador() {
@@ -268,7 +270,7 @@
     $("compartir").addEventListener("click", async () => {
       const p = datos.porId[actual], d = datos.emision.departamentos[actual];
       const url = location.href;
-      const texto = T("compartir.texto", p.cabecera, p.nombre, I.trimestreTexto(datos.emision),
+      const texto = horizonte === "dias" ? (I.idioma === "es" ? "Pronóstico de lluvia y tormentas para los próximos 7 días en mi zona." : "Rain and thunderstorm forecast for the next 7 days in my area.") : T("compartir.texto", p.cabecera, p.nombre, I.trimestreTexto(datos.emision),
         S.MODULOS.lluvia.clases[S.MODULOS.lluvia.clase(d)].texto.toLowerCase(),
         S.MODULOS.anegamiento.clases[d.anegamiento.categoria - 1].texto.toLowerCase()) + " " +
         T(datos.emision.demo ? "compartir.demo" : "compartir.real");
@@ -280,11 +282,26 @@
     });
   }
 
+  function cambiarHorizonte(nuevo, tab) {
+    horizonte = nuevo;
+    tabActiva = tab || (nuevo === "dias" ? "precipitacion" : "lluvia");
+    if (emergente) emergente.remove();
+    const url = new URL(location.href); url.searchParams.set("vista", horizonte); history.replaceState(null,"",url);
+    textosGenerales(); if (mapa.mapa.isStyleLoaded()) pintarMapa();
+    requestAnimationFrame(() => mapa.mapa.resize());
+  }
+
   // Textos que dependen de la emisión y del idioma
   function textosGenerales() {
     const e = datos.emision;
+    const es = I.idioma === "es", dias = horizonte === "dias";
+    document.body.dataset.horizonte = horizonte;
+    document.querySelectorAll("[data-horizonte-btn]").forEach(b => b.setAttribute("aria-pressed", b.dataset.horizonteBtn === horizonte));
+    $("titulo-explorador").textContent = dias ? (es ? "¿Va a llover en tu localidad?" : "Will it rain in your town?") : (es ? "¿Qué se espera para este verano?" : "What is expected this summer?");
+    $("intro-horizonte").textContent = dias ? (es ? "Buscá tu localidad o usá tu ubicación para ver lluvia y tormentas de los próximos 7 días. También podés tocar un punto de Chaco en el mapa." : "Search for your town or use your location for rain and thunderstorms over the next 7 days. You can also tap a point in Chaco on the map.") : (es ? "Elegí un departamento para conocer las tendencias de lluvia, caminos, dengue y calor de diciembre a febrero." : "Choose a department for December–February trends in rainfall, rural roads, dengue suitability and heat.");
+    $("alcance-horizonte").textContent = dias ? (es ? "Corto plazo · cada fecha es un día de 00 a 24 h de Argentina. La grilla se actualiza cada 6 horas." : "Short term · each date runs 00–24 h Argentina time. The grid updates every 6 hours.") : (es ? "Tendencia estacional · diciembre a febrero. No indica qué día lloverá. Agua observada muestra el mes pasado." : "Seasonal outlook · December–February. It does not predict which day it will rain. Observed water describes the past month.");
     document.querySelectorAll(".js-trimestre").forEach((n) => { n.textContent = I.trimestreTexto(e); });
-    $("franja-emision").textContent = T("franja", S.mesLargo(e.emision + "-01"), S.mesLargo(e.proxima_emision + "-01"));
+    $("franja-emision").textContent = dias ? (es ? "Pronóstico local · próximos 7 días · hora argentina" : "Local forecast · next 7 days · Argentina time") : T("franja", S.mesLargo(e.emision + "-01"), S.mesLargo(e.proxima_emision + "-01"));
   }
 
   async function iniciar() {
@@ -297,6 +314,7 @@
     indice = S.indiceBusqueda(datos);
     mapa = S.crearMapa("mapa-contenedor", datos, alTocar);
     armarTabs();
+    document.querySelectorAll("[data-horizonte-btn]").forEach(b => b.addEventListener("click", () => cambiarHorizonte(b.dataset.horizonteBtn)));
     armarBuscador();
     armarCompartir();
     $("pronostico-reintentar").addEventListener("click", () => {
