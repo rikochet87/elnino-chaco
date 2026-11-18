@@ -3,6 +3,7 @@
   'use strict';
   const colores = ['rgba(237,248,251,0)','rgba(179,226,226,0.25)','#66c2a4','#2ca25f','#ffff99','#fdae61','#d73027','#762a83'];
   const cortes = [0,1,5,10,20,30,50,80];
+  const umbralesResaltado = {mediana:0, '1':0, '10':0, '20':0, '50':0};
   let mapa, datos, recortes, activo = false, dia = 0, variable = 'mediana', error = false;
   const txt = (es,en) => window.I18N.idioma === 'es' ? es : en;
   function features() {
@@ -19,6 +20,49 @@
     const umbrales = variable === 'mediana' ? cortes : [0,10,25,40,55,70,85,95];
     return ['interpolate',['linear'],['get','valor'], ...umbrales.flatMap((v,i) => [v,colores[i]])];
   }
+  function aplicarResaltado() {
+    if (!mapa?.getLayer('precipitacion-celdas')) return;
+    const umbral = umbralesResaltado[variable];
+    mapa.setPaintProperty('precipitacion-celdas', 'fill-opacity',
+      umbral > 0 ? ['case', ['<', ['get','valor'], umbral], 0.05, 0.65] : 0.55);
+  }
+  function controlResaltado() {
+    const caja = document.createElement('div'); caja.className = 'filtro-precipitacion';
+    const cab = document.createElement('div'); cab.className = 'filtro-precipitacion-cab';
+    const label = document.createElement('label'); label.htmlFor = 'precipitacion-umbral';
+    label.textContent = txt('Resaltar desde', 'Highlight from');
+    const salida = document.createElement('output'); salida.id = 'precipitacion-umbral-valor'; salida.setAttribute('for','precipitacion-umbral');
+    const reiniciar = document.createElement('button'); reiniciar.type = 'button'; reiniciar.className = 'reiniciar-umbral';
+    reiniciar.textContent = txt('Restablecer', 'Reset');
+    cab.append(label, salida, reiniciar); caja.append(cab);
+    const input = document.createElement('input'); input.type = 'range'; input.id = 'precipitacion-umbral';
+    input.min = '0'; input.max = '100'; input.step = '5'; input.value = String(umbralesResaltado[variable]);
+    input.setAttribute('aria-describedby','precipitacion-umbral-ayuda');
+    caja.append(input);
+    const marcas = document.createElement('div'); marcas.className = 'marcas-umbral'; marcas.setAttribute('aria-hidden','true');
+    [0,25,50,75,100].forEach(v=>{const span=document.createElement('span'); span.textContent=String(v);marcas.append(span);});caja.append(marcas);
+    const ayuda = document.createElement('p'); ayuda.id = 'precipitacion-umbral-ayuda'; ayuda.className = 'ayuda-umbral'; caja.append(ayuda);
+    const actualizar = () => {
+      const valor = umbralesResaltado[variable], unidad = variable === 'mediana' ? 'mm' : '%';
+      salida.textContent = `${valor} ${unidad}`;
+      input.style.setProperty("--porcentaje-umbral", `${valor}%`);
+      input.setAttribute('aria-valuetext', `${valor} ${unidad}`);
+      reiniciar.disabled = valor === 0;
+      const supera = valor === 0 || features().features.some(f=>f.properties.valor >= valor);
+      ayuda.textContent = !supera ? txt('Ninguna zona alcanza este umbral en el día elegido. Los datos no cambian.', 'No area reaches this threshold on the selected day. The data is unchanged.') :
+        valor > 0 ? txt('Los valores inferiores se atenúan; esto no significa que no vaya a llover.', 'Lower values are faded; this does not mean it will not rain.') :
+        txt('Mové el control para resaltar cantidades o probabilidades mayores. No modifica el pronóstico.', 'Move the slider to highlight higher amounts or probabilities. It does not change the forecast.');
+    };
+    input.addEventListener('input', () => {
+      umbralesResaltado[variable] = Number(input.value);
+      aplicarResaltado(); actualizar();
+    });
+    reiniciar.addEventListener('click', () => {
+      umbralesResaltado[variable] = 0; input.value = '0'; aplicarResaltado(); actualizar();
+      input.focus();
+    });
+    actualizar(); return caja;
+  }
   function pintar() {
     if (!mapa.getLayer('precipitacion-celdas')) return;
     mapa.setLayoutProperty('precipitacion-celdas','visibility',activo ? 'visible':'none');
@@ -26,6 +70,7 @@
     if (activo && datos) {
       mapa.getSource('precipitacion').setData(features());
       mapa.setPaintProperty('precipitacion-celdas','fill-color',color());
+      aplicarResaltado();
     }
   }
   function leyenda() {
@@ -47,6 +92,7 @@
     const escala=document.createElement('p');escala.className='escala-valores';
     const ticks=variable==='mediana' ? [0,10,20,50,80] : [0,25,50,75,95];
     ticks.forEach((v,i)=>{const marca=document.createElement('span');marca.style.left=`${v/ticks[ticks.length-1]*100}%`;marca.style.transform=i===0?'none':i===ticks.length-1?'translateX(-100%)':'translateX(-50%)';marca.textContent=i===ticks.length-1 ? `≥${v} ${variable==='mediana'?'mm':'%'}` : String(v);escala.append(marca);});n.append(escala);
+    n.append(controlResaltado());
     const anticuado=Date.now()-Date.parse(datos.consultado)>12*3600000 || datos.fechas[dia]<new Date().toLocaleDateString('en-CA',{timeZone:'America/Argentina/Buenos_Aires'});
     nota.textContent=(anticuado ? txt('Datos antiguos; revisá las fechas. ','Older data; check the dates. '):'')+txt('ICON-EPS · 40 escenarios. Muestreo 0,25° (~25 km); no indica diferencias por calle. Caminos OSM requieren conexión. Actualizado: ','ICON-EPS · 40 scenarios. 0.25° sampling (~25 km); no street-level detail. OSM roads require a connection. Updated: ')+new Date(datos.consultado).toLocaleString(window.I18N.locale(),{timeZone:'America/Argentina/Buenos_Aires'})+txt('. Capa recortada a Chaco; el cero es transparente. Tocá el mapa o una localidad para consultar ese punto.','. Layer clipped to Chaco; zero is transparent. Tap the map or a town to query that point.');n.append(nota);
     const detalles=document.createElement('details');detalles.className='detalles-mapa'+(anticuado?' datos-antiguos':'');

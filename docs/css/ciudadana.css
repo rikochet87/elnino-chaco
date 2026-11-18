@@ -126,3 +126,24 @@
 .pagina-ciudadana .escala-valores { position: relative; height: 17px; }
 .pagina-ciudadana .escala-valores span { position: absolute; white-space: nowrap; }
 .pagina-ciudadana .datos-antiguos summary { color: #92440f; background: #fff7ed; border-radius: 4px; padding: 4px 6px; }
+
+/* Umbral visual, independiente de los datos y de los colores de la escala. */
+.pagina-ciudadana .filtro-precipitacion { width: 100%; padding: 10px 12px; border: 1px solid #dde5ed; border-radius: 8px; background: #f7fafc; }
+.pagina-ciudadana .filtro-precipitacion-cab { display: flex; align-items: center; gap: 8px; }
+.pagina-ciudadana .explorador .leyenda .filtro-precipitacion-cab label { display: block; font-size: 13px; color: #365066; }
+.pagina-ciudadana .filtro-precipitacion output { color: #13293f; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.pagina-ciudadana .reiniciar-umbral { margin-left: auto; border: 0; background: transparent; color: #24577e; font: inherit; font-size: 12px; min-height: 32px; padding: 4px; cursor: pointer; }
+.pagina-ciudadana .reiniciar-umbral:disabled { opacity: .45; cursor: default; }
+.pagina-ciudadana #precipitacion-umbral { width: 100%; height: 36px; margin: 0; padding: 0; cursor: pointer; appearance: none; -webkit-appearance: none; background: transparent; touch-action: pan-y; }
+.pagina-ciudadana #precipitacion-umbral::-webkit-slider-runnable-track { height: 7px; border: 1px solid #ccd9e3; border-radius: 5px; background: linear-gradient(90deg, #365d7d var(--porcentaje-umbral), #d9e3ec var(--porcentaje-umbral)); }
+.pagina-ciudadana #precipitacion-umbral::-moz-range-track { height: 7px; border: 1px solid #ccd9e3; border-radius: 5px; background: linear-gradient(90deg, #365d7d var(--porcentaje-umbral), #d9e3ec var(--porcentaje-umbral)); }
+.pagina-ciudadana #precipitacion-umbral::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border: 3px solid #fff; border-radius: 50%; background: #13293f; box-shadow: 0 0 0 1px #7890a4, 0 2px 4px #13293f25; }
+.pagina-ciudadana #precipitacion-umbral::-moz-range-thumb { width: 17px; height: 17px; border: 3px solid #fff; border-radius: 50%; background: #13293f; box-shadow: 0 0 0 1px #7890a4; }
+.pagina-ciudadana #precipitacion-umbral:focus-visible { outline: 2px solid #3979b0; outline-offset: 2px; border-radius: 6px; }
+.pagina-ciudadana .marcas-umbral { display: flex; justify-content: space-between; margin-top: -4px; color: #66798b; font-size: 10px; }
+.pagina-ciudadana .explorador .leyenda .ayuda-umbral { display: block; font-size: 11px; color: #526575; line-height: 1.5; margin: 6px 0 0; }
+@media (max-width: 760px) {
+  .pagina-ciudadana .filtro-precipitacion { padding: 8px 10px; }
+  .pagina-ciudadana #precipitacion-umbral { height: 44px; }
+  .pagina-ciudadana .reiniciar-umbral { min-height: 44px; }
+}

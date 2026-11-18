@@ -61,7 +61,9 @@ Pruebas de la integración: `node --test tests/test_pronostico.cjs` (Node.js 18 
 
 ### Mapa de precipitación y probabilidades por cantidad
 
-El mapa inicia con **Pronóstico de lluvia**: celdas de muestreo regional de 0,25° (~25 km), recortadas al contorno provincial de Chaco, sin colorear departamentos completos. El valor cero es transparente y los valores bajos se muestran con menor intensidad, para no teñir todo el mapa base. Elegí un día y mostrá la mediana de precipitación en mm o la probabilidad de superar 1, 10, 20 o 50 mm. Los límites departamentales sirven como referencia. Las demás pestañas conservan los indicadores estacionales.
+El mapa inicia con **Pronóstico de lluvia**: celdas de muestreo regional de 0,25° (~25 km), recortadas al contorno provincial de Chaco, sin colorear departamentos completos. El valor cero es transparente y los valores bajos se muestran con menor intensidad, para no teñir todo el mapa base. El slider **Resaltar desde** (0–100, pasos de 5) atenúa las celdas por debajo del valor elegido, sin cambiar los datos ni los colores de la escala. Usa mm para lluvia y % para probabilidades, conserva un umbral independiente por variable y permite restablecerlo a cero. Si ninguna celda alcanza el umbral, lo informa.
+
+Elegí un día y mostrá la mediana de precipitación en mm o la probabilidad de superar 1, 10, 20 o 50 mm. Los límites departamentales sirven como referencia. Las demás pestañas conservan los indicadores estacionales.
 
 Las probabilidades salen de **ICON-EPS (DWD), 40 miembros vía Open-Meteo**: proporción de escenarios que dan una cantidad **estrictamente mayor** al umbral en un día de 00 a 24 h de Argentina. No están calibradas localmente. La ficha consulta las coordenadas de la localidad, del dispositivo o del punto tocado dentro de Chaco; muestra mediana, percentiles 10–90 y las cuatro probabilidades. Los percentiles describen la dispersión del conjunto, no garantizan contener la lluvia observada. El pronóstico diario y el detalle de las próximas 72 horas provienen del endpoint general (mejor combinación de modelos) y pueden diferir del conjunto ICON.
 
