@@ -34,19 +34,24 @@
     const titulo=document.createElement('h3'); titulo.textContent=txt('Precipitación por zona','Precipitation by area'); n.append(titulo);
     const nota=document.createElement('p');
     if (!datos) {nota.textContent=error ? txt('No se pudo cargar el mapa de precipitación.','Could not load the precipitation map.') : txt('Cargando pronóstico regional…','Loading regional forecast…'); n.append(nota); return;}
-    const labelDia=document.createElement('label'); labelDia.textContent=txt('Día (00–24 h Argentina) ','Day (00–24 h Argentina) ');
+    const controles=document.createElement('div');controles.className='controles-precipitacion';
+    const labelDia=document.createElement('label'); labelDia.textContent=txt('Día ','Day ');
     const selectDia=document.createElement('select'); selectDia.id='precipitacion-dia';
     datos.fechas.forEach((f,i) => {const o=document.createElement('option');o.value=i;o.textContent=new Date(f+'T12:00:00-03:00').toLocaleDateString(window.I18N.locale(),{weekday:'short',day:'numeric',month:'short',timeZone:'America/Argentina/Buenos_Aires'}); selectDia.append(o);});
-    selectDia.value=dia; selectDia.addEventListener('change',()=>{dia=Number(selectDia.value);pintar();leyenda();}); labelDia.append(selectDia);n.append(labelDia);
+    selectDia.value=dia; selectDia.addEventListener('change',()=>{dia=Number(selectDia.value);pintar();leyenda();}); labelDia.append(selectDia);controles.append(labelDia);
     const labelVar=document.createElement('label');labelVar.textContent=txt(' Mostrar ',' Show ');
     const select=document.createElement('select');select.id='precipitacion-variable';
-    for (const [v,t] of [['mediana',txt('Mediana estimada (mm)','Estimated median (mm)')], ...[1,10,20,50].map(u=>[String(u),`P(>${u} mm) %`])]) {const o=document.createElement('option');o.value=v;o.textContent=t;select.append(o);}
-    select.value=variable;select.addEventListener('change',()=>{variable=select.value;pintar();leyenda();});labelVar.append(select);n.append(labelVar);
+    for (const [v,t] of [['mediana',txt('Lluvia (mm)','Rainfall (mm)')], ...[1,10,20,50].map(u=>[String(u),txt(`Más de ${u} mm (%)`,`Over ${u} mm (%)`)])]) {const o=document.createElement('option');o.value=v;o.textContent=t;select.append(o);}
+    select.value=variable;select.addEventListener('change',()=>{variable=select.value;pintar();leyenda();});labelVar.append(select);controles.append(labelVar);n.append(controles);
     const barra=document.createElement('div');barra.className='escala-lluvia';barra.style.background=`linear-gradient(90deg,${(variable === 'mediana' ? cortes : [0,10,25,40,55,70,85,95]).map((v,i)=>`${colores[i]} ${v/(variable === 'mediana' ? 80:95)*100}%`).join(',')})`;n.append(barra);
-    const escala=document.createElement('p');escala.className='escala-valores';escala.textContent=variable==='mediana' ? '0 · 1 · 5 · 10 · 20 · 30 · 50 · ≥80 mm' : '0 · 10 · 25 · 40 · 55 · 70 · 85 · ≥95 %';n.append(escala);
+    const escala=document.createElement('p');escala.className='escala-valores';
+    const ticks=variable==='mediana' ? [0,10,20,50,80] : [0,25,50,75,95];
+    ticks.forEach((v,i)=>{const marca=document.createElement('span');marca.style.left=`${v/ticks[ticks.length-1]*100}%`;marca.style.transform=i===0?'none':i===ticks.length-1?'translateX(-100%)':'translateX(-50%)';marca.textContent=i===ticks.length-1 ? `≥${v} ${variable==='mediana'?'mm':'%'}` : String(v);escala.append(marca);});n.append(escala);
     const anticuado=Date.now()-Date.parse(datos.consultado)>12*3600000 || datos.fechas[dia]<new Date().toLocaleDateString('en-CA',{timeZone:'America/Argentina/Buenos_Aires'});
     nota.textContent=(anticuado ? txt('Datos antiguos; revisá las fechas. ','Older data; check the dates. '):'')+txt('ICON-EPS · 40 escenarios. Muestreo 0,25° (~25 km); no indica diferencias por calle. Caminos OSM requieren conexión. Actualizado: ','ICON-EPS · 40 scenarios. 0.25° sampling (~25 km); no street-level detail. OSM roads require a connection. Updated: ')+new Date(datos.consultado).toLocaleString(window.I18N.locale(),{timeZone:'America/Argentina/Buenos_Aires'})+txt('. Capa recortada a Chaco; el cero es transparente. Tocá el mapa o una localidad para consultar ese punto.','. Layer clipped to Chaco; zero is transparent. Tap the map or a town to query that point.');n.append(nota);
-    const a=document.createElement('a');a.href='https://open-meteo.com/en/docs/ensemble-api';a.textContent='Open-Meteo · DWD · CC BY 4.0';n.append(a);
+    const detalles=document.createElement('details');detalles.className='detalles-mapa'+(anticuado?' datos-antiguos':'');
+    const resumen=document.createElement('summary');resumen.textContent=(anticuado?txt('Datos antiguos · ','Older data · '):'')+txt('Actualizado ','Updated ')+new Date(datos.consultado).toLocaleString(window.I18N.locale(),{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'America/Argentina/Buenos_Aires'})+txt(' · fuente y alcance',' · source and coverage');detalles.append(resumen,nota);
+    const a=document.createElement('a');a.href='https://open-meteo.com/en/docs/ensemble-api';a.textContent='Open-Meteo · DWD · CC BY 4.0';detalles.append(a);n.append(detalles);
   }
   async function iniciar(m) {
     mapa=m;

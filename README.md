@@ -293,6 +293,8 @@ La guía completa, con la instalación, las cuentas necesarias (solo Google Eart
 .\emision.ps1 -ProbNino 1.0 -Intensidad "muy fuerte"
 ```
 
+La composición de la página pública se define en `docs/css/ciudadana.css`: panel de búsqueda y contexto, controles junto al mapa y ficha debajo. Los escenarios detallados se despliegan a pedido; la cabecera móvil conserva accesos a mapa, ficha, consejos, ayuda y datos. `app.css` conserva los estilos compartidos con las páginas técnica y 3D.
+
 ### Ver el sitio en tu computadora
 
 ```bash

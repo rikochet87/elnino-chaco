@@ -153,5 +153,20 @@
       else document.getElementById("pronostico-estado").textContent = texto("No se pudo obtener el pronóstico. Revisá tu conexión y volvé a intentar.", "Could not load the forecast. Check your connection and retry.");
     }
   }
+  const botonEscenarios = document.getElementById("alternar-escenarios");
+  if (botonEscenarios && botonEscenarios.addEventListener) {
+    const rotular = () => {
+      const abierto = botonEscenarios.getAttribute("aria-expanded") === "true";
+      botonEscenarios.textContent = abierto ? texto("Ocultar escenarios detallados", "Hide detailed scenarios") : texto("Ver escenarios y probabilidades por cantidad", "Show scenarios and amount probabilities");
+    };
+    botonEscenarios.addEventListener("click", () => {
+      const abierto = botonEscenarios.getAttribute("aria-expanded") !== "true";
+      botonEscenarios.setAttribute("aria-expanded", String(abierto));
+      botonEscenarios.closest(".pronostico").classList.toggle("detalle-activo", abierto);
+      rotular();
+    });
+    document.addEventListener("idioma", rotular);
+    rotular();
+  }
   window.Pronostico = { mostrar, validar, condicion };
 })();

@@ -1,0 +1,128 @@
+/* Composición de la vista pública: controles, mapa y ficha en un mismo sistema. */
+.pagina-ciudadana { background: #f3f6f9; }
+.pagina-ciudadana .contenedor { max-width: 1280px; }
+.pagina-ciudadana .cabecera .contenedor { gap: 16px 28px; }
+.pagina-ciudadana .nav { gap: 12px 18px; font-size: 14px; }
+.pagina-ciudadana .explorador {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px;
+  width: calc(100% - 48px); max-width: 1232px; height: auto; min-height: 0; max-height: none;
+  margin: 24px auto 0; padding: 0; background: transparent; border: 0; align-items: start;
+}
+.pagina-ciudadana .explorador-panel {
+  display: flex; flex-direction: column; gap: 18px; padding: 20px;
+  overflow: visible; border: 1px solid #dde5ed; border-radius: 14px; background: #fff;
+}
+.pagina-ciudadana .explorador .explorador-panel > * { margin: 0; }
+.pagina-ciudadana .explorador-panel h1 { font-size: 25px; line-height: 1.22; letter-spacing: -.4px; }
+.pagina-ciudadana .explorador-intro { font-size: 14px; line-height: 1.6; color: #526575; }
+.pagina-ciudadana .explorador .selector-horizonte {
+  display: grid; grid-template-columns: 1fr 1fr; width: 100%; max-width: none; flex: none;
+  padding: 4px; gap: 4px; background: #eef3f7; border: 1px solid #dde5ed; border-radius: 9px;
+}
+.pagina-ciudadana .selector-horizonte button {
+  display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 6px;
+  border: 0; border-radius: 6px; background: transparent; text-align: center; color: #365066; box-shadow: none;
+}
+.pagina-ciudadana .selector-horizonte strong { font-size: 13px; }
+.pagina-ciudadana .selector-horizonte span { display: none; }
+.pagina-ciudadana .selector-horizonte [aria-pressed="true"] { background: #13293f; color: #fff; box-shadow: 0 2px 4px #13293f15; }
+.pagina-ciudadana .explorador .buscador { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.pagina-ciudadana .campo { min-height: 48px; border-radius: 8px; font-size: 15px; border-color: #bdcbd8; }
+.pagina-ciudadana .boton { border-radius: 8px; font-size: 14px; }
+.pagina-ciudadana .explorador .buscador .boton { width: 100%; min-height: 44px; }
+.pagina-ciudadana .privacidad-ubicacion { font-size: 12px; line-height: 1.6; color: #66798b; }
+.pagina-ciudadana .privacidad-ubicacion summary { cursor: pointer; }
+.pagina-ciudadana .privacidad-ubicacion p { margin: 8px 0 0; }
+.pagina-ciudadana .alcance-horizonte { padding: 12px; border: 0; border-radius: 8px; background: #f2f6fa; color: #526575; font-size: 12px; }
+.pagina-ciudadana .explorador-sub { color: #66798b; font-size: 12px; }
+.pagina-ciudadana .temas { display: flex; flex-wrap: wrap; padding: 0; gap: 6px; overflow: visible; }
+.pagina-ciudadana .temas .tab { min-height: 38px; font-size: 12px; padding: 8px 10px; }
+.pagina-ciudadana .explorador-mapa {
+  display: flex; flex-direction: column; gap: 0; position: relative; width: 100%; max-width: none;
+  height: auto; min-height: 0; margin: 0; padding: 0; overflow: hidden;
+  border: 1px solid #dde5ed; border-radius: 14px; background: #fff;
+}
+.pagina-ciudadana .visor-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 12px; }
+.pagina-ciudadana .visor-sobre { margin: 0 0 5px; color: #66798b; font-size: 12px; }
+.pagina-ciudadana .visor-cabecera h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.3px; }
+.pagina-ciudadana .enlace-ficha { flex: none; font-size: 13px; text-decoration: none; font-weight: 600; }
+.pagina-ciudadana .explorador .mapa { position: relative; inset: auto; flex: none; width: 100%; height: 430px; min-height: 0; border: 0; border-top: 1px solid #dde5ed; }
+.pagina-ciudadana .explorador .leyenda { display: flex; flex-wrap: wrap; gap: 8px 14px; padding: 0 20px 14px; margin: 0; width: 100%; flex: none; order: initial; }
+.pagina-ciudadana .explorador .leyenda h3 { width: 100%; margin: 0; font-size: 14px; }
+.pagina-ciudadana[data-horizonte="dias"] #leyenda > h3 { display: none; }
+.pagina-ciudadana .controles-precipitacion { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+.pagina-ciudadana .explorador .leyenda label { display: flex; flex-direction: column; gap: 6px; min-width: 0; width: auto; margin: 0; font-size: 12px; color: #526575; }
+.pagina-ciudadana .explorador .leyenda select { width: 100%; max-width: 100%; min-height: 42px; border: 1px solid #bdcbd8; border-radius: 7px; padding: 8px 10px; background: #fff; color: #13293f; font-size: 14px; }
+.pagina-ciudadana .explorador .escala-lluvia { width: 100%; height: 10px; margin: 2px 0 0; border: 1px solid #e2e8ee; border-radius: 5px; }
+.pagina-ciudadana .explorador .leyenda .escala-valores { display: block; width: 100%; margin: -4px 0 0; font-size: 11px; color: #526575; }
+.pagina-ciudadana .detalles-mapa { width: 100%; font-size: 11px; color: #66798b; }
+.pagina-ciudadana .detalles-mapa summary { cursor: pointer; line-height: 1.6; }
+.pagina-ciudadana .explorador .leyenda .detalles-mapa p { display: block; margin: 8px 0; font-size: 12px; line-height: 1.6; }
+.pagina-ciudadana .explorador .leyenda > p { display: block; font-size: 12px; line-height: 1.5; margin: 0; }
+.pagina-ciudadana .explorador .leyenda-item { font-size: 12px; }
+.pagina-ciudadana .seccion { padding-top: 28px; padding-bottom: 12px; }
+.pagina-ciudadana .panel { border-radius: 14px; border-color: #dde5ed; box-shadow: 0 2px 8px #13293f04; }
+.pagina-ciudadana .pronostico { padding: 24px; margin: 0; }
+.pagina-ciudadana .pronostico h2 { margin: 0 0 8px; font-size: 23px; }
+.pagina-ciudadana #pronostico-zona { font-size: 17px; font-weight: 500; color: #365066; margin: 0 0 6px; }
+.pagina-ciudadana #pronostico-estado { font-size: 12px; color: #66798b; }
+.pagina-ciudadana .pronostico th { font-size: 12px; }
+.pagina-ciudadana .pronostico td { font-size: 14px; }
+.pagina-ciudadana .ayuda-estacional { margin: -6px 0 20px; font-size: 14px; color: #526575; }
+.pagina-ciudadana .pie { margin-top: 28px; }
+@media (max-width: 1050px) and (min-width: 761px) {
+  .pagina-ciudadana .explorador { grid-template-columns: 270px minmax(0,1fr); gap: 16px; }
+  .pagina-ciudadana .explorador-panel { padding: 16px; }
+  .pagina-ciudadana .enlace-ficha { display: none; }
+}
+@media (max-width: 760px) {
+  .pagina-ciudadana .explorador { display: flex; flex-direction: column; width: calc(100% - 32px); gap: 16px; margin: 16px auto 0; padding: 0; }
+  .pagina-ciudadana .explorador-panel { width: 100%; padding: 16px; gap: 14px; }
+  .pagina-ciudadana .explorador-panel h1 { font-size: 24px; margin: 0; }
+  .pagina-ciudadana .explorador .selector-horizonte { margin: 0; padding: 4px; }
+  .pagina-ciudadana .selector-horizonte button { flex-direction: column; gap: 5px; min-height: 78px; padding: 10px 8px; }
+  .pagina-ciudadana .selector-horizonte strong { font-size: 14px; }
+  .pagina-ciudadana .selector-horizonte span { display: block; font-size: 11px; font-weight: 400; line-height: 1.4; }
+  .pagina-ciudadana .explorador .buscador { flex-direction: row; flex-wrap: wrap; }
+  .pagina-ciudadana .explorador .buscador .envoltura { flex: 1 1 100%; }
+  .pagina-ciudadana .explorador .buscador .boton { width: auto; flex: 1 1 auto; font-size: 13px; padding: 0 12px; }
+  .pagina-ciudadana .explorador-mapa { width: 100%; order: initial; }
+  .pagina-ciudadana .visor-cabecera { padding: 16px; }
+  .pagina-ciudadana .visor-cabecera h2 { font-size: 18px; }
+  .pagina-ciudadana .visor-sobre { font-size: 11px; }
+  .pagina-ciudadana .enlace-ficha { font-size: 12px; }
+  .pagina-ciudadana .explorador .leyenda { padding: 0 16px 14px; }
+  .pagina-ciudadana .controles-precipitacion { gap: 8px; }
+  .pagina-ciudadana .explorador .leyenda select { font-size: 16px; padding: 6px; }
+  .pagina-ciudadana .explorador .mapa { height: 360px; }
+  .pagina-ciudadana .pronostico { padding: 16px; }
+  .pagina-ciudadana .pronostico h2 { font-size: 21px; }
+  .pagina-ciudadana .seccion { padding-top: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-ciudadana { scroll-behavior: auto; }
+}
+.pagina-ciudadana .nav-datos { display: none; }
+.pagina-ciudadana .detalle-pronostico { min-height: 42px; margin: 10px 0; font-size: 13px; }
+.pagina-ciudadana .pronostico:not(.detalle-activo) #pronostico-tabla th:nth-child(n+5),
+.pagina-ciudadana .pronostico:not(.detalle-activo) #pronostico-tabla td:nth-child(n+5),
+.pagina-ciudadana .pronostico:not(.detalle-activo) .lectura-pronostico,
+.pagina-ciudadana .pronostico:not(.detalle-activo) #ensamble-estado { display: none; }
+@media (max-width: 760px) {
+  .pagina-ciudadana .cabecera .contenedor { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; padding-top: 12px; padding-bottom: 8px; }
+  .pagina-ciudadana .marca { grid-column: 1; grid-row: 1; gap: 8px; min-width: 0; }
+  .pagina-ciudadana .marca img { width: 30px; height: 30px; }
+  .pagina-ciudadana .marca-titulo { font-size: 17px; }
+  .pagina-ciudadana .marca-sub { font-size: 10px; }
+  .pagina-ciudadana .cabecera-acciones { grid-column: 2; grid-row: 1; margin: 0; }
+  .pagina-ciudadana .cabecera-acciones > .boton-claro { display: none; }
+  .pagina-ciudadana .idioma button { min-width: 38px; padding: 0 8px; }
+  .pagina-ciudadana .nav { grid-column: 1 / -1; grid-row: 2; gap: 4px; justify-content: space-between; font-size: 12px; }
+  .pagina-ciudadana .nav a { display: inline-flex; align-items: center; justify-content: center; padding: 4px; min-width: 44px; min-height: 44px; }
+  .pagina-ciudadana .pronostico:not(.detalle-activo) #pronostico-tabla td:nth-child(4) { grid-column: 1 / -1; }
+  .pagina-ciudadana .detalle-pronostico { width: 100%; font-size: 12px; padding: 10px; }
+}
+
+.pagina-ciudadana .escala-valores { position: relative; height: 17px; }
+.pagina-ciudadana .escala-valores span { position: absolute; white-space: nowrap; }
+.pagina-ciudadana .datos-antiguos summary { color: #92440f; background: #fff7ed; border-radius: 4px; padding: 4px 6px; }

@@ -1,5 +1,5 @@
 /* Service worker: la app funciona sin conexión con la última emisión descargada. */
-const VERSION = "v0.12.2";
+const VERSION = "v0.13.0";
 const CACHE_APP = `app-${VERSION}`;
 const CACHE_DATOS = "datos";
 
@@ -12,6 +12,7 @@ const APP = [
   "js/como-llega.js",
   "js/navegacion.js",
   "css/app.css",
+  "css/ciudadana.css",
   "js/i18n.js",
   "js/comun.js",
   "js/ciudadana.js",

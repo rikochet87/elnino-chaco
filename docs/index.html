@@ -12,8 +12,9 @@
 <link rel="preload" href="fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/ciudadana.css">
 </head>
-<body data-horizonte="dias">
+<body class="pagina-ciudadana" data-horizonte="dias">
 <a class="sr-only" href="#contenido" data-i18n="saltar">Saltar al contenido</a>
 
 <div class="aviso-demo" role="note">
@@ -39,8 +40,9 @@
     <nav class="nav" aria-label="Principal" data-i18n-attr="aria-label:c.nav">
       <a href="#mapa" aria-current="page" data-i18n="c.nav-mapa">Mapa</a>
         <a href="#resumen" data-i18n="c.nav-zona">Mi zona</a>
-      <a href="#prepararse" data-i18n="c.nav-prep">Cómo prepararse</a>
-      <a href="#preguntas" data-i18n="c.nav-faq">Preguntas frecuentes</a>
+      <a href="#prepararse" data-i18n="c.nav-prep">Consejos</a>
+      <a href="#preguntas" data-i18n="c.nav-faq">Ayuda</a>
+      <a class="nav-datos" href="tecnica.html" data-i18n="ux.datos">Datos</a>
     </nav>
     <div class="cabecera-acciones">
       <a class="boton-claro" href="tecnica.html" data-i18n="c.vista-tecnica">Vista técnica</a>
@@ -56,7 +58,7 @@
 
   <section class="explorador" id="mapa" aria-labelledby="titulo-explorador">
     <div class="explorador-panel">
-  <div class="contenedor selector-horizonte" role="group" aria-label="Tipo de información" data-i18n-attr="aria-label:h.grupo">
+  <div class="selector-horizonte" role="group" aria-label="Tipo de información" data-i18n-attr="aria-label:h.grupo">
     <button type="button" data-horizonte-btn="dias" aria-pressed="true"><strong data-i18n="h.dias">Próximos días</strong><span data-i18n="h.dias-sub">7 días · por localidad o tu ubicación</span></button>
     <button type="button" data-horizonte-btn="verano" aria-pressed="false"><strong data-i18n="h.verano">Este verano</strong><span data-i18n="h.verano-sub">Diciembre a febrero · por departamento</span></button>
   </div>
@@ -74,14 +76,15 @@
               <span data-i18n="c.ubicacion">Usar mi ubicación</span>
             </button>
           </form>
-          <p class="nota" data-i18n="c.ubicacion-privacidad">Al usar tu ubicación, se envían sus coordenadas a Open-Meteo para consultar el pronóstico. No se guardan ni se incluyen al compartir.</p>
+          <details class="privacidad-ubicacion"><summary data-i18n="ux.privacidad">Tu ubicación se consulta con Open-Meteo</summary><p class="nota" data-i18n="c.ubicacion-privacidad">Al usar tu ubicación, se envían sus coordenadas a Open-Meteo para consultar el pronóstico. No se guardan ni se incluyen al compartir.</p></details>
           <p class="mensaje" id="mensaje" role="status" aria-live="polite"></p>
       <p id="alcance-horizonte" class="alcance-horizonte" role="status"></p>
       <h2 class="explorador-sub" data-horizonte="verano" id="titulo-temas" data-i18n="c.que-ver">Qué ver en el mapa</h2>
       <div class="tabs temas" role="tablist" aria-labelledby="titulo-temas" id="tabs" data-horizonte="verano"></div>
-      <div class="leyenda" id="leyenda"></div>
     </div>
     <div class="explorador-mapa">
+      <div class="visor-cabecera"><div><p class="visor-sobre" id="visor-sobre">Próximos 7 días</p><h2 id="titulo-visor">Mapa de precipitación</h2></div><a class="enlace-ficha" href="#resumen" data-i18n="ux.ver-ficha">Ver mi ficha ↓</a></div>
+      <div class="leyenda" id="leyenda"></div>
       <div class="mapa" id="mapa-contenedor" role="region" data-i18n-attr="aria-label:c.mapa-region" aria-label="Mapa de departamentos de Chaco. Tocá un departamento para ver su información."></div>
     </div>
   </section>
@@ -97,6 +100,7 @@
         <h2 id="pronostico-titulo">Lluvia y tormentas · próximos 7 días</h2>
         <p id="pronostico-zona"></p>
         <p id="pronostico-estado" role="status" aria-live="polite"></p>
+        <button type="button" class="boton boton-sec detalle-pronostico" id="alternar-escenarios" aria-expanded="false" aria-controls="pronostico-tabla">Ver escenarios y probabilidades por cantidad</button>
         <div class="pronostico-scroll">
           <table id="pronostico-tabla" hidden>
             <caption class="sr-only" data-pron-es="Pronóstico diario de lluvia y tormentas" data-pron-en="Daily rain and thunderstorm forecast">Pronóstico diario de lluvia y tormentas</caption>
@@ -126,6 +130,7 @@
       </article>
       <p class="linea-nino" data-horizonte="verano" id="linea-nino"></p>
 
+      <p class="ayuda-estacional" data-horizonte="verano" data-i18n="ux.ayuda-verano">Esta ficha resume el verano completo. Los colores comparan departamentos; no indican qué día va a llover.</p>
       <div class="tarjetas" data-horizonte="verano">
         <article class="panel tarjeta">
           <div class="tarjeta-cab">
