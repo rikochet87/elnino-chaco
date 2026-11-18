@@ -430,3 +430,9 @@ body[data-horizonte="verano"] [data-horizonte="dias"] { display: none !important
 @media (max-width: 900px) {
   .explorador .explorador-panel > .selector-horizonte { width: 100%; max-width: none; margin: 0; }
 }
+
+/* Visor de escritorio más contenido, con aire alrededor del mapa. */
+@media (min-width: 901px) {
+  .explorador { height: 72vh; min-height: 480px; max-height: 620px; }
+  .explorador-mapa { width: calc(100% - 48px); max-width: 980px; height: calc(100% - 48px); min-height: 0; margin: 24px auto; border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
+}
