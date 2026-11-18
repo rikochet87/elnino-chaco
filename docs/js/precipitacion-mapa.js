@@ -1,16 +1,20 @@
 /* Celdas de pronóstico regional: sin interpolar una precisión inexistente. */
 (function () {
   'use strict';
-  const colores = ['#edf8fb','#b3e2e2','#66c2a4','#2ca25f','#ffff99','#fdae61','#d73027','#762a83'];
+  const colores = ['rgba(237,248,251,0)','rgba(179,226,226,0.25)','#66c2a4','#2ca25f','#ffff99','#fdae61','#d73027','#762a83'];
   const cortes = [0,1,5,10,20,30,50,80];
-  let mapa, datos, activo = false, dia = 0, variable = 'mediana', error = false;
+  let mapa, datos, recortes, activo = false, dia = 0, variable = 'mediana', error = false;
   const txt = (es,en) => window.I18N.idioma === 'es' ? es : en;
   function features() {
-    return {type:'FeatureCollection',features:datos.celdas.map(c => {
-      const [x,y] = c.centro, a=datos.paso/2, d=c.dias[dia];
-      return {type:'Feature',properties:{valor:variable === 'mediana' ? d.mediana : d.prob[variable]}, geometry:{type:'Polygon',coordinates:[[[x-a,y-a],[x+a,y-a],[x+a,y+a],[x-a,y+a],[x-a,y-a]]]}};
+    const porCentro = new Map(datos.celdas.map(c => [c.centro.join(','), c]));
+    return {type:'FeatureCollection',features:recortes.features.map(f => {
+      const c = porCentro.get(f.properties.centro.join(','));
+      if (!c) throw Error('La geometría no coincide con la grilla');
+      const d = c.dias[dia];
+      return {...f, properties:{valor:variable === 'mediana' ? d.mediana : d.prob[variable]}};
     })};
   }
+
   function color() {
     const umbrales = variable === 'mediana' ? cortes : [0,10,25,40,55,70,85,95];
     return ['interpolate',['linear'],['get','valor'], ...umbrales.flatMap((v,i) => [v,colores[i]])];
@@ -41,7 +45,7 @@
     const barra=document.createElement('div');barra.className='escala-lluvia';barra.style.background=`linear-gradient(90deg,${(variable === 'mediana' ? cortes : [0,10,25,40,55,70,85,95]).map((v,i)=>`${colores[i]} ${v/(variable === 'mediana' ? 80:95)*100}%`).join(',')})`;n.append(barra);
     const escala=document.createElement('p');escala.className='escala-valores';escala.textContent=variable==='mediana' ? '0 · 1 · 5 · 10 · 20 · 30 · 50 · ≥80 mm' : '0 · 10 · 25 · 40 · 55 · 70 · 85 · ≥95 %';n.append(escala);
     const anticuado=Date.now()-Date.parse(datos.consultado)>12*3600000 || datos.fechas[dia]<new Date().toLocaleDateString('en-CA',{timeZone:'America/Argentina/Buenos_Aires'});
-    nota.textContent=(anticuado ? txt('Datos antiguos; revisá las fechas. ','Older data; check the dates. '):'')+txt('ICON-EPS · 40 escenarios. Muestreo 0,25° (~25 km); no indica diferencias por calle. Caminos OSM requieren conexión. Actualizado: ','ICON-EPS · 40 scenarios. 0.25° sampling (~25 km); no street-level detail. OSM roads require a connection. Updated: ')+new Date(datos.consultado).toLocaleString(window.I18N.locale(),{timeZone:'America/Argentina/Buenos_Aires'})+txt('. Tocá el mapa o una localidad para consultar ese punto.','. Tap the map or a town to query that point.');n.append(nota);
+    nota.textContent=(anticuado ? txt('Datos antiguos; revisá las fechas. ','Older data; check the dates. '):'')+txt('ICON-EPS · 40 escenarios. Muestreo 0,25° (~25 km); no indica diferencias por calle. Caminos OSM requieren conexión. Actualizado: ','ICON-EPS · 40 scenarios. 0.25° sampling (~25 km); no street-level detail. OSM roads require a connection. Updated: ')+new Date(datos.consultado).toLocaleString(window.I18N.locale(),{timeZone:'America/Argentina/Buenos_Aires'})+txt('. Capa recortada a Chaco; el cero es transparente. Tocá el mapa o una localidad para consultar ese punto.','. Layer clipped to Chaco; zero is transparent. Tap the map or a town to query that point.');n.append(nota);
     const a=document.createElement('a');a.href='https://open-meteo.com/en/docs/ensemble-api';a.textContent='Open-Meteo · DWD · CC BY 4.0';n.append(a);
   }
   async function iniciar(m) {
@@ -52,8 +56,13 @@
     mapa.addLayer({id:'precipitacion-celdas',type:'fill',source:'precipitacion',layout:{visibility:'none'},paint:{'fill-color':'#66c2a4','fill-opacity':.55,'fill-outline-color':'rgba(0,0,0,0)'}},'deptos-borde');
     if (mapa.getLayer('punto-pronostico')) mapa.moveLayer('punto-pronostico');
     try {
-      const r=await fetch('data/precipitacion.json',{cache:'no-cache'});if(!r.ok)throw Error(r.status);
-      datos=await r.json();
+      const [r,g]=await Promise.all([
+        fetch('data/precipitacion.json',{cache:'no-cache'}),
+        fetch('data/precipitacion-celdas.geojson',{cache:'no-cache'})
+      ]);
+      if(!r.ok || !g.ok)throw Error('Datos del mapa no disponibles');
+      [datos,recortes]=await Promise.all([r.json(),g.json()]);
+      if (!recortes.features?.length || recortes.paso !== datos.paso) throw Error('Geometría incompatible');
       if(!datos.celdas?.length || datos.fechas?.length!==7)throw Error('Grilla inválida');
       const hoy=new Date().toLocaleDateString('en-CA',{timeZone:'America/Argentina/Buenos_Aires'});
       const i=datos.fechas.indexOf(hoy);if(i>=0)dia=i;

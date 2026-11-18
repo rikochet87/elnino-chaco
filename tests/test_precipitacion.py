@@ -35,3 +35,16 @@ class PrecipitacionTest(unittest.TestCase):
                 ps = [r['prob'][str(x)] for x in (1, 10, 20, 50)]
                 self.assertEqual(ps, sorted(ps, reverse=True))
                 self.assertTrue(all(0 <= v <= 100 for v in ps))
+
+    def test_recorte_no_pinta_fuera_de_chaco(self):
+        try:
+            from shapely.geometry import shape
+            from shapely.ops import unary_union
+        except ImportError:
+            self.skipTest('Requiere Shapely para verificar el recorte geométrico')
+        a = json.loads((ROOT / 'docs/data/departamentos.geojson').read_text())
+        b = json.loads((ROOT / 'docs/data/precipitacion-celdas.geojson').read_text())
+        provincia = unary_union([shape(f['geometry']) for f in a['features']])
+        geometrias = [shape(f['geometry']) for f in b['features']]
+        self.assertTrue(all(g.is_valid for g in geometrias))
+        self.assertLess(unary_union(geometrias).symmetric_difference(provincia).area, 1e-10)
