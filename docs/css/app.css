@@ -418,3 +418,15 @@ body[data-horizonte="verano"] [data-horizonte="dias"] { display: none !important
   .cabecera .idioma button, .cabecera .boton-claro { min-height: 44px; }
   .tabla-origen td { font-size: 14px; }
 }
+
+/* En escritorio el cambio de horizonte pertenece al panel, sin franja superior. */
+@media (min-width: 901px) {
+  .explorador .selector-horizonte { width: 100%; max-width: none; margin: 0 0 6px; padding: 4px; gap: 4px; flex: none; border: 1px solid #d3dfe8; border-radius: 8px; background: #eef3f7; }
+  .explorador .selector-horizonte button { padding: 10px 8px; min-height: 44px; border: 0; border-radius: 5px; align-items: center; justify-content: center; text-align: center; background: transparent; }
+  .explorador .selector-horizonte strong { font-size: 14px; }
+  .explorador .selector-horizonte span { display: none; }
+  .explorador .selector-horizonte [aria-pressed="true"] { background: #13293f; color: #fff; box-shadow: 0 1px 4px #13293f22; }
+}
+@media (max-width: 900px) {
+  .explorador .explorador-panel > .selector-horizonte { width: 100%; max-width: none; margin: 0; }
+}

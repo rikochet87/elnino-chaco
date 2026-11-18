@@ -184,7 +184,7 @@
   }
 
   function armarTabs() {
-    $("tabs").innerHTML = ORDEN_TABS.map((k) => `<button class="tab" role="tab" type="button" data-tab="${k}" aria-controls="mapa-contenedor">${S.MODULOS[k].nombre}</button>`).join("");
+    $("tabs").innerHTML = ORDEN_TABS.filter((k) => k !== "precipitacion").map((k) => `<button class="tab" role="tab" type="button" data-tab="${k}" aria-controls="mapa-contenedor">${S.MODULOS[k].nombre}</button>`).join("");
     $("tabs").addEventListener("click", (e) => {
       const b = e.target.closest(".tab");
       if (b) { tabActiva = b.dataset.tab; pintarMapa(); if (emergente) emergente.setHTML(htmlEmergente(emergente.idDepto)), reengancharEmergente(); }
